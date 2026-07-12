@@ -25,6 +25,14 @@ Use this template to create and maintain a project learning ledger. The ledger i
 - User background:
 - Current learning priority:
 - Current blockers:
+- Target outcome: read / reproduce / modify / research-extend
+- Prerequisites already mastered:
+- Available study time:
+- Preferred explanation depth:
+- Runtime experiments authorized: yes / no / ask first
+- Study mode: new / resume / review / finalize
+- Repository revision observed:
+- Last revision checked:
 
 ## 2. 证据清单
 
@@ -56,6 +64,18 @@ Keep evidence separate from assumptions.
 | Missing evidence | Why needed | Blocking level | How to obtain |
 | --- | --- | --- | --- |
 |  |  | High / Medium / Low |  |
+
+### 2.5 重要结论置信度
+
+| Conclusion | Evidence level (E0-E3) | Confidence | Evidence | What would falsify it | Verification action |
+| --- | --- | --- | --- | --- | --- |
+|  |  | High / Medium / Low |  |  |  |
+
+### 2.6 矛盾与版本变化
+
+| Claim A | Source A | Claim B | Source B | Current resolution | Recheck action |
+| --- | --- | --- | --- | --- | --- |
+|  |  |  |  |  |  |
 
 ## 3. 学习路线与调整记录
 
@@ -103,6 +123,10 @@ Append one entry after every step.
 - What should enter final notes:
 - Open questions:
 - Next-step adjustment:
+- Completion status: 完成 / 需要补证据 / 需要复习
+- Active-recall result:
+- What would falsify the main conclusion:
+- Repository revision checked:
 
 ## 5. 重要对话与用户问题
 
@@ -111,6 +135,12 @@ Record important user questions, not every sentence.
 | Step | User question | Answer summary | Evidence | Uncertainty | Include in final notes |
 | --- | --- | --- | --- | --- | --- |
 |  |  |  |  |  | yes / no |
+
+## 5.1 主动回忆与费曼复述
+
+| Step | Prompt | Learner response | Corrected understanding | Needs review |
+| --- | --- | --- | --- | --- |
+|  |  |  |  | yes / no |
 
 ## 6. AI 不确定事项
 
@@ -147,6 +177,7 @@ Update before each new step.
 - Commands worth running:
 - Questions to ask the user:
 - Risks to keep in mind:
+- Evidence level and confidence to improve:
 
 ## 9. 最终总结素材池
 
@@ -200,3 +231,5 @@ After each step:
 - Update uncertainty and overlooked points.
 - Update the next-step suggestion.
 - Add reusable final-summary material.
+- Record the completion gate and active-recall result.
+- Check whether the repository revision changed since the previous step.

@@ -1,8 +1,8 @@
 # Project Code Study
 
-> A Codex skill for graduate-level source-code study with paper-code alignment, evidence-grounded explanations, step-by-step learning, and a persistent learning ledger.
+> A cross-agent Agent Skill for graduate-level source-code study with paper-code alignment, evidence-grounded explanations, step-by-step learning, and a persistent learning ledger.
 
-`project-code-study` 是一个面向计算机专业研究生的 Codex skill，用来系统学习 GitHub 上的深度学习/机器学习项目，例如 FCN、UNet、YOLO、Transformer、推荐系统或其他 PyTorch 项目。
+`project-code-study` 是一个面向计算机专业研究生的通用 Agent Skill，用来系统学习 GitHub 上的深度学习/机器学习项目，例如 FCN、UNet、YOLO、Transformer、推荐系统或其他 PyTorch 项目。它只依赖标准的 `SKILL.md`、Markdown 记录和项目文件，因此可以迁移到 Claude Code、Claude Desktop/Cowork、Codex、Cursor 及其他兼容 Agent Skills 的工具。
 
 它的目标不是“泛泛讲一下项目”，而是让大模型在真实代码、论文、配置和运行证据的约束下，像源码阅读导师 + 学习记录员一样，带你逐步读懂项目。
 
@@ -27,7 +27,7 @@ Use this skill when you want to:
 - turn scattered Q&A into durable Markdown notes;
 - force the model to stay evidence-based instead of hallucinating implementation details.
 
-The skill is designed for explicit invocation:
+建议显式调用以开启长期学习轨迹；支持的宿主也可以根据 frontmatter 自动调用：
 
 ```text
 Use $project-code-study to guide me through this project source code at graduate depth.
@@ -100,6 +100,7 @@ project-code-study/
     ├── learning-ledger-template.md
     ├── paper-code-template.md
     ├── step-template.md
+    ├── quality-rubric.md
     └── user-prompts.md
 ```
 
@@ -113,15 +114,18 @@ project-code-study/
 | `references/context-audit-template.md` | Step 9 blind-spot audit template |
 | `references/learning-ledger-template.md` | Template for `PROJECT_STUDY_LOG.md` |
 | `references/final-summary-template.md` | Final Markdown study-note template |
+| `references/quality-rubric.md` | Evidence, confidence, recall, and completion rubric |
 | `references/user-prompts.md` | User-facing copy/paste prompt pack, not a skill |
-| `agents/openai.yaml` | Codex UI metadata and invocation policy |
+| `agents/openai.yaml` | Optional Codex UI metadata; other hosts may ignore it |
 
 ## Quick Start
 
-1. Put this folder under your Codex skills directory, for example:
+1. Put this folder in the host's skill directory. Examples:
 
    ```text
-   D:\skills\project-code-study
+   Claude Code: `~/.claude/skills/project-code-study`
+   Codex: `~/.codex/skills/project-code-study`
+   Project-local: `<project>/.claude/skills/project-code-study`
    ```
 
 2. Start a new conversation and invoke the skill:
@@ -166,7 +170,7 @@ references/user-prompts.md
 
 ## Validation
 
-Validate the skill with the Codex skill creator validator:
+For Codex, validate the skill with the local validator:
 
 ```powershell
 $env:PYTHONUTF8='1'
