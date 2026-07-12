@@ -1,235 +1,214 @@
 # PROJECT_STUDY_LOG.md Template
 
-Use this template to create and maintain a project learning ledger. The ledger is a process document, not the final study note. Its job is to preserve learning context, expose weak points, and guide the next explanation.
+This is a working learning ledger, not a transcript and not the final study note. Keep the top useful for a 60-second restart. Update state tables in place; append only the session log.
 
-# <Project Name> 学习记录员文档
+# <Project Name> Learning Ledger
 
-## 0. Ledger Status
+## 0. Record Control
 
-- Ledger file:
-- Created / last updated:
-- Save location:
-- Writing authorized by user: yes / no / temporary chat-only
-- Current mode: file-backed / chat-only
-- Current step:
-- Next step:
+- Ledger path:
+- User authorized writing: yes / no / chat-only
+- Created:
+- Last meaningful update:
+- Maintainer: AI with user review
+- Project root / repository:
+- Repository revision: `<branch>@<commit>` or `unknown`
+- Ledger schema version: 2
 
-## 1. 项目学习状态
+## 1. Current Snapshot
 
-- Project name:
-- Project path / repository:
-- Task type:
-- Framework:
-- Main paper / related papers:
-- User goal:
-- User background:
-- Current learning priority:
-- Current blockers:
+Read this section first at every session. Keep it short and current.
+
+- Study mode: new / resume / review / advance / blocked / finalize
 - Target outcome: read / reproduce / modify / research-extend
+- Current step:
+- Current session budget: quick / standard / deep / `<minutes>`
+- Last session:
+- Days since last session:
+- Primary next action: exactly one action
+- Why this action has highest value:
+- Current blocker:
+- Review due now:
+- Biggest learning risk:
+- AI's least certain important claim:
+- User's current concern in their own words:
+
+### Restart Brief
+
+Write no more than 8 bullets:
+
+- What the project does:
+- Where execution begins:
+- What the learner can currently explain:
+- What the learner can currently trace in code:
+- What remains fuzzy or incorrect:
+- What evidence is still missing:
+- What changed since the previous session:
+- What to do next:
+
+## 2. Learning Contract
+
+- Learner background:
 - Prerequisites already mastered:
-- Available study time:
-- Preferred explanation depth:
+- Motivation:
+- Deliverable that proves success:
+- Available time per session / total period:
+- Preferred explanation style:
 - Runtime experiments authorized: yes / no / ask first
-- Study mode: new / resume / review / finalize
-- Repository revision observed:
-- Last revision checked:
+- Network or paper retrieval authorized: yes / no / ask first
+- Project code modification authorized: yes / no / ask first
+- Out of scope:
 
-## 2. 证据清单
+Update this only when the user changes goals, constraints, or available time.
 
-Keep evidence separate from assumptions.
+## 3. Route and Step State
 
-### 2.1 已读取项目文件
+Do not use completion percentage as a proxy for understanding.
 
-| File / path | Symbols or content read | Why it matters | Status |
-| --- | --- | --- | --- |
-|  |  |  | Confirmed / Partial / Need revisit |
-
-### 2.2 已读取论文材料
-
-| Paper / section / page / formula | Key point | Code relation | Status |
-| --- | --- | --- | --- |
-|  |  |  | Confirmed / Partial / Missing code match |
-
-### 2.3 已确认配置与运行证据
-
-- Environment / dependencies:
-- Config files:
-- Training commands:
-- Inference commands:
-- Logs / metrics / checkpoints:
-- Reproduction evidence:
-
-### 2.4 缺失材料
-
-| Missing evidence | Why needed | Blocking level | How to obtain |
-| --- | --- | --- | --- |
-|  |  | High / Medium / Low |  |
-
-### 2.5 重要结论置信度
-
-| Conclusion | Evidence level (E0-E3) | Confidence | Evidence | What would falsify it | Verification action |
+| Step | Topic | Status | Exit evidence required | Actual evidence | Next decision |
 | --- | --- | --- | --- | --- | --- |
-|  |  | High / Medium / Low |  |  |  |
+| 0 | Project map | planned | Can locate entrypoints and describe main flow |  |  |
+| 1 | Task and paper problem | planned | Can explain problem, motivation, and paper claim |  |  |
+| 2 | Data and preprocessing | planned | Can trace one sample into a batch with shapes |  |  |
+| 3 | Architecture | planned | Can reconstruct module graph and major interfaces |  |  |
+| 4 | Core source reading | planned | Can explain and trace selected core modules |  |  |
+| 5 | Paper-code mapping | planned | Can name verified matches and deviations |  |  |
+| 6 | Loss/postprocess/metrics | planned | Can connect formulas, tensors, code, and metrics |  |  |
+| 7 | Training/config | planned | Can trace one training iteration and config resolution |  |  |
+| 8 | Inference/reproduction | planned | Can run or specify a verified inference/reproduction path |  |  |
+| 9 | Context audit | planned | Important blind spots and uncertainties are prioritized |  |  |
+| 10 | Graduate synthesis | planned | Can critique, modify, and propose an evidence-backed experiment |  |  |
 
-### 2.6 矛盾与版本变化
+Allowed status: `planned`, `active`, `review`, `blocked`, `done`, `skipped`, `stale`.
 
-| Claim A | Source A | Claim B | Source B | Current resolution | Recheck action |
-| --- | --- | --- | --- | --- | --- |
-|  |  |  |  |  |  |
+### Route Changes
 
-## 3. 学习路线与调整记录
-
-### 3.1 当前路线
-
-| Step | Topic | Status | Planned focus |
-| --- | --- | --- | --- |
-| 0 | Project map | Pending / Done / Revisit |  |
-| 1 | Task and paper problem | Pending / Done / Revisit |  |
-| 2 | Data and preprocessing | Pending / Done / Revisit |  |
-| 3 | Architecture | Pending / Done / Revisit |  |
-| 4 | Core source reading | Pending / Done / Revisit |  |
-| 5 | Paper-code mapping | Pending / Done / Revisit |  |
-| 6 | Loss/postprocess/metrics | Pending / Done / Revisit |  |
-| 7 | Training/config | Pending / Done / Revisit |  |
-| 8 | Inference/reproduction | Pending / Done / Revisit |  |
-| 9 | Context audit | Pending / Done / Revisit |  |
-| 10 | Graduate synthesis | Pending / Done / Revisit |  |
-
-### 3.2 路线调整日志
-
-| Time | Change | Reason | Evidence | Impact on next step |
+| Date | Change | Reason | User confirmed | Impact |
 | --- | --- | --- | --- | --- |
-|  |  |  |  |  |
+|  |  |  | yes / no |  |
 
-## 4. Step 学习记录
+## 4. Mastery Map
 
-Append one entry after every step.
+Track demonstrated performance, not just content exposure.
 
-## Step <N>: <Title>
+| ID | Concept or skill | Importance | Demonstrated level | Evidence of learning | Self-confidence (1-5) | Last tested | Next review |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| K-001 |  | core / supporting | unseen / introduced / explainable / traceable / applied / verified / revisit | teach-back, trace, prediction, code change, experiment |  |  |  |
 
-- Date / turn:
-- Goal:
-- Evidence used:
-- Core takeaway:
-- Key code:
-- Parameter notes:
-- Call relationship:
-- Shape flow:
-- Paper-code relation:
-- Engineering details:
-- Easy mistakes:
-- Debug / verification ideas:
-- What changed in my understanding:
-- What should enter final notes:
-- Open questions:
-- Next-step adjustment:
-- Completion status: 完成 / 需要补证据 / 需要复习
-- Active-recall result:
-- What would falsify the main conclusion:
+Interpretation:
+
+- `introduced`: learner has seen the explanation.
+- `explainable`: learner can explain it unaided.
+- `traceable`: learner can locate and follow it through code or shapes.
+- `applied`: learner can use it in a modification, debugging task, or experiment.
+- `verified`: performance has held across a later review or real run.
+- `revisit`: a misconception, forgotten dependency, or weak transfer was observed.
+
+## 5. Source and Evidence Register
+
+Register a source once, then refer to its ID elsewhere.
+
+| ID | Type | Locator | Revision / page | What was actually inspected | Supports | Status |
+| --- | --- | --- | --- | --- | --- | --- |
+| SRC-001 | code / config / paper / docs / runtime / user | `<path:symbol>` or paper section |  |  | K-001 / Q-001 / U-001 | confirmed / partial / stale / missing |
+
+Rules:
+
+- README claims are documentation evidence, not runtime verification.
+- Search snippets are discovery aids, not substitutes for the original source.
+- When the repository revision changes, mark affected sources and conclusions `stale` until rechecked.
+
+## 6. Open Loops
+
+Every unresolved item needs a concrete next action. Close or defer items explicitly.
+
+| ID | Type | Statement | Blocking | Evidence needed | Next action | Target step | Status |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| Q-001 | user question |  | yes / no |  |  |  | open / answered / deferred / stale |
+| U-001 | AI uncertainty |  | yes / no |  |  |  | open / resolved / accepted-risk / stale |
+| R-001 | reproduction risk |  | yes / no |  |  |  | open / mitigated / accepted-risk |
+
+Do not keep a large generic TODO list. The current snapshot should name only the highest-value next action.
+
+## 7. Misconceptions and Corrections
+
+Do not erase a wrong understanding after explaining it. Retest it later.
+
+| ID | Observed misunderstanding | How it was detected | Correct model | Evidence | Retest prompt | Status |
+| --- | --- | --- | --- | --- | --- | --- |
+| M-001 |  | teach-back / shape trace / prediction / code task |  | SRC-... |  | observed / corrected / retest-due / resolved |
+
+## 8. User Questions Worth Preserving
+
+Keep the user's real intent, but summarize instead of copying the conversation.
+
+| ID | Step | Question | Short answer | Evidence IDs | Changed prior understanding | Final-note tag |
+| --- | --- | --- | --- | --- | --- | --- |
+| Q-001 |  |  |  | SRC-... | yes / no | include / omit |
+
+## 9. Experiments, Commands, and Failed Attempts
+
+Record commands only when they teach, verify, reproduce, or prevent repeated failure.
+
+| ID | Date | Hypothesis / purpose | Command or change | Result | Evidence artifact | Interpretation | Next action |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| EXP-001 |  |  |  | not-run / pass / fail / partial | log / metric / output / diff |  |  |
+
+Never rewrite a failed attempt as if it worked. Record environment and configuration when they affect interpretation.
+
+## 10. Paper-Code and Source Conflicts
+
+| ID | Claim | Source A | Source B | Current assessment | Confidence | Verification action | Status |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| C-001 |  | SRC-... | SRC-... |  | high / medium / low |  | open / resolved / accepted-ambiguity |
+
+## 11. Review Queue
+
+| Due | Knowledge ID | Why review is due | Review form | Result | Reschedule |
+| --- | --- | --- | --- | --- | --- |
+|  | K-... | new / wrong / hinted / unaided / applied | explain / trace / predict / debug / modify | pending / weak / adequate / strong |  |
+
+## 12. Maintenance State
+
+- Last duplicate/stale-entry review:
+- Closed items still referenced elsewhere:
+- Archive recommended: yes / no
+- Archive authorized by user: yes / no
+- Archive path, if created: `PROJECT_STUDY_LOG_ARCHIVE.md`
+- Material ready for final summary:
+- Material explicitly excluded from final summary:
+
+## 13. Milestone Syntheses
+
+Create a compact synthesis after a meaningful milestone, not after every answer. These are the main inputs to the final Markdown note.
+
+### Milestone <name / steps>
+
+- Durable understanding:
+- Key source IDs:
+- Call and shape path learned:
+- Paper-code relationship:
+- What changed in the learner's mental model:
+- Remaining open-loop IDs:
+- Reusable final-note material:
+
+## 14. Session Log
+
+Keep this as the final section of the file. Append exactly one entry after each meaningful learning session. Partial or interrupted sessions still get an honest entry.
+
+### Session <N> — <YYYY-MM-DD>
+
+- Mode and duration: quick / standard / deep, `<minutes>`
 - Repository revision checked:
-
-## 5. 重要对话与用户问题
-
-Record important user questions, not every sentence.
-
-| Step | User question | Answer summary | Evidence | Uncertainty | Include in final notes |
-| --- | --- | --- | --- | --- | --- |
-|  |  |  |  |  | yes / no |
-
-## 5.1 主动回忆与费曼复述
-
-| Step | Prompt | Learner response | Corrected understanding | Needs review |
-| --- | --- | --- | --- | --- |
-|  |  |  |  | yes / no |
-
-## 6. AI 不确定事项
-
-Make uncertainty explicit. Do not smooth it over.
-
-| Uncertain item | Why uncertain | Evidence needed | Risk if ignored | Verification plan |
-| --- | --- | --- | --- | --- |
-|  |  |  |  |  |
-
-## 7. 用户可能忽视的点
-
-Use this section to actively guide learning beyond the user's immediate questions.
-
-| Overlooked point | Why it matters | Evidence so far | Suggested action |
-| --- | --- | --- | --- |
-| Reproduction risk |  |  |  |
-| Metric / evaluation trap |  |  |  |
-| Dataset or preprocessing assumption |  |  |  |
-| Hidden default config |  |  |  |
-| Paper-code mismatch |  |  |  |
-| Train/inference inconsistency |  |  |  |
-| Performance / memory bottleneck |  |  |  |
-| Experimental comparability risk |  |  |  |
-
-## 8. 下一步学习建议
-
-Update before each new step.
-
-- Next step:
-- Why this step should come next:
-- Files to inspect:
-- Paper sections to inspect:
-- Shapes to verify:
-- Commands worth running:
-- Questions to ask the user:
-- Risks to keep in mind:
-- Evidence level and confidence to improve:
-
-## 9. 最终总结素材池
-
-Collect polished materials that can be reused in the final Markdown note.
-
-### 9.1 项目概览素材
-
-- 
-
-### 9.2 模块关系素材
-
-- 
-
-### 9.3 关键代码素材
-
-- 
-
-### 9.4 Shape 流素材
-
-- 
-
-### 9.5 论文-代码映射素材
-
-- 
-
-### 9.6 用户问题与回答素材
-
-- 
-
-### 9.7 易错点与调试素材
-
-- 
-
-### 9.8 复现与实验建议素材
-
-- 
-
-## 10. Ledger Maintenance Checklist
-
-Before each step:
-
-- Read or review this ledger.
-- Identify unresolved user questions.
-- Identify missing evidence that blocks accurate explanation.
-- Decide whether the next step should be adjusted.
-
-After each step:
-
-- Append the step record.
-- Add important user questions.
-- Update uncertainty and overlooked points.
-- Update the next-step suggestion.
-- Add reusable final-summary material.
-- Record the completion gate and active-recall result.
-- Check whether the repository revision changed since the previous step.
+- User's intended focus:
+- Review performed before new material:
+- Sources inspected: SRC-...
+- Work completed:
+- Learner evidence: what they explained, traced, predicted, applied, or failed to recall
+- Misconceptions observed or retested: M-...
+- Questions added or answered: Q-...
+- Experiments attempted: EXP-...
+- State changes: step status and mastery changes
+- Outcome: advanced / reviewed / blocked / interrupted / finalized
+- Primary next action:
+- Suggested return timing:

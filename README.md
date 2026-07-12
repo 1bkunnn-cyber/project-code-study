@@ -127,13 +127,17 @@ Mentioning “RAG” does not make a database exist. The agent must never claim 
 
 ### Learning ledger
 
-The default process file is `PROJECT_STUDY_LOG.md`. It records:
+The default process file is `PROJECT_STUDY_LOG.md`. It is designed for real study sessions rather than passive note accumulation:
 
-- project status, target outcome, evidence inventory, and repository revision;
-- completed steps, route adjustments, key code, and shape flows;
-- user questions, active-recall results, and recurring weak points;
-- confidence, contradictions, missing evidence, and what would falsify a conclusion;
-- overlooked risks, next actions, and material for the final study note.
+- a compact current snapshot lets a new session recover in about 60 seconds;
+- a mastery map separates “seen” from “can explain,” “can trace,” “can apply,” and “verified later”;
+- stable IDs connect sources, questions, uncertainties, misconceptions, experiments, and conflicts without repeating text;
+- a review queue schedules explain/trace/predict/debug/modify exercises from actual performance;
+- one append-only record captures each meaningful session, including blocked or interrupted sessions honestly;
+- milestone syntheses feed the final note while old transcripts stay out of the active context;
+- repository revisions mark dependent conclusions stale instead of silently carrying outdated knowledge forward.
+
+The ledger keeps a hot current-state layer and a historical session layer in one human-editable Markdown file. When it becomes difficult to scan, the agent compacts closed history and asks before creating `PROJECT_STUDY_LOG_ARCHIVE.md`.
 
 ## Prompt Pack
 
@@ -158,6 +162,7 @@ project-code-study/
 └── references/
     ├── context-audit-template.md
     ├── final-summary-template.md
+    ├── learning-ledger-protocol.md
     ├── learning-ledger-template.md
     ├── paper-code-template.md
     ├── quality-rubric.md

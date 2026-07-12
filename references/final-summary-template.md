@@ -2,7 +2,7 @@
 
 Use this structure when the user asks for final notes.
 
-Prefer the project's `PROJECT_STUDY_LOG.md` learning ledger as the source for completed steps, user questions, route adjustments, unresolved uncertainties, overlooked points, and reusable summary material. If no ledger was saved, use the temporary conversation ledger.
+Prefer the project's `PROJECT_STUDY_LOG.md` learning ledger as the source for completed steps, demonstrated mastery, milestone syntheses, user questions, route adjustments, unresolved uncertainties, misconceptions, experiments, and reusable summary material. Resolve referenced stable IDs through the source/evidence register. Do not treat self-confidence, exposure, or a `done` step label as proof of understanding. If no ledger was saved, use the temporary conversation ledger.
 
 # <Project Name> 源码学习笔记
 
@@ -26,19 +26,19 @@ Prefer the project's `PROJECT_STUDY_LOG.md` learning ledger as the source for co
 
 ## 3. 学习路线
 
-| Step | Topic | Status | Key takeaway |
-| --- | --- | --- | --- |
-| 0 | Project map |  |  |
-| 1 | Task and paper problem |  |  |
-| 2 | Data and preprocessing |  |  |
-| 3 | Architecture |  |  |
-| 4 | Core source reading |  |  |
-| 5 | Paper-code mapping |  |  |
-| 6 | Loss/postprocess/metrics |  |  |
-| 7 | Training/config |  |  |
-| 8 | Inference/reproduction |  |  |
-| 9 | Context audit |  |  |
-| 10 | Graduate synthesis |  |  |
+| Step | Topic | Status | Demonstrated exit evidence | Key takeaway |
+| --- | --- | --- | --- | --- |
+| 0 | Project map |  |  |  |
+| 1 | Task and paper problem |  |  |  |
+| 2 | Data and preprocessing |  |  |  |
+| 3 | Architecture |  |  |  |
+| 4 | Core source reading |  |  |  |
+| 5 | Paper-code mapping |  |  |  |
+| 6 | Loss/postprocess/metrics |  |  |  |
+| 7 | Training/config |  |  |  |
+| 8 | Inference/reproduction |  |  |  |
+| 9 | Context audit |  |  |  |
+| 10 | Graduate synthesis |  |  |  |
 
 ## 4. 模块关系
 
@@ -99,12 +99,14 @@ For each key file/module:
 - Evidence needed next:
 - Route adjustments from the learning ledger:
 - Unresolved questions carried forward:
+- Misconceptions still due for retest:
+- Stale conclusions caused by repository changes:
 
 ## 10. 用户问题与回答
 
-| Step | Question | Answer | Evidence |
-| --- | --- | --- | --- |
-|  |  |  |  |
+| ID | Step | Question | Answer | Evidence IDs |
+| --- | --- | --- | --- | --- |
+| Q-... |  |  |  | SRC-... |
 
 ## 11. 易错点与调试清单
 
@@ -130,3 +132,5 @@ For each key file/module:
 - Experiments to reproduce:
 - Ablations to try:
 - Modifications worth implementing:
+- Review queue carried forward:
+- Single highest-value next action:

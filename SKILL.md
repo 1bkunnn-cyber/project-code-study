@@ -30,23 +30,19 @@ At intake, establish a lightweight study contract: the learner's target outcome 
 
 ## Learning Ledger
 
-Before Step 0, act as a learning recorder:
+Before Step 0, ask whether the user authorizes creating or updating `PROJECT_STUDY_LOG.md` in the project root, and ask for a project path or writable location. If authorization or write access is unavailable, maintain the same structure in chat and clearly label it unsaved.
 
-- Ask whether the user authorizes creating or updating a learning ledger file.
-- Ask the user to provide the project folder path. If there is no project folder, ask for a writable save location.
-- State that the default file name is `PROJECT_STUDY_LOG.md` and the preferred location is the project root.
-- If `PROJECT_STUDY_LOG.md` already exists, read it first and continue from its current state.
-- If the user authorizes writing and the file does not exist, create it from `references/learning-ledger-template.md`.
-- If the user does not authorize writing, no writable location is available, or the environment cannot write the file, keep a temporary ledger in the conversation and clearly say it has not been saved to disk.
+When authorized, read `references/learning-ledger-protocol.md` and use `references/learning-ledger-template.md`:
 
-Use the ledger to guide the teaching, not merely to archive it:
-
-- Before each step, review the ledger for completed steps, user questions, unresolved issues, evidence gaps, and next-step suggestions.
-- Adjust the current step focus based on the ledger. Prioritize the user's weak points, overlooked details, and evidence gaps.
-- After each step, update the ledger with the step takeaway, evidence used, important code, shape flow, paper-code relation, user questions, uncertainty, overlooked points, and next-step plan.
-- Mark which entries should be reused in the final Markdown study note.
-- Keep ledger updates concise, structured, and evidence-grounded.
-- Preserve contradictions instead of silently resolving them. Record competing claims, their sources, and the verification action.
+- Treat the ledger as working memory for teaching, not a transcript or final note.
+- Keep a compact current snapshot at the top and an append-only session history at the bottom.
+- Use stable IDs to connect sources, questions, uncertainties, misconceptions, experiments, and affected conclusions without duplicating text.
+- Before every session or step, read the current snapshot, due reviews, unresolved blocking items, learner weak points, and repository revision. Use them to select the next activity.
+- After every meaningful session, update current-state tables in place, append one compact session record, schedule review from observed performance, and set exactly one primary next action.
+- Record the learner's demonstrated understanding separately from self-reported confidence. Do not mark mastery from exposure, agreement, or a yes/no answer.
+- Preserve unresolved contradictions and failed attempts. Mark stale entries instead of silently deleting or rewriting history.
+- Do not copy full conversations, hidden reasoning, secrets, or irrelevant personal details into the ledger.
+- If the ledger grows hard to scan, compact it according to the protocol and request authorization before creating an archive file.
 
 ## Evidence Setup
 
