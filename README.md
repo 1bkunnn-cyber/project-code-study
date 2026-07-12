@@ -2,11 +2,19 @@
 
 # Project Code Study
 
-### Evidence-grounded, graduate-level study of real code repositories.
+### Code-to-Research Learning for AI Agents
+
+<p><strong>Read the code. Verify the claim. Reconstruct the system.</strong></p>
 
 [![Agent Skills](https://img.shields.io/badge/Agent%20Skills-compatible-111827?style=for-the-badge)](https://agentskills.io/)
+[![Cross-Agent](https://img.shields.io/badge/Cross--Agent-Claude%20%7C%20Codex%20%7C%20More-2563EB?style=for-the-badge)](#核心特色)
+[![Research Grade](https://img.shields.io/badge/Study%20Level-Graduate%2B-7C3AED?style=for-the-badge)](#一个-step-到底会学什么)
+[![Evidence First](https://img.shields.io/badge/Method-Evidence--First-0F766E?style=for-the-badge)](#防幻觉与权限边界)
 [![Claude](https://img.shields.io/badge/Claude-supported-D97706?style=for-the-badge)](https://claude.ai/)
 [![Codex](https://img.shields.io/badge/Codex-supported-10A37F?style=for-the-badge)](https://openai.com/codex/)
+[![Prompt Pack](https://img.shields.io/badge/Prompt%20Pack-Included-F59E0B?style=for-the-badge)](references/user-prompts.md)
+[![Learning Ledger](https://img.shields.io/badge/Learning%20Ledger-Included-8B5CF6?style=for-the-badge)](assets/PROJECT_STUDY_LOG.template.md)
+[![MIT License](https://img.shields.io/github/license/1bkunnn-cyber/project-code-study?style=for-the-badge)](LICENSE)
 [![GitHub stars](https://img.shields.io/github/stars/1bkunnn-cyber/project-code-study?style=for-the-badge)](https://github.com/1bkunnn-cyber/project-code-study/stargazers)
 
 <strong>语言 / Language</strong>
@@ -119,6 +127,7 @@ Step 9 盲点审计与最终 Markdown 知识库
 | [`references/quality-rubric.md`](references/quality-rubric.md) | 证据、置信度、掌握度和 Step 完成质量标准 | 首次学习、复习和恢复时 |
 | [`scripts/validate_learning_ledger.py`](scripts/validate_learning_ledger.py) | 校验学习记录 schema、标题和表格结构 | 创建或维护记录后 |
 | [`agents/openai.yaml`](agents/openai.yaml) | 可选的宿主展示元数据 | 支持该元数据的宿主中 |
+| [`LICENSE`](LICENSE) | MIT 开源许可证 | 查看使用、修改和分发条款 |
 
 ## 使用教程
 
@@ -275,7 +284,7 @@ Step 9 不是普通总结，而是一次全局审计。模型必须重新查看�
 
 ## 许可证与仓库
 
-当前尚未选择许可证。如果计划公开分发，请先添加许可证以明确复用条款。
+本项目采用 [MIT License](LICENSE)。使用、修改和分发项目内容时，请遵守许可证中的条款。
 
 [GitHub 仓库](https://github.com/1bkunnn-cyber/project-code-study) · [Issues](https://github.com/1bkunnn-cyber/project-code-study/issues)
 
@@ -380,6 +389,7 @@ The route is adapted to the repository and the learner's goal; it is not a manda
 | [`references/quality-rubric.md`](references/quality-rubric.md) | Evidence, confidence, mastery, and completion gates | Study, review, and resume |
 | [`scripts/validate_learning_ledger.py`](scripts/validate_learning_ledger.py) | Validates ledger schema, headings, and tables | After ledger creation or maintenance |
 | [`agents/openai.yaml`](agents/openai.yaml) | Optional host display metadata | Hosts that support it |
+| [`LICENSE`](LICENSE) | MIT open-source license | Usage, modification, and redistribution terms |
 
 ## Tutorial: Use It From Start to Finish
 
@@ -531,7 +541,7 @@ Contributions are welcome: real study cases, paper-code mismatches, reproduction
 
 ## License and Repository
 
-No license has been selected yet. Add one before public redistribution if you want to define reuse terms.
+This project is released under the [MIT License](LICENSE). Follow the license terms when using, modifying, or redistributing the project.
 
 [GitHub](https://github.com/1bkunnn-cyber/project-code-study) · [Issues](https://github.com/1bkunnn-cyber/project-code-study/issues)
 
