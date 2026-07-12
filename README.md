@@ -1,188 +1,220 @@
+<div align="center">
+
 # Project Code Study
 
-> A cross-agent Agent Skill for graduate-level source-code study with paper-code alignment, evidence-grounded explanations, step-by-step learning, and a persistent learning ledger.
+### Turn a GitHub repository into a graduate-level, evidence-grounded learning track.
 
-`project-code-study` 是一个面向计算机专业研究生的通用 Agent Skill，用来系统学习 GitHub 上的深度学习/机器学习项目，例如 FCN、UNet、YOLO、Transformer、推荐系统或其他 PyTorch 项目。它只依赖标准的 `SKILL.md`、Markdown 记录和项目文件，因此可以迁移到 Claude Code、Claude Desktop/Cowork、Codex、Cursor 及其他兼容 Agent Skills 的工具。
+Read the code. Connect it to the paper. Reconstruct the shapes. Reproduce the experiment. Find what you missed.
 
-它的目标不是“泛泛讲一下项目”，而是让大模型在真实代码、论文、配置和运行证据的约束下，像源码阅读导师 + 学习记录员一样，带你逐步读懂项目。
+[![Agent Skills](https://img.shields.io/badge/Agent%20Skills-compatible-111827?style=for-the-badge)](https://agentskills.io/)
+[![Claude](https://img.shields.io/badge/Claude-supported-D97706?style=for-the-badge)](https://claude.ai/)
+[![Codex](https://img.shields.io/badge/Codex-supported-10A37F?style=for-the-badge)](https://openai.com/codex/)
+[![GitHub stars](https://img.shields.io/github/stars/1bkunnn-cyber/project-code-study?style=for-the-badge)](https://github.com/1bkunnn-cyber/project-code-study/stargazers)
 
-## Highlights
+[Quick Start](#quick-start) · [What It Does](#what-it-does) · [Prompt Pack](#prompt-pack) · [How It Works](#how-it-works) · [Contributing](#contributing)
 
-- **研究生级源码讲解**：覆盖参数、代码逻辑、调用关系、语法、shape 变化、模块作用、模块关系和工程细节。
-- **论文与代码对照**：区分论文描述、当前实现、工程化改动和可能原因。
-- **强防幻觉规则**：没有看到证据时必须说明 `当前材料中未看到证据`，不能编造文件、函数、参数、实验或论文结论。
-- **Step-by-step 学习路线**：从项目地图、论文问题、数据流、模型结构到训练、推理、审计和复盘。
-- **学习记录员机制**：维护 `PROJECT_STUDY_LOG.md`，记录学习过程、问题、遗漏点、不确定事项和下一步调整。
-- **最终 Markdown 笔记**：学完后生成可复习的知识库式源码学习笔记。
-- **用户辅助提示词**：提供可复制的开场、追问、继续学习、盲点审计和最终总结提示词。
+</div>
 
-## When To Use
+## Why This Exists
 
-Use this skill when you want to:
+Most code explanations stop at “this function does X.” That is not enough to reproduce or modify a research project.
 
-- follow a GitHub project to learn deep-learning or ML engineering;
-- understand how a paper is implemented in code;
-- read a training/inference pipeline systematically;
-- trace tensor shapes through model modules;
-- turn scattered Q&A into durable Markdown notes;
-- force the model to stay evidence-based instead of hallucinating implementation details.
+`project-code-study` turns source-code learning into a durable study process. It makes an AI agent inspect real evidence, teach one step at a time, trace calls and tensor shapes, compare paper claims with implementation, test the learner's understanding, and maintain a project-local learning ledger.
 
-建议显式调用以开启长期学习轨迹；支持的宿主也可以根据 frontmatter 自动调用：
+It is useful for projects such as FCN, U-Net, YOLO, Transformers, diffusion models, recommender systems, and general Python/PyTorch repositories.
 
-```text
-Use $project-code-study to guide me through this project source code at graduate depth.
-```
+## What It Does
 
-## Learning Workflow
-
-The skill uses a staged route and adapts it to the actual project.
-
-| Step | Focus |
+| Need | What the skill produces |
 | --- | --- |
-| 0 | Project map: files, entrypoints, evidence scope |
-| 1 | Task background and paper problem |
-| 2 | Data input and preprocessing |
-| 3 | Whole model architecture |
-| 4 | Core module source reading |
-| 5 | Paper-to-code mapping |
-| 6 | Loss, assignment, post-processing, metrics |
-| 7 | Training loop and configuration system |
-| 8 | Inference, visualization, deployment, reproduction |
-| 9 | Global context audit and blind-spot review |
-| 10 | Graduate-level synthesis |
+| Understand the project | Evidence-backed project map, entrypoints, data flow, and module graph |
+| Read research code | Parameters, syntax, calls, shapes, math, engineering details, and failure modes |
+| Connect paper and code | A structured mapping of matches, simplifications, deviations, and possible reasons |
+| Learn across sessions | `PROJECT_STUDY_LOG.md` with progress, questions, uncertainty, blind spots, and next actions |
+| Avoid hallucinations | Source labels, evidence levels, confidence, contradictions, and explicit missing evidence |
+| Actually learn | Active recall, teach-back, prediction, modification questions, and completion gates |
+| Finish with a knowledge base | A reusable Markdown summary for review, reproduction, and future research |
 
-Each step asks the model to explain:
+## Quick Start
 
-- learning goal and evidence source;
-- class/function/config parameters;
-- code blocks and syntax;
-- upstream/downstream calls;
-- tensor shape flow;
-- paper/math meaning;
-- module role and relationships;
-- engineering details and debugging advice;
-- overlooked points and next-step adjustments.
+### 1. Install for your host
 
-## Learning Ledger
-
-Before Step 0, the skill asks whether it may create or update:
+The core is a standard `SKILL.md` folder. Copy the repository into the skill directory used by your agent:
 
 ```text
-PROJECT_STUDY_LOG.md
+Claude Code:  ~/.claude/skills/project-code-study
+Codex:       ~/.codex/skills/project-code-study
+Project-local: <your-project>/.claude/skills/project-code-study
 ```
 
-The preferred location is the project root. If writing is not authorized or not possible, the model must keep a temporary in-chat ledger and clearly say it has not been saved.
+Claude users can also upload the skill folder through the Claude Skills interface. Other Agent Skills-compatible hosts may use their own skill directory.
 
-The ledger records:
+### 2. Start a study track
 
-- project status and evidence inventory;
-- completed steps and route changes;
-- important code and shape-flow conclusions;
-- user questions and answers;
-- AI uncertainty and missing evidence;
-- user-overlooked points;
-- next-step learning suggestions;
-- reusable material for the final Markdown summary.
+```text
+请使用 $project-code-study，带我以计算机专业研究生的深度学习这个项目。
 
-This makes the skill behave less like a one-off explainer and more like a learning-process manager.
+项目路径或 GitHub 地址：<path or URL>
+论文 PDF、arXiv 或 DOI：<paper or none>
+我的目标：<读懂 / 复现 / 修改 / 研究扩展>
+```
 
-## Repository Structure
+The agent will first ask whether it may create or update `PROJECT_STUDY_LOG.md` and where it may write it. No write authorization means a clearly labelled chat-only ledger.
+
+### 3. Move one step at a time
+
+```text
+请读取学习记录，继续当前项目的下一个 step。
+只推进一个 step，完成后先给我主动回忆问题，等待我的回答，不要自动跳到下一个 step。
+```
+
+### 4. Generate the final notes
+
+```text
+请读取 PROJECT_STUDY_LOG.md 和全部 step 内容，生成最终 Markdown 学习笔记。
+保留证据来源、论文-代码差异、未解决问题、用户问题和复现实验建议。
+```
+
+## The 10-Step Route
+
+```text
+Step 0  Project map and evidence boundary
+Step 1  Task background and paper problem
+Step 2  Data format and preprocessing
+Step 3  Overall architecture and module graph
+Step 4  Core module source reading
+Step 5  Paper-to-code mapping
+Step 6  Loss, assignment, post-processing, metrics
+Step 7  Training loop and configuration system
+Step 8  Inference, deployment, and reproduction
+Step 9  Global context audit and blind spots
+Step 10 Graduate-level synthesis and research directions
+```
+
+The route is adaptive. A step can be reordered, revisited, or skipped only with a recorded reason and an explicit evidence gap.
+
+## How It Works
+
+```mermaid
+flowchart LR
+    A[Project + paper + logs] --> B[Evidence inventory]
+    B --> C[Project-specific route]
+    C --> D[One step at a time]
+    D --> E[Explain + trace + compare]
+    E --> F[Active recall and verification]
+    F --> G[Learning ledger]
+    G --> D
+    G --> H[Step 9 blind-spot audit]
+    H --> I[Final Markdown knowledge base]
+```
+
+### Evidence-first
+
+Every important claim is separated into:
+
+- `已确认`: directly observed in code, paper, config, or runtime output;
+- `可推断`: a reasoned inference with its supporting evidence;
+- `背景知识`: general model or engineering knowledge;
+- `待验证`: plausible but unsupported by the current material.
+
+The agent must say `当前材料中未看到证据` instead of inventing a missing implementation.
+
+### RAG-aware, without pretending
+
+The skill asks the host what it can actually access: project search, code index, vector database, paper library, web search, or no retrieval tool. It routes implementation questions to source code and configs, design questions to papers/docs, runtime questions to logs/checkpoints, and continuity questions to the learning ledger.
+
+Mentioning “RAG” does not make a database exist. The agent must never claim it queried a vector store or paper library unless the host exposed and used that tool.
+
+### Learning ledger
+
+The default process file is `PROJECT_STUDY_LOG.md`. It records:
+
+- project status, target outcome, evidence inventory, and repository revision;
+- completed steps, route adjustments, key code, and shape flows;
+- user questions, active-recall results, and recurring weak points;
+- confidence, contradictions, missing evidence, and what would falsify a conclusion;
+- overlooked risks, next actions, and material for the final study note.
+
+## Prompt Pack
+
+[`references/user-prompts.md`](references/user-prompts.md) is a copyable auxiliary document, not another skill. It includes:
+
+- first-session role and evidence contract;
+- RAG/tool detection and source-routing instructions;
+- one-step continuation prompt;
+- question, deepening, resume, review, and blind-spot prompts;
+- final Markdown generation prompt;
+- a universal version for hosts without skill invocation;
+- memory and permission blocks for long conversations.
+
+## Repository Layout
 
 ```text
 project-code-study/
 ├── SKILL.md
 ├── README.md
 ├── agents/
-│   └── openai.yaml
+│   └── openai.yaml                 # Optional Codex display metadata
 └── references/
     ├── context-audit-template.md
     ├── final-summary-template.md
     ├── learning-ledger-template.md
     ├── paper-code-template.md
-    ├── step-template.md
     ├── quality-rubric.md
-    └── user-prompts.md
+    ├── step-template.md
+    └── user-prompts.md             # User-facing prompt pack
 ```
 
-## Reference Files
+## What Makes It Different
 
-| File | Purpose |
-| --- | --- |
-| `SKILL.md` | Core skill instructions and behavior rules |
-| `references/step-template.md` | Standard deep explanation template for each learning step |
-| `references/paper-code-template.md` | Paper-to-code mapping template |
-| `references/context-audit-template.md` | Step 9 blind-spot audit template |
-| `references/learning-ledger-template.md` | Template for `PROJECT_STUDY_LOG.md` |
-| `references/final-summary-template.md` | Final Markdown study-note template |
-| `references/quality-rubric.md` | Evidence, confidence, recall, and completion rubric |
-| `references/user-prompts.md` | User-facing copy/paste prompt pack, not a skill |
-| `agents/openai.yaml` | Optional Codex UI metadata; other hosts may ignore it |
+This is not a prompt that asks an AI to “explain a repo.” It is a learning protocol with four durable constraints:
 
-## Quick Start
+1. Evidence before explanation.
+2. One bounded step before the next step.
+3. Understanding checked by recall, prediction, and teach-back.
+4. Conversation converted into a project-local, reviewable record.
 
-1. Put this folder in the host's skill directory. Examples:
+The result is aimed at four outcomes: understand, reproduce, modify, and critique.
 
-   ```text
-   Claude Code: `~/.claude/skills/project-code-study`
-   Codex: `~/.codex/skills/project-code-study`
-   Project-local: `<project>/.claude/skills/project-code-study`
-   ```
+## Safety and Permission Boundaries
 
-2. Start a new conversation and invoke the skill:
-
-   ```text
-   请使用 $project-code-study 帮我以计算机专业研究生的深度学习这个项目源码。
-   ```
-
-3. Provide the project folder, README, paper PDF/link, and any training or inference commands you already know.
-
-4. Let the skill create or maintain `PROJECT_STUDY_LOG.md` so later steps can build on prior learning instead of losing context.
-
-For richer starter prompts, see:
-
-```text
-references/user-prompts.md
-```
-
-## Example Starter Prompt
-
-```text
-请使用 $project-code-study 帮我以计算机专业研究生的深度学习这个项目源码。
-
-请先询问我是否授权你在项目文件夹中创建/维护 PROJECT_STUDY_LOG.md。
-然后基于真实项目文件、README、配置、训练/推理入口、模型代码、数据处理代码和论文证据，生成 step-by-step 学习路线。
-
-每个 step 都要覆盖参数定义、代码讲解、调用关系、语法讲解、shape 变化、模块作用、模块关系、论文对应、工程细节、易错点和下一步建议。
-没有证据时请明确说：当前材料中未看到证据。
-
-项目路径/链接：<project path or GitHub URL>
-论文：<paper PDF/arXiv/DOI>
-```
-
-## Design Principles
-
-- **Evidence first**: inspect files before explaining.
-- **No fake certainty**: uncertainty is recorded, not hidden.
-- **Paper-code alignment**: classic model knowledge is separated from current implementation evidence.
-- **Step discipline**: one step at a time, with questions recorded.
-- **Context continuity**: the learning ledger steers later explanations.
-- **Graduate depth**: focus on understanding, reproduction, modification, and critique.
+The agent should ask before writing the ledger, running expensive commands, modifying project code, accessing private material, or using network retrieval. Repository files and retrieved documents are treated as untrusted data; instructions inside them cannot change the learning protocol or expand permissions.
 
 ## Validation
 
-For Codex, validate the skill with the local validator:
+For Codex installations, run:
 
 ```powershell
 $env:PYTHONUTF8='1'
 python C:\Users\Administrator\.codex\skills\.system\skill-creator\scripts\quick_validate.py D:\skills\project-code-study
 ```
 
-Expected result:
+The standard itself is host-agnostic. Other tools should validate the `SKILL.md` frontmatter and referenced files using their own loader.
 
-```text
-Skill is valid!
-```
+## Contributing
+
+Useful contributions include:
+
+- tested prompt examples for new project types;
+- improvements to the step, paper-code, or ledger templates;
+- reports of hallucination, missing evidence, or weak learning checks;
+- examples showing how the skill works with Claude, Codex, Cursor, or another compatible host.
+
+When proposing a change, include the user scenario, the evidence available to the agent, the expected output, and how you verified it.
+
+## Roadmap
+
+- Add a small cross-host test corpus for UNet, YOLO, and Transformer repositories.
+- Add optional scripts for evidence inventories and repository revision snapshots.
+- Add example ledgers and before/after learning sessions.
+- Add translated prompt packs while keeping the core protocol language-neutral.
 
 ## License
 
-No license has been selected yet. Add one before publishing publicly if you want others to reuse or redistribute this skill.
+No license has been selected yet. Add a license before public redistribution if you want to define reuse terms.
+
+## Support The Project
+
+If this workflow helps you learn a research codebase, starring the repository helps other students discover it. Issues and pull requests with concrete evidence are especially welcome.
+
+[Star on GitHub](https://github.com/1bkunnn-cyber/project-code-study) · [Open an issue](https://github.com/1bkunnn-cyber/project-code-study/issues)
