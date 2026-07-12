@@ -1,0 +1,7 @@
+interface:
+  display_name: "Project Code Study"
+  short_description: "研究生级源码学习与论文对照讲解流程"
+  default_prompt: "Use $project-code-study to guide me through this project source code at graduate depth."
+
+policy:
+  allow_implicit_invocation: false
