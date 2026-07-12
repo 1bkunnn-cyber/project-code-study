@@ -9,12 +9,20 @@
 [![Codex](https://img.shields.io/badge/Codex-supported-10A37F?style=for-the-badge)](https://openai.com/codex/)
 [![GitHub stars](https://img.shields.io/github/stars/1bkunnn-cyber/project-code-study?style=for-the-badge)](https://github.com/1bkunnn-cyber/project-code-study/stargazers)
 
-[中文](#中文) · [English](#english) · [Prompt Pack](references/user-prompts.md) · [Feedback Loop](#反馈闭环)
+<strong>语言 / Language:</strong>
+[简体中文](#中文) · [English](#english)
+
+[提示词模板 / Prompt Pack](references/user-prompts.md) · [反馈闭环 / Feedback Loop](#反馈闭环)
 
 </div>
 
+> 本 README 提供完整的简体中文和 English 阅读版本。请选择上方语言入口；两种语言内容分别收纳在可展开区域中。
+>
+> This README provides complete Simplified Chinese and English reading modes. Use the language links above and expand the version you want to read.
+
+<a id="中文"></a>
 <details open>
-<summary id="中文"><strong>中文介绍</strong></summary>
+<summary><strong>简体中文（点击展开 / 收起）</strong></summary>
 
 ## 这是什么
 
@@ -138,10 +146,19 @@ python D:\skills\project-code-study\scripts\validate_learning_ledger.py <项目�
 
 欢迎提交真实学习案例、用户反馈机制改进、上下文丢失或幻觉问题，以及 Claude、Codex、Cursor 等宿主的兼容性测试。如果这个 Skill 帮助你读懂研究项目，欢迎点 Star。
 
+## 许可证
+
+当前尚未选择许可证。如果计划公开分发，请先添加许可证以明确复用条款。
+
+## 项目地址
+
+[GitHub 仓库](https://github.com/1bkunnn-cyber/project-code-study) · [Issues](https://github.com/1bkunnn-cyber/project-code-study/issues)
+
 </details>
 
+<a id="english"></a>
 <details>
-<summary id="english"><strong>English</strong></summary>
+<summary><strong>English (click to expand / collapse)</strong></summary>
 
 ## What Is It?
 
@@ -262,8 +279,6 @@ The validator checks the schema, fixed headings, table columns, feedback areas, 
 
 Contributions are welcome: tested study cases, feedback-loop improvements, cross-host compatibility reports, and concrete hallucination or context-loss fixes. If this skill helps you understand a research repository, starring it helps other students find the workflow.
 
-</details>
-
 ## License
 
 No license has been selected yet. Add one before public redistribution if you want to define reuse terms.
@@ -271,3 +286,5 @@ No license has been selected yet. Add one before public redistribution if you wa
 ## Repository
 
 [GitHub](https://github.com/1bkunnn-cyber/project-code-study) · [Issues](https://github.com/1bkunnn-cyber/project-code-study/issues)
+
+</details>
