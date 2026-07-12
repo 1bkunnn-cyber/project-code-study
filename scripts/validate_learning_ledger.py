@@ -26,6 +26,8 @@ REQUIRED_H2 = [
     "12. 维护状态",
     "13. 里程碑总结",
     "14. 会话日志",
+    "15. 用户心得与学习感受",
+    "16. 用户问题与反馈",
 ]
 
 REQUIRED_TABLE_HEADERS = [
@@ -35,6 +37,9 @@ REQUIRED_TABLE_HEADERS = [
     "| ID | 类型 | 事项 | 是否阻塞 | 需要的证据 | 下一动作 | 目标 Step | 状态 |",
     "| ID | 观察到的误解 | 如何发现 | 正确模型 | 证据 | 重测问题 | 状态 |",
     "| ID | 日期 | 假设 / 目的 | 命令或改动 | 结果 | 证据产物 | 解释 | 下一动作 |",
+    "| Session ID | 日期 | Step | 模式 / 时长 | 本次目标 | 复习与学习内容 | 学习行为证据 | 状态变化 | 会话结果 | 唯一下一行动 | 建议复习时间 |",
+    "| 心得 ID | 日期 | 相关 Step | 我这次真正理解了什么 | 哪个解释最有帮助 | 仍然模糊或困难的地方 | 当前自信度 1-5 | 我希望下次怎么讲 | AI 已读取 / 调整 |",
+    "| Feedback ID | 日期 | Step | 类型 | 用户问题或反馈 | 为什么不清楚 / 哪里不满意 | 希望得到什么 | AI 回应摘要 | 评分 1-5 | 状态 | AI 调整与下一行动 |",
 ]
 
 REQUIRED_METADATA = [
@@ -83,8 +88,8 @@ def main() -> int:
         if not re.search(rf"^{re.escape(key)}\s*:", frontmatter, flags=re.MULTILINE):
             errors.append(f"missing metadata key: {key}")
 
-    if not re.search(r'^schema_version:\s*["\']?3\.0["\']?\s*$', frontmatter, re.MULTILINE):
-        errors.append("schema_version must be 3.0")
+    if not re.search(r'^schema_version:\s*["\']?3\.1["\']?\s*$', frontmatter, re.MULTILINE):
+        errors.append("schema_version must be 3.1")
 
     headings = re.findall(r"^## (.+?)\s*$", text, flags=re.MULTILINE)
     if headings != REQUIRED_H2:
@@ -104,7 +109,7 @@ def main() -> int:
             print(f"ERROR: {error}")
         return 1
 
-    print(f"Learning ledger is valid (schema 3.0): {args.path}")
+    print(f"Learning ledger is valid (schema 3.1): {args.path}")
     return 0
 
 

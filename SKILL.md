@@ -35,15 +35,17 @@ Before Step 0, ask whether the user authorizes creating or updating `PROJECT_STU
 When authorized, read `references/learning-ledger-protocol.md` and use `assets/PROJECT_STUDY_LOG.template.md` as the canonical schema:
 
 - If no ledger exists, copy the canonical template to `<project-root>/PROJECT_STUDY_LOG.md` before filling it. Use a real file-copy operation when available; otherwise reproduce the asset exactly and verify its structure. Do not design a new ledger from memory.
-- After copying, initialize only the defined `{{PLACEHOLDER}}` values and current-state fields. Preserve `schema_version: "3.0"`, all H2 headings, heading order, table columns, ID prefixes, status enums, hidden contract comments, and the final `## 14. 会话日志` position.
+- After copying, initialize only the defined `{{PLACEHOLDER}}` values and current-state fields. Preserve `schema_version: "3.1"`, all H2 headings, heading order, table columns, ID prefixes, status enums, hidden contract comments, and the fixed user sections at the bottom.
 - If a ledger already exists, read and update it; never overwrite it with a fresh template. For an older schema, follow the migration rules in the protocol and preserve user content.
 - When Python is available, run `scripts/validate_learning_ledger.py <project-root>/PROJECT_STUDY_LOG.md` after creation, migration, compaction, or structural repair. If it is unavailable, manually verify the same invariants and state that automated validation was not run.
 
 - Treat the ledger as working memory for teaching, not a transcript or final note.
-- Keep a compact current snapshot at the top and an append-only session history at the bottom.
+- Keep a compact current snapshot at the top, an AI-maintained session table, and fixed user-owned sections at the bottom.
 - Use stable IDs to connect sources, questions, uncertainties, misconceptions, experiments, and affected conclusions without duplicating text.
 - Before every session or step, read the current snapshot, due reviews, unresolved blocking items, learner weak points, and repository revision. Use them to select the next activity.
+- Before every session or step, read Section 15 user心得 and all Section 16 feedback rows with status `new`, `in-progress`, or `retest-due`, plus feedback rated below 3. Use them to adjust explanation depth, pacing, examples, retrieval questions, or evidence requests.
 - After every meaningful session, update current-state tables in place, append one compact session record, schedule review from observed performance, and set exactly one primary next action.
+- After responding to user feedback, preserve the original user wording, add a concise AI response summary, assign a feedback status, and record the resulting teaching adjustment or next action.
 - Record the learner's demonstrated understanding separately from self-reported confidence. Do not mark mastery from exposure, agreement, or a yes/no answer.
 - Preserve unresolved contradictions and failed attempts. Mark stale entries instead of silently deleting or rewriting history.
 - Do not copy full conversations, hidden reasoning, secrets, or irrelevant personal details into the ledger.

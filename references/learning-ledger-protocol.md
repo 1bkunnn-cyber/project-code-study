@@ -2,7 +2,7 @@
 
 Use this protocol whenever creating, reading, updating, compacting, or recovering `PROJECT_STUDY_LOG.md`.
 
-The canonical structure is `assets/PROJECT_STUDY_LOG.template.md` with schema version 3.0. This asset is the single source of truth for headings, order, tables, status values, and placeholders. Do not maintain a second prose copy of the template.
+The canonical structure is `assets/PROJECT_STUDY_LOG.template.md` with schema version 3.1. This asset is the single source of truth for headings, order, tables, status values, placeholders, and user feedback areas. Do not maintain a second prose copy of the template.
 
 ## 1. Purpose and boundaries
 
@@ -19,10 +19,11 @@ It is not a transcript, a scratchpad, a hidden-reasoning dump, a generic TODO li
 
 Maintain two layers in one file:
 
-- Hot state: sections 0–12. Update these in place. They answer “where are we now?”
-- History: milestone syntheses and the final session-log section. Append records that answer “how did we get here?”
+- Hot state: sections 0–13. Update these in place. They answer “where are we now?”
+- AI history: Section 14 session rows and milestone syntheses. Append or update records that answer “how did we get here?”
+- User input: Sections 15–16. Preserve the user's original words and use them as teaching signals.
 
-On session start, read the current snapshot, mastery rows due for review, blocking open loops, unresolved misconceptions, and the latest session entry. Do not reread the entire history unless the current task requires it.
+On session start, read the current snapshot, mastery rows due for review, blocking open loops, unresolved misconceptions, the latest session row, all unread user心得, and all new or low-rated feedback. Do not reread the entire history unless the current task requires it.
 
 ## 2.1 Creation and initialization
 
@@ -39,10 +40,10 @@ Never generate a fresh structure from remembered instructions. Never overwrite a
 
 The following are schema invariants:
 
-- YAML `schema_version` stays `3.0` until the bundled template itself is intentionally revised.
+- YAML `schema_version` stays `3.1` until the bundled template itself is intentionally revised.
 - H2 names and order remain identical to the canonical asset.
 - Existing table columns are not renamed, removed, reordered, or given project-specific variants.
-- `## 14. 会话日志` remains the final H2 so entries can be appended at the end of the file.
+- `## 14. 会话日志` is the AI-maintained session table; `## 15` and `## 16` remain fixed user input areas at the bottom.
 - Unknown and irrelevant values use `待确认`, `无`, or `不适用（原因）`; sections are not deleted.
 
 ## 3. Stable IDs and single source of truth
@@ -77,7 +78,20 @@ Before teaching:
 
 If the learner returns after a gap, prioritize retrieval before new exposition. If the repository changed, revalidate only the conclusions linked to affected source IDs.
 
-## 5. During-session capture
+## 5. Feedback-guided teaching
+
+Before deciding what to explain, read Section 15 and Section 16. Prioritize feedback in this order:
+
+1. `new` or `retest-due` feedback that is blocking the current Step.
+2. Feedback rated below 3.
+3. Recurring user concerns or requests for a different explanation form.
+4. Positive notes that reveal what explanation style is working.
+
+Use feedback to change one or more of: pace, prerequisite explanation, code granularity, visual/shape tracing, paper context, practical exercise, retrieval question, or evidence request. Make the adjustment explicit in the AI column and the next Session Log row.
+
+Never rewrite the user's question, rating, or心得. If the user writes directly in Sections 15–16, preserve their wording and treat it as higher-priority learning evidence than an AI paraphrase.
+
+## 6. During-session capture
 
 Capture state-changing information, not every sentence:
 
@@ -91,7 +105,7 @@ Capture state-changing information, not every sentence:
 
 Keep the learner's wording only when it reveals a useful mental model, recurring confusion, or explicit goal. Never store secrets, credentials, unnecessary personal information, or private content unrelated to learning.
 
-## 6. Mastery transitions
+## 7. Mastery transitions
 
 Use observed behavior:
 
@@ -104,7 +118,7 @@ Exposure, agreement, copying an answer, or self-confidence alone does not advanc
 
 Downgrade to `revisit` when later evidence reveals forgetting, brittle transfer, or a misconception. This is not failure; it is a scheduling signal.
 
-## 7. Review scheduling
+## 8. Review scheduling
 
 Schedule from performance rather than a fixed calendar:
 
@@ -116,7 +130,7 @@ Schedule from performance rather than a fixed calendar:
 
 Rotate review form among explain, trace, predict, debug, and modify. Do not repeat the same wording until it becomes recognition rather than recall.
 
-## 8. Session end transaction
+## 9. Session end transaction
 
 After a meaningful session:
 
@@ -125,13 +139,14 @@ After a meaningful session:
 3. Add or update source, open-loop, misconception, question, experiment, and conflict records.
 4. Update mastery using observed evidence.
 5. Schedule reviews.
-6. Append one session-log entry, including `blocked` or `interrupted` outcomes honestly.
-7. Set exactly one primary next action and a suggested return time.
-8. Confirm that the written ledger matches what was actually read, discussed, or run.
+6. Update the AI response, status, rating interpretation, and adjustment columns for feedback addressed in this session; never edit the user's original question,心得, or rating.
+7. Append one session-log row, including `blocked` or `interrupted` outcomes honestly.
+8. Set exactly one primary next action and a suggested return time.
+9. Confirm that the written ledger matches what was actually read, discussed, or run.
 
 If nothing meaningful changed, do not add a noisy session entry. Updating `Last meaningful update` is preferable to pretending progress.
 
-## 9. Compaction and archiving
+## 10. Compaction and archiving
 
 Compact when the current file becomes difficult to scan, contains repeated closed items, or approaches the host's practical context limit.
 
@@ -145,20 +160,20 @@ Compaction order:
 
 Never archive merely by age if the entry still explains an open question, misconception, experiment, or source conflict. Record the archive path and date in Maintenance State.
 
-## 10. Human edits and conflicting writers
+## 11. Human edits and conflicting writers
 
 Treat user edits as authoritative unless they contradict observable evidence; in that case record the conflict and ask. Before writing, reread the target section if another agent or session may have edited it. Prefer minimal section-level patches over rewriting the whole file.
 
 If two sessions produce conflicting updates, preserve both claims, source them, and create a `C-` conflict record. Do not silently choose the newest statement.
 
-## 11. Recovery when the ledger is missing or damaged
+## 12. Recovery when the ledger is missing or damaged
 
 - Missing but authorized: recreate from the template, label reconstructed fields, and ask the user to confirm the restart brief.
 - Missing and unauthorized: keep a chat-only ledger and state that it is unsaved.
 - Partially corrupted: preserve readable content, create a recovery copy only with authorization, and reconstruct current state from source evidence plus recent conversation.
 - Older schema: do not overwrite it. Ask before migration, preserve a backup or archive when authorized, copy the current canonical template, then migrate confirmed content into matching sections with stable IDs. Mark reconstructed fields and validate before replacing the active path.
 
-## 12. Quality check
+## 13. Quality check
 
 Before closing an update, verify:
 
@@ -168,4 +183,6 @@ Before closing an update, verify:
 - Every important uncertainty has an owner/action or accepted-risk status.
 - Repository claims point to source IDs and revisions.
 - The session log describes what happened, not what the AI intended to do.
+- New and low-rated user feedback has either been addressed or explicitly scheduled.
+- User-written心得 and feedback were not overwritten.
 - No sensitive or irrelevant conversation content was stored.

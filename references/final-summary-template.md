@@ -2,7 +2,7 @@
 
 Use this structure when the user asks for final notes.
 
-Prefer the project's `PROJECT_STUDY_LOG.md` learning ledger as the source for completed steps, demonstrated mastery, milestone syntheses, user questions, route adjustments, unresolved uncertainties, misconceptions, experiments, and reusable summary material. Resolve referenced stable IDs through the source/evidence register. Do not treat self-confidence, exposure, or a `done` step label as proof of understanding. If no ledger was saved, use the temporary conversation ledger.
+Prefer the project's `PROJECT_STUDY_LOG.md` learning ledger as the source for completed steps, demonstrated mastery, milestone syntheses, user心得, user feedback, user questions, route adjustments, unresolved uncertainties, misconceptions, experiments, and reusable summary material. Resolve referenced stable IDs through the source/evidence register. Do not treat self-confidence, exposure, or a `done` step label as proof of understanding. If no ledger was saved, use the temporary conversation ledger.
 
 # <Project Name> 源码学习笔记
 
@@ -107,6 +107,22 @@ For each key file/module:
 | ID | Step | Question | Answer | Evidence IDs |
 | --- | --- | --- | --- | --- |
 | Q-... |  |  |  | SRC-... |
+
+## 10.1 用户心得与学习感受
+
+Summarize the learner's own reflections without replacing their wording with an AI judgment.
+
+| 心得 ID | Step | 用户真正理解的内容 | 仍然困难的内容 | 用户希望的调整 |
+| --- | --- | --- | --- | --- |
+| NOTE-... |  |  |  |  |
+
+## 10.2 用户反馈与 AI 调整
+
+Include unresolved, low-rated, recurring, and representative feedback. Explain how the teaching changed in response.
+
+| Feedback ID | Step | 用户反馈 | 评分 | AI 调整 | 处理状态 | 后续动作 |
+| --- | --- | --- | --- | --- | --- | --- |
+| FB-... |  |  |  |  |  |  |
 
 ## 11. 易错点与调试清单
 

@@ -1,6 +1,6 @@
 ---
 document_type: project-code-study-ledger
-schema_version: "3.0"
+schema_version: "3.1"
 project_name: "{{PROJECT_NAME}}"
 project_path: "{{PROJECT_PATH_OR_URL}}"
 branch: "{{BRANCH_OR_UNKNOWN}}"
@@ -17,11 +17,12 @@ PROJECT CODE STUDY LEDGER CONTRACT
 
 1. This file is copied from assets/PROJECT_STUDY_LOG.template.md.
 2. Keep schema_version, H2 section names, section order, table columns, ID prefixes, and status enums unchanged.
-3. Update sections 1-13 in place. Keep section 14 as the final H2 and append session entries only there.
+3. Update sections 1-14 in place. Keep sections 15-16 as user-owned input areas; do not overwrite user text.
 4. Do not delete empty sections. Use "待确认", "无", or "不适用（原因）" instead of inventing facts.
 5. Record demonstrated learning separately from self-confidence.
-6. Do not store hidden reasoning, secrets, credentials, full chat transcripts, or irrelevant personal details.
-7. Prefer small patches. Preserve user edits and mark old claims stale instead of silently rewriting history.
+6. Read new or low-rated user feedback before choosing the next explanation. Record the AI adjustment in the designated AI column, never by rewriting the user's words.
+7. Do not store hidden reasoning, secrets, credentials, full chat transcripts, or irrelevant personal details.
+8. Prefer small patches. Preserve user edits and mark old claims stale instead of silently rewriting history.
 -->
 
 # {{PROJECT_NAME}} 源码学习记录
@@ -39,6 +40,8 @@ PROJECT CODE STUDY LEDGER CONTRACT
 | 曾经理解错什么 | 7. 误区与纠正 |
 | 下次复习什么 | 11. 复习队列 |
 | 每次学习发生了什么 | 14. 会话日志 |
+| 用户有什么心得 | 15. 用户心得与学习感受 |
+| 用户哪里不满意或还有问题 | 16. 用户问题与反馈 |
 
 ## 状态规范
 
@@ -49,6 +52,7 @@ PROJECT CODE STUDY LEDGER CONTRACT
 | 证据等级 | `E0` 无项目证据 / `E1` 直接源码或文档 / `E2` 多来源推断 / `E3` 运行或实验验证 |
 | 置信度 | `high` / `medium` / `low` |
 | 会话结果 | `advanced` / `reviewed` / `blocked` / `interrupted` / `finalized` |
+| 用户反馈状态 | `new` / `in-progress` / `answered` / `retest-due` / `closed` |
 
 ---
 
@@ -247,7 +251,7 @@ ID 类型：`Q-xxx` 用户问题、`U-xxx` AI 不确定项、`R-xxx` 复现风�
 
 ## 14. 会话日志
 
-> 本节必须是文件最后一个 H2。每次有效学习只在文件末尾追加一条记录；阻塞或中断也要如实记录。
+> AI 维护区。每次有效学习新增一行；阻塞或中断也要如实记录。用户反馈不写在这里，写入第 16 节。
 
 <!--
 ### Session <N> — <YYYY-MM-DD>
@@ -269,3 +273,34 @@ ID 类型：`Q-xxx` 用户问题、`U-xxx` AI 不确定项、`R-xxx` 复现风�
 | 唯一下一行动 |  |
 | 建议返回时间 |  |
 -->
+
+| Session ID | 日期 | Step | 模式 / 时长 | 本次目标 | 复习与学习内容 | 学习行为证据 | 状态变化 | 会话结果 | 唯一下一行动 | 建议复习时间 |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+
+---
+
+## 15. 用户心得与学习感受
+
+> 用户填写区。用户可以在每次学习后写几句话，也可以只填写最有感受的字段。AI 只能读取这些内容，并在第 16 节或下一次会话中记录调整，不得覆盖用户原文。
+
+| 心得 ID | 日期 | 相关 Step | 我这次真正理解了什么 | 哪个解释最有帮助 | 仍然模糊或困难的地方 | 当前自信度 1-5 | 我希望下次怎么讲 | AI 已读取 / 调整 |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| NOTE-001 |  |  |  |  |  |  |  | `待读取` |
+
+---
+
+## 16. 用户问题与反馈
+
+> 用户可像填写 Excel 一样持续添加行。AI 每次开始学习前优先读取 `new`、`in-progress`、`retest-due` 或评分低于 3 的记录；回答后只补充 AI 列和状态，不修改用户问题。
+
+| Feedback ID | 日期 | Step | 类型 | 用户问题或反馈 | 为什么不清楚 / 哪里不满意 | 希望得到什么 | AI 回应摘要 | 评分 1-5 | 状态 | AI 调整与下一行动 |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| FB-001 |  |  | concept / code / shape / paper / pace / format |  |  |  | `待回答` |  | `new` |  |
+
+### 16.1 反馈处理规则
+
+- `new`: 本次或下一次学习必须确认是否需要处理。
+- `in-progress`: 已开始处理，但用户仍未确认满意或理解。
+- `answered`: AI 已回应；如果用户评分低于 3，不能视为真正解决。
+- `retest-due`: 需要在后续用解释、追踪、预测、调试或修改重新检查。
+- `closed`: 用户明确表示已解决，或已有充分行为证据。
