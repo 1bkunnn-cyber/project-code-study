@@ -9,7 +9,7 @@
 [![Codex](https://img.shields.io/badge/Codex-supported-10A37F?style=for-the-badge)](https://openai.com/codex/)
 [![GitHub stars](https://img.shields.io/github/stars/1bkunnn-cyber/project-code-study?style=for-the-badge)](https://github.com/1bkunnn-cyber/project-code-study/stargazers)
 
-[中文](#中文) · [English](#english) · [Quick Start](#quick-start) · [Feedback Loop](#feedback-loop)
+[中文](#中文) · [English](#english) · [Prompt Pack](references/user-prompts.md) · [Feedback Loop](#反馈闭环)
 
 </div>
 
@@ -50,7 +50,24 @@ Codex:         ~/.codex/skills/project-code-study
 
 也可以在支持 Agent Skills 的工具中直接导入这个文件夹。
 
-### 2. 开始学习
+### 2. 复制提示词模板
+
+给用户复制使用的提示词模板在这里：
+
+[`references/user-prompts.md`](references/user-prompts.md)
+
+它不是一个 skill，而是配合本 skill 使用的辅助提示词文档。建议用法：
+
+| 场景 | 使用位置 |
+| --- | --- |
+| 第一次对话引入 skill | `Prompt 1. First Session` |
+| 每次只推进一个学习 Step | `Prompt 2. Continue One Step` |
+| 学习中追加追问 | `Prompt 3. Add A User Question` |
+| 填写心得和反馈后让 AI 调整 | `Prompt 3A. Fill The Reflection And Feedback Areas` |
+| 中断后恢复学习 | `Prompt 5. Resume After A Break` |
+| 最终生成 Markdown 笔记 | `Prompt 8. Generate The Final Markdown Knowledge Base` |
+
+### 3. 开始学习
 
 ```text
 请使用 $project-code-study，带我以计算机专业研究生的深度学习这个项目。
@@ -70,7 +87,7 @@ assets/PROJECT_STUDY_LOG.template.md
 
 复制完成后才初始化项目字段，避免不同项目产生不同格式的学习记录。
 
-### 3. 继续学习
+### 4. 继续学习
 
 ```text
 请读取 PROJECT_STUDY_LOG.md，先处理尚未解决的用户反馈，再继续当前项目的下一个 Step。
@@ -156,7 +173,24 @@ Codex:          ~/.codex/skills/project-code-study
 Project-local:  <project>/.claude/skills/project-code-study
 ```
 
-### 2. Start a study track
+### 2. Copy The Prompt Pack
+
+The copy-ready user prompt templates are here:
+
+[`references/user-prompts.md`](references/user-prompts.md)
+
+This file is not a skill. It is an auxiliary prompt pack designed to be used with this skill. Recommended entries:
+
+| Scenario | Prompt to use |
+| --- | --- |
+| Start the first conversation with the skill | `Prompt 1. First Session` |
+| Continue exactly one learning step | `Prompt 2. Continue One Step` |
+| Ask an extra question during a step | `Prompt 3. Add A User Question` |
+| Let the AI process reflection and feedback rows | `Prompt 3A. Fill The Reflection And Feedback Areas` |
+| Resume after a break | `Prompt 5. Resume After A Break` |
+| Generate the final Markdown knowledge base | `Prompt 8. Generate The Final Markdown Knowledge Base` |
+
+### 3. Start a study track
 
 ```text
 Use $project-code-study to guide me through this repository at graduate depth.
@@ -175,7 +209,7 @@ assets/PROJECT_STUDY_LOG.template.md
 
 Only after the copy does it initialize project-specific fields. Existing ledgers are never overwritten.
 
-### 3. Continue
+### 4. Continue
 
 ```text
 Read PROJECT_STUDY_LOG.md, handle unresolved user feedback first, then continue one step.
