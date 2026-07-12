@@ -59,7 +59,7 @@ Claude users can also upload the skill folder through the Claude Skills interfac
 我的目标：<读懂 / 复现 / 修改 / 研究扩展>
 ```
 
-The agent will first ask whether it may create or update `PROJECT_STUDY_LOG.md` and where it may write it. No write authorization means a clearly labelled chat-only ledger.
+The agent will first ask whether it may create or update `PROJECT_STUDY_LOG.md` and where it may write it. When authorized, it copies the bundled canonical template into the project root before initializing it. No write authorization means a clearly labelled chat-only ledger.
 
 ### 3. Move one step at a time
 
@@ -139,6 +139,8 @@ The default process file is `PROJECT_STUDY_LOG.md`. It is designed for real stud
 
 The ledger keeps a hot current-state layer and a historical session layer in one human-editable Markdown file. When it becomes difficult to scan, the agent compacts closed history and asks before creating `PROJECT_STUDY_LOG_ARCHIVE.md`.
 
+Every project starts from the same schema: [`assets/PROJECT_STUDY_LOG.template.md`](assets/PROJECT_STUDY_LOG.template.md). The agent copies this file rather than improvising a new layout, then validates the initialized ledger with `scripts/validate_learning_ledger.py`. Headings, tables, statuses, stable IDs, and the append-only session area therefore remain consistent across different repositories.
+
 ## Prompt Pack
 
 [`references/user-prompts.md`](references/user-prompts.md) is a copyable auxiliary document, not another skill. It includes:
@@ -159,15 +161,18 @@ project-code-study/
 ├── README.md
 ├── agents/
 │   └── openai.yaml                 # Optional Codex display metadata
-└── references/
+├── assets/
+│   └── PROJECT_STUDY_LOG.template.md
+├── references/
     ├── context-audit-template.md
     ├── final-summary-template.md
     ├── learning-ledger-protocol.md
-    ├── learning-ledger-template.md
     ├── paper-code-template.md
     ├── quality-rubric.md
     ├── step-template.md
     └── user-prompts.md             # User-facing prompt pack
+└── scripts/
+    └── validate_learning_ledger.py
 ```
 
 ## What Makes It Different

@@ -2,6 +2,8 @@
 
 Use this protocol whenever creating, reading, updating, compacting, or recovering `PROJECT_STUDY_LOG.md`.
 
+The canonical structure is `assets/PROJECT_STUDY_LOG.template.md` with schema version 3.0. This asset is the single source of truth for headings, order, tables, status values, and placeholders. Do not maintain a second prose copy of the template.
+
 ## 1. Purpose and boundaries
 
 The ledger has four jobs:
@@ -21,6 +23,27 @@ Maintain two layers in one file:
 - History: milestone syntheses and the final session-log section. Append records that answer “how did we get here?”
 
 On session start, read the current snapshot, mastery rows due for review, blocking open loops, unresolved misconceptions, and the latest session entry. Do not reread the entire history unless the current task requires it.
+
+## 2.1 Creation and initialization
+
+When no ledger exists and the user authorized writing:
+
+1. Copy `assets/PROJECT_STUDY_LOG.template.md` to `<project-root>/PROJECT_STUDY_LOG.md` unchanged.
+2. Confirm that the destination is inside the authorized project root or save location.
+3. In a second, minimal edit, replace every `{{PLACEHOLDER}}` with known information or `待确认`.
+4. Set dates, repository revision, permissions, current mode, and current Step from evidence.
+5. Keep empty register sections and table headers intact.
+6. Validate with `scripts/validate_learning_ledger.py` when Python is available.
+
+Never generate a fresh structure from remembered instructions. Never overwrite an existing ledger. Never leave `{{PLACEHOLDER}}` values in an initialized project ledger.
+
+The following are schema invariants:
+
+- YAML `schema_version` stays `3.0` until the bundled template itself is intentionally revised.
+- H2 names and order remain identical to the canonical asset.
+- Existing table columns are not renamed, removed, reordered, or given project-specific variants.
+- `## 14. 会话日志` remains the final H2 so entries can be appended at the end of the file.
+- Unknown and irrelevant values use `待确认`, `无`, or `不适用（原因）`; sections are not deleted.
 
 ## 3. Stable IDs and single source of truth
 
@@ -133,7 +156,7 @@ If two sessions produce conflicting updates, preserve both claims, source them, 
 - Missing but authorized: recreate from the template, label reconstructed fields, and ask the user to confirm the restart brief.
 - Missing and unauthorized: keep a chat-only ledger and state that it is unsaved.
 - Partially corrupted: preserve readable content, create a recovery copy only with authorization, and reconstruct current state from source evidence plus recent conversation.
-- Schema version 1: migrate incrementally. Preserve old records, add the current snapshot and stable IDs, then normalize active items as they are touched.
+- Older schema: do not overwrite it. Ask before migration, preserve a backup or archive when authorized, copy the current canonical template, then migrate confirmed content into matching sections with stable IDs. Mark reconstructed fields and validate before replacing the active path.
 
 ## 12. Quality check
 

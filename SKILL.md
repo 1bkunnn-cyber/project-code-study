@@ -30,9 +30,14 @@ At intake, establish a lightweight study contract: the learner's target outcome 
 
 ## Learning Ledger
 
-Before Step 0, ask whether the user authorizes creating or updating `PROJECT_STUDY_LOG.md` in the project root, and ask for a project path or writable location. If authorization or write access is unavailable, maintain the same structure in chat and clearly label it unsaved.
+Before Step 0, ask whether the user authorizes creating or updating `PROJECT_STUDY_LOG.md` in the project root, and ask for a project path or writable location. If authorization or write access is unavailable, maintain the canonical structure in chat and clearly label it unsaved.
 
-When authorized, read `references/learning-ledger-protocol.md` and use `references/learning-ledger-template.md`:
+When authorized, read `references/learning-ledger-protocol.md` and use `assets/PROJECT_STUDY_LOG.template.md` as the canonical schema:
+
+- If no ledger exists, copy the canonical template to `<project-root>/PROJECT_STUDY_LOG.md` before filling it. Use a real file-copy operation when available; otherwise reproduce the asset exactly and verify its structure. Do not design a new ledger from memory.
+- After copying, initialize only the defined `{{PLACEHOLDER}}` values and current-state fields. Preserve `schema_version: "3.0"`, all H2 headings, heading order, table columns, ID prefixes, status enums, hidden contract comments, and the final `## 14. 会话日志` position.
+- If a ledger already exists, read and update it; never overwrite it with a fresh template. For an older schema, follow the migration rules in the protocol and preserve user content.
+- When Python is available, run `scripts/validate_learning_ledger.py <project-root>/PROJECT_STUDY_LOG.md` after creation, migration, compaction, or structural repair. If it is unavailable, manually verify the same invariants and state that automated validation was not run.
 
 - Treat the ledger as working memory for teaching, not a transcript or final note.
 - Keep a compact current snapshot at the top and an append-only session history at the bottom.
@@ -86,7 +91,7 @@ Generate a project-specific route, then adapt it as evidence grows. Do not force
 10. Step 9: Global context audit and blind-spot review. Re-read the project context and prior conclusions to surface important ignored points.
 11. Step 10: Graduate-level synthesis. Explain innovation, limits, research questions, reproduction risks, and modification directions.
 
-Use `references/learning-ledger-template.md` when creating or maintaining `PROJECT_STUDY_LOG.md`, `references/step-template.md` for ordinary steps, `references/paper-code-template.md` for paper-code alignment, `references/context-audit-template.md` for Step 9, and `references/final-summary-template.md` for the final Markdown note.
+Use `assets/PROJECT_STUDY_LOG.template.md` as the copy-only canonical ledger template, `references/learning-ledger-protocol.md` for ledger lifecycle rules, `references/step-template.md` for ordinary steps, `references/paper-code-template.md` for paper-code alignment, `references/context-audit-template.md` for Step 9, and `references/final-summary-template.md` for the final Markdown note.
 
 Use `references/quality-rubric.md` to enforce evidence levels, confidence, learner verification, and session completion gates. Load it before the first step and whenever the learner asks for a checkpoint, review, or resume.
 
