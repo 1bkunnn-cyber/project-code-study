@@ -1,33 +1,24 @@
 # Paper-Code Mapping Template
 
-Use this template whenever connecting a paper to implementation, especially Step 5.
+Use this after the relevant runtime nodes have been traced. Do not map a paper concept to an unseen or merely inferred implementation.
 
-## 1. 论文证据
+## 1. Sources
 
-- Paper title:
-- Source: uploaded PDF / README citation / arXiv / DOI / user-provided link
-- Sections read:
-- Formulas / figures / tables used:
-- Claims that are directly supported:
-- Claims that remain unverified:
+- Paper title and source:
+- Sections, figures, formulas, or tables actually inspected:
+- Repository revision:
+- Code files, symbols, configs, and runtime evidence inspected:
+- Important missing evidence:
 
-## 2. 代码证据
+## 2. Mapping
 
-- Files:
-- Classes / functions:
-- Config keys:
-- Entrypoints:
-- Runtime evidence:
-
-## 3. Mapping Table
-
-| Paper concept | Paper evidence | Code location | Implementation detail | Match status |
+| Paper concept | Paper evidence | Runtime node / code location | Implementation detail | Status |
 | --- | --- | --- | --- | --- |
 |  |  |  |  | Match / Simplified / Changed / Missing / Unclear |
 
-## 4. Differences
+## 3. Differences and impact
 
-For each difference:
+For each important difference:
 
 - 论文描述:
 - 当前实现:
@@ -36,18 +27,26 @@ For each difference:
 - Reproduction impact:
 - Evidence needed:
 
-## 5. Mathematical Meaning
+## 4. Formula-to-tensor mapping
 
-- Formula:
-- Variables:
-- Code tensors:
-- Shape correspondence:
+- Formula and variables:
+- Code tensors and shapes:
 - Reduction / normalization:
-- Numerical stability detail:
+- Numerical stability:
+- Training-only or inference-only location:
 
-## 6. Research-Level Questions
+## 5. Related methods
 
-- Is this implementation faithful enough to reproduce the paper?
-- Which engineering choices may change metrics?
-- Which details are omitted by the paper but required by code?
-- What ablation or experiment would clarify the design?
+Add only comparisons that clarify the implementation:
+
+- same-task alternative;
+- same-bottleneck method;
+- analogous idea;
+- composable module and its compatibility risk.
+
+## 6. Research questions
+
+- Which implementation choice could change metrics?
+- Which paper detail is insufficient for reproduction?
+- What ablation would isolate the claimed mechanism?
+- What evidence would falsify the current mapping?

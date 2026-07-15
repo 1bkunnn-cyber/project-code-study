@@ -1,97 +1,98 @@
 ---
 document_type: project-code-study-ledger
-schema_version: "3.1"
+schema_version: "4.0"
 project_name: "{{PROJECT_NAME}}"
 project_path: "{{PROJECT_PATH_OR_URL}}"
+qa_path: "PROJECT_STUDY_QA.md"
 branch: "{{BRANCH_OR_UNKNOWN}}"
 commit: "{{COMMIT_OR_UNKNOWN}}"
 created_at: "{{CREATED_AT}}"
 updated_at: "{{UPDATED_AT}}"
 current_step: "0"
+current_micro_step: "0.1"
+current_scenario: "map"
+current_node: "待确认"
 study_mode: "new"
 write_authorized: "yes"
 ---
 
 <!--
-PROJECT CODE STUDY LEDGER CONTRACT
+PROJECT CODE STUDY LEDGER CONTRACT — schema 4.0
 
-1. This file is copied from assets/PROJECT_STUDY_LOG.template.md.
-2. Keep schema_version, H2 section names, section order, table columns, ID prefixes, and status enums unchanged.
-3. Update sections 1-14 in place. Keep sections 15-16 as user-owned input areas; do not overwrite user text.
-4. Do not delete empty sections. Use "待确认", "无", or "不适用（原因）" instead of inventing facts.
-5. Record demonstrated learning separately from self-confidence.
-6. Read new or low-rated user feedback before choosing the next explanation. Record the AI adjustment in the designated AI column, never by rewriting the user's words.
-7. Do not store hidden reasoning, secrets, credentials, full chat transcripts, or irrelevant personal details.
-8. Prefer small patches. Preserve user edits and mark old claims stale instead of silently rewriting history.
+1. This file stores compact state, route, evidence, mastery, corrections, experiments, reviews, milestones, and sessions.
+2. Detailed questions, answers, learner reflections, and feedback belong in PROJECT_STUDY_QA.md; keep compact IDs here.
+3. Preserve heading order, table columns, stable IDs, user content, and stale/correction history.
+4. Prefer small patches. Never store full conversations, hidden reasoning, credentials, or irrelevant private data.
+5. A write is successful only after changed rows are read back.
 -->
 
 # {{PROJECT_NAME}} 源码学习记录
 
-> 本文档是项目学习过程的工作记忆，用于恢复上下文、追踪真实理解、管理证据与误区，并决定下一次最值得学习的内容。它不是聊天转录，也不是最终学习笔记。
+> 用于恢复主线、追踪真实理解、维护动态调用路线和管理证据。它不是聊天转录，也不是最终学习笔记。
 
 ## 阅读导航
 
 | 想了解什么 | 首先阅读 |
 | --- | --- |
-| 现在学到哪里 | 1. 当前状态 |
-| 是否真正掌握 | 4. 掌握度地图 |
-| 结论来自哪里 | 5. 证据索引 |
-| 还有什么没解决 | 6. 开放事项 |
-| 曾经理解错什么 | 7. 误区与纠正 |
-| 下次复习什么 | 11. 复习队列 |
-| 每次学习发生了什么 | 14. 会话日志 |
-| 用户有什么心得 | 15. 用户心得与学习感受 |
-| 用户哪里不满意或还有问题 | 16. 用户问题与反馈 |
+| 当前学到哪里、如何继续 | 1. 当前状态与主线锚点 |
+| 建议学习顺序和调用链 | 3. 动态学习路线 |
+| 每个微 Step 学到了什么 | 4. Step 知识卡与掌握度 |
+| 结论依据 | 5. 证据索引 |
+| 未解决事项和修正 | 6–7 |
+| 用户问答 | 8. 问题索引，再按 Q-ID 查看 `PROJECT_STUDY_QA.md` |
+| 实验、对比和创新延伸 | 9–10 |
+| 复习、里程碑和会话 | 11–14 |
 
 ## 状态规范
 
 | 对象 | 允许值 |
 | --- | --- |
-| Step | `planned` / `active` / `review` / `blocked` / `done` / `skipped` / `stale` |
+| Step / 微 Step | `planned` / `active` / `blocked-prerequisite` / `review` / `done` / `skipped` / `stale` |
+| 节点 | `discovered` / `queued` / `active` / `traced` / `deferred` / `out-of-scope` / `stale` |
 | 掌握度 | `unseen` / `introduced` / `explainable` / `traceable` / `applied` / `verified` / `revisit` |
-| 证据等级 | `E0` 无项目证据 / `E1` 直接源码或文档 / `E2` 多来源推断 / `E3` 运行或实验验证 |
+| 证据等级 | `E0` / `E1` / `E2` / `E3` |
 | 置信度 | `high` / `medium` / `low` |
+| 问题 | `open` / `answered` / `retest-due` / `closed` / `stale` |
 | 会话结果 | `advanced` / `reviewed` / `blocked` / `interrupted` / `finalized` |
-| 用户反馈状态 | `new` / `in-progress` / `answered` / `retest-due` / `closed` |
 
 ---
 
-## 1. 当前状态
+## 1. 当前状态与主线锚点
 
-> 这是每次恢复学习时的首要入口。保持简短、最新、可在 60 秒内读完。
+> 保持在 60 秒内可读完。支线问题不得悄悄改变“继续位置”。
 
 | 字段 | 当前值 |
 | --- | --- |
 | 学习模式 | `new` |
 | 目标结果 | `{{TARGET_OUTCOME}}` |
-| 当前 Step | `0` |
-| 本次时间预算 | `{{SESSION_BUDGET}}` |
-| 上次有效学习 | `尚未开始` |
-| 距上次学习 | `不适用` |
-| 当前阻塞 | `待确认` |
-| 现在到期的复习 | `无` |
-| 最大学习风险 | `待确认` |
-| AI 最没把握的重要判断 | `待确认` |
+| 当前场景 | `map` |
+| 当前 Step / 微 Step | `0 / 0.1` |
+| 当前节点 | `待确认` |
+| 已完成主链节点 | `无` |
+| 当前支线问题 | `无` |
+| 精确继续位置 | `完成项目证据盘点` |
+| 当前阻塞 / 前置缺口 | `待确认` |
+| 到期复习 | `无` |
 | 用户当前最关心的问题 | `{{USER_CURRENT_CONCERN}}` |
 
 ### 1.1 恢复摘要
 
-<!-- 最多 8 条。只写当前仍有效的信息。 -->
+<!-- 最多 8 条，只保留当前仍有效的信息。 -->
 
-- 项目解决的问题：待确认
-- 主要执行入口：待确认
-- 用户已经能独立解释：无
-- 用户已经能完成源码或 Shape 追踪：无
-- 当前仍模糊或错误的理解：待确认
+- 项目问题与主要输出：待确认
+- 已确认入口 / 场景：待确认
+- 已理解的关键节点：无
+- 已能独立追踪的调用 / Shape：无
+- 当前模糊或错误的理解：待确认
 - 缺失的关键证据：待确认
-- 自上次会话以来的变化：首次创建
-- 下一步：完成项目证据盘点
+- 最近一次重要变化：首次创建
+- 精确继续位置：完成项目证据盘点
 
 ### 1.2 唯一主行动
 
 | 下一行动 | 为什么现在价值最高 | 完成证据 | 状态 |
 | --- | --- | --- | --- |
-| 完成 Step 0 项目地图 | 建立后续源码学习的证据边界 | 能定位入口并口述主流程 | `active` |
+| 完成 Step 0 项目地图 | 建立证据和运行场景边界 | 能定位代表性入口 | `active` |
 
 ---
 
@@ -112,34 +113,49 @@ PROJECT CODE STUDY LEDGER CONTRACT
 
 ---
 
-## 3. 学习路线
+## 3. 动态学习路线
 
-> Step 完成必须有行为证据。不要用阅读次数或完成百分比代替理解。
+> Step 3 先建立场景调用图；Step 4.x 根据源码动态生成。不要预设项目一定包含 Backbone、Transformer 或固定数量的核心模块。
+
+### 3.1 路线骨架
 
 | Step | 主题 | 状态 | 完成标准 | 当前行为证据 | 下一决策 |
 | --- | --- | --- | --- | --- | --- |
-| 0 | 项目地图与证据边界 | `active` | 能定位入口并描述主流程 | 待学习 | 继续 |
-| 1 | 任务背景与论文问题 | `planned` | 能解释任务、动机和论文主张 | 待学习 | 待定 |
-| 2 | 数据与预处理 | `planned` | 能追踪一个样本进入 Batch 的过程与 Shape | 待学习 | 待定 |
-| 3 | 整体架构 | `planned` | 能重建模块图和主要接口 | 待学习 | 待定 |
-| 4 | 核心模块源码 | `planned` | 能解释并追踪关键模块 | 待学习 | 待定 |
-| 5 | 论文到代码映射 | `planned` | 能指出已验证的一致和差异 | 待学习 | 待定 |
-| 6 | Loss、后处理与指标 | `planned` | 能连接公式、Tensor、代码和指标 | 待学习 | 待定 |
-| 7 | 训练循环与配置 | `planned` | 能追踪一次迭代和配置解析 | 待学习 | 待定 |
-| 8 | 推理、部署与复现 | `planned` | 能运行或准确描述已验证的复现路径 | 待学习 | 待定 |
-| 9 | 全局审计与盲点 | `planned` | 已按价值排序重要盲点和不确定项 | 待学习 | 待定 |
-| 10 | 研究生级综合复盘 | `planned` | 能批判、修改并设计有证据的实验 | 待学习 | 待定 |
+| 0 | 项目地图与证据边界 | `active` | 能定位代表性入口和证据范围 | 待学习 | 继续 |
+| 1 | 任务背景、相关方法与问题定义 | `planned` | 能解释任务、动机及至少一个有效对比 | 待学习 | 待定 |
+| 2 | 代表性输入与数据路径 | `planned` | 能追踪一个输入进入主执行路径 | 待学习 | 待定 |
+| 3 | 运行场景、调用图与概念依赖 | `planned` | 形成训练/推理等场景的节点顺序 | 待学习 | 待定 |
+| 4.x | 动态源码微 Step | `planned` | 逐节点通过定位、调用和数据边界验证 | 待生成 | 由 Step 3 生成 |
+| 5 | 完整架构重建与论文代码映射 | `planned` | 能从已学节点重建系统 | 待学习 | 待定 |
+| 6+ | 目标函数、训练、推理、评估与复现 | `planned` | 按项目目标生成完成标准 | 待生成 | 动态调整 |
+| 9 | 全局覆盖与盲点审计 | `planned` | 核心节点、依赖和问题缺口已审计 | 待学习 | 待定 |
+| 10 | 综合复盘与研究延伸 | `planned` | 能提出有证据的批判与实验 | 待学习 | 待定 |
 
-### 3.1 路线调整记录
+### 3.2 运行场景
 
-| 日期 | 调整 | 原因 | 用户确认 | 影响 |
+| Scenario ID | 场景 | 入口 / 命令 | 目标输出 | 静态或运行验证 | 状态 |
+| --- | --- | --- | --- | --- | --- |
+
+### 3.3 调用节点与微 Step 顺序
+
+| 顺序 | 场景 | 微 Step | Node ID | 调用者 | 当前类 / 函数 | 下游节点 | 输入 / 输出 | 前置依赖 | 状态 |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+
+### 3.4 路线调整记录
+
+| 日期 | 调整 | 原因 / 证据 | 用户确认 | 影响 |
 | --- | --- | --- | --- | --- |
 
 ---
 
-## 4. 掌握度地图
+## 4. Step 知识卡与掌握度
 
-> 自信度记录主观感受；掌握度只依据解释、追踪、预测、调试、修改或实验表现更新。
+### 4.1 Step / 微 Step 知识卡
+
+| Step | Node ID | 核心结论 | 调用 / Shape 边界 | 证据 ID | 修正 ID | 状态 |
+| --- | --- | --- | --- | --- | --- | --- |
+
+### 4.2 掌握度地图
 
 | ID | 概念或能力 | 重要性 | 掌握度 | 行为证据 | 自信度 1-5 | 最近测试 | 下次复习 |
 | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -148,69 +164,66 @@ PROJECT CODE STUDY LEDGER CONTRACT
 
 ## 5. 证据索引
 
-> 同一来源只登记一次，其他章节使用 `SRC-xxx` 引用。
-
 | ID | 类型 | 定位 | 版本 / 页码 | 实际检查内容 | 支持对象 | 状态 |
 | --- | --- | --- | --- | --- | --- | --- |
 
-说明：README 属于文档证据，不等于运行验证；搜索摘要仅用于发现来源，不能代替原始代码或论文。
+说明：发现文件不等于阅读文件，README 主张不等于运行验证，搜索摘要不能代替原始来源。
 
 ---
 
 ## 6. 开放事项
 
-> 每个未解决事项必须包含下一动作。当前最高价值事项同步到 1.2。
-
-| ID | 类型 | 事项 | 是否阻塞 | 需要的证据 | 下一动作 | 目标 Step | 状态 |
+| ID | 类型 | 事项 | 是否阻塞 | 需要的证据 | 下一动作 | 目标 Step / Node | 状态 |
 | --- | --- | --- | --- | --- | --- | --- | --- |
 
-ID 类型：`Q-xxx` 用户问题、`U-xxx` AI 不确定项、`R-xxx` 复现风险。
+---
+
+## 7. 误区、纠正与规范表述
+
+| ID | 原表述 / 误解 | 问题 | 规范修正表述 | 证据 | 影响范围 | 重测问题 | 状态 |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+
+旧表述需标记 `stale`；最终文档只使用仍有效的规范表述。
 
 ---
 
-## 7. 误区与纠正
+## 8. 问题索引
 
-> 解释过不等于纠正完成。必须在后续用不同形式重测。
+> 完整问题和回答在 `PROJECT_STUDY_QA.md`。这里保留导航和学习影响。
 
-| ID | 观察到的误解 | 如何发现 | 正确模型 | 证据 | 重测问题 | 状态 |
-| --- | --- | --- | --- | --- | --- | --- |
-
-状态：`observed` / `corrected` / `retest-due` / `resolved`。
-
----
-
-## 8. 用户问题
-
-> 保留真实意图，压缩表达，不复制完整对话。
-
-| ID | Step | 问题 | 简短回答 | 证据 ID | 是否改变旧理解 | 最终笔记 |
-| --- | --- | --- | --- | --- | --- | --- |
+| Q ID | Step / Node | 问题摘要 | Parent Q | 状态 | 是否阻塞 | 修正 / 证据 ID | 下一动作 |
+| --- | --- | --- | --- | --- | --- | --- | --- |
 
 ---
 
 ## 9. 实验、命令与失败尝试
 
-> 只记录具有学习、验证、复现或防止重复失败价值的操作。
-
 | ID | 日期 | 假设 / 目的 | 命令或改动 | 结果 | 证据产物 | 解释 | 下一动作 |
 | --- | --- | --- | --- | --- | --- | --- | --- |
 
-结果：`not-run` / `pass` / `fail` / `partial`。失败记录不得改写为成功。
+结果：`not-run` / `pass` / `fail` / `partial`。失败不得改写为成功。
 
 ---
 
-## 10. 论文、代码与来源冲突
+## 10. 来源冲突、相关方法与组合延伸
 
-| ID | 主张 | 来源 A | 来源 B | 当前判断 | 置信度 | 验证动作 | 状态 |
+### 10.1 论文、代码与来源冲突
+
+| ID | 主张 | 来源 A | 来源 B | 当前规范判断 | 置信度 | 验证动作 | 状态 |
 | --- | --- | --- | --- | --- | --- | --- | --- |
 
-状态：`open` / `resolved` / `accepted-ambiguity`。
+### 10.2 相关方法与模块组合
+
+| CMP ID | 层级 | 对比 / 模块 | 共享问题或思想 | 关键差异 / 不兼容 | 可验证假设 | 状态 |
+| --- | --- | --- | --- | --- | --- | --- |
+
+层级：`same-task` / `same-bottleneck` / `analogous-idea` / `composable-module`。
 
 ---
 
 ## 11. 复习队列
 
-| 到期时间 | 知识 ID | 到期原因 | 复习形式 | 结果 | 重新安排 |
+| 到期时间 | 知识 / 问题 ID | 到期原因 | 复习形式 | 结果 | 重新安排 |
 | --- | --- | --- | --- | --- | --- |
 
 复习形式：`explain` / `trace` / `predict` / `debug` / `modify`。
@@ -221,11 +234,11 @@ ID 类型：`Q-xxx` 用户问题、`U-xxx` AI 不确定项、`R-xxx` 复现风�
 
 | 项目 | 当前值 |
 | --- | --- |
+| 最近一次写入回读验证 | `尚未执行` |
 | 最近一次重复 / 过期检查 | `尚未执行` |
-| 仍被引用的已关闭事项 | `无` |
+| Q&A 路径 | `PROJECT_STUDY_QA.md` |
 | 建议归档 | `no` |
 | 用户授权归档 | `no` |
-| 归档路径 | `PROJECT_STUDY_LOG_ARCHIVE.md` |
 | 可进入最终总结的材料 | `无` |
 | 明确不进入最终总结的材料 | `无` |
 
@@ -233,74 +246,27 @@ ID 类型：`Q-xxx` 用户问题、`U-xxx` AI 不确定项、`R-xxx` 复现风�
 
 ## 13. 里程碑总结
 
-> 只在完成一个有意义的学习阶段后新增，不要在每次回答后生成。
-
-<!--
-### Milestone <名称 / Step 范围>
-
-- 稳定理解：
-- 关键证据 ID：
-- 已掌握的调用 / Shape 路径：
-- 论文与代码关系：
-- 用户心智模型的变化：
-- 剩余开放事项 ID：
-- 可复用的最终笔记材料：
--->
+<!-- 仅在有意义的阶段完成后新增。 -->
 
 ---
 
 ## 14. 会话日志
 
-> AI 维护区。每次有效学习新增一行；阻塞或中断也要如实记录。用户反馈不写在这里，写入第 16 节。
-
-<!--
-### Session <N> — <YYYY-MM-DD>
-
-| 项目 | 内容 |
-| --- | --- |
-| 模式与时长 | quick / standard / deep，<minutes> |
-| 检查的仓库版本 |  |
-| 用户本次目标 |  |
-| 新内容前的复习 |  |
-| 检查的来源 | SRC-... |
-| 完成的学习 |  |
-| 用户行为证据 | 能解释 / 追踪 / 预测 / 应用 / 未能回忆的内容 |
-| 观察或重测的误区 | M-... |
-| 新增或回答的问题 | Q-... |
-| 尝试的实验 | EXP-... |
-| 状态变化 | Step 和掌握度变化 |
-| 会话结果 | advanced / reviewed / blocked / interrupted / finalized |
-| 唯一下一行动 |  |
-| 建议返回时间 |  |
--->
-
-| Session ID | 日期 | Step | 模式 / 时长 | 本次目标 | 复习与学习内容 | 学习行为证据 | 状态变化 | 会话结果 | 唯一下一行动 | 建议复习时间 |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| Session ID | 日期 | Step / Node | 模式 / 时长 | 本次目标 | 学习与问题 IDs | 行为证据 | 状态变化 | 会话结果 | 唯一下一行动 |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 
 ---
 
-## 15. 用户心得与学习感受
+## 15. 用户心得摘要
 
-> 用户填写区。用户可以在每次学习后写几句话，也可以只填写最有感受的字段。AI 只能读取这些内容，并在第 16 节或下一次会话中记录调整，不得覆盖用户原文。
+> 用户原文在 `PROJECT_STUDY_QA.md`。这里只保留 ID、学习信号和 AI 调整。
 
-| 心得 ID | 日期 | 相关 Step | 我这次真正理解了什么 | 哪个解释最有帮助 | 仍然模糊或困难的地方 | 当前自信度 1-5 | 我希望下次怎么讲 | AI 已读取 / 调整 |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| NOTE-001 |  |  |  |  |  |  |  | `待读取` |
+| NOTE ID | 日期 | Step / Node | 学习信号摘要 | AI 调整 | 状态 |
+| --- | --- | --- | --- | --- | --- |
 
 ---
 
-## 16. 用户问题与反馈
+## 16. 用户反馈摘要
 
-> 用户可像填写 Excel 一样持续添加行。AI 每次开始学习前优先读取 `new`、`in-progress`、`retest-due` 或评分低于 3 的记录；回答后只补充 AI 列和状态，不修改用户问题。
-
-| Feedback ID | 日期 | Step | 类型 | 用户问题或反馈 | 为什么不清楚 / 哪里不满意 | 希望得到什么 | AI 回应摘要 | 评分 1-5 | 状态 | AI 调整与下一行动 |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| FB-001 |  |  | concept / code / shape / paper / pace / format |  |  |  | `待回答` |  | `new` |  |
-
-### 16.1 反馈处理规则
-
-- `new`: 本次或下一次学习必须确认是否需要处理。
-- `in-progress`: 已开始处理，但用户仍未确认满意或理解。
-- `answered`: AI 已回应；如果用户评分低于 3，不能视为真正解决。
-- `retest-due`: 需要在后续用解释、追踪、预测、调试或修改重新检查。
-- `closed`: 用户明确表示已解决，或已有充分行为证据。
+| FB ID | 日期 | Step / Node | 类型 | 反馈摘要 | 评分 1-5 | AI 调整与下一行动 | 状态 |
+| --- | --- | --- | --- | --- | --- | --- | --- |

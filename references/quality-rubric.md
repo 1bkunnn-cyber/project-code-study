@@ -1,49 +1,72 @@
 # Study Quality Rubric
 
-Use this compact rubric to keep a long-running code-study track rigorous without turning every answer into a checklist recital.
+Use this rubric without turning every answer into a checklist recital.
 
 ## Evidence levels
 
 | Level | Meaning | Permitted wording |
 | --- | --- | --- |
-| E0 | No project-specific evidence | "当前材料中未看到证据" |
-| E1 | Direct source/document observation | "已确认：`path:line` / paper section" |
-| E2 | Cross-source inference | "可推断：依据 A + B；仍需验证 C" |
-| E3 | Runtime or experiment verification | "已验证：command/log/output" |
+| E0 | No project evidence | `当前材料中未看到证据` |
+| E1 | Direct source/document observation | `已确认` with path/symbol/page |
+| E2 | Cross-source inference | `可推断` plus missing verification |
+| E3 | Runtime/experiment verification | `已验证` with command/log/output |
 
-Background knowledge must be labelled separately from E0–E3 project evidence.
+Background knowledge is separate from E0–E3 project evidence.
 
-## Confidence rule
+## Route quality gate
 
-For a conclusion that changes implementation, reproduction, or research interpretation, report:
+Before deep source teaching:
 
-`结论` -> `置信度` -> `依据` -> `可能推翻它的证据` -> `验证动作`
+- relevant source inventory was scanned or indexed;
+- at least one representative runtime scenario was chosen;
+- Step 3 records caller/callee nodes and concept dependencies;
+- Step 4.x order comes from the call graph rather than a fixed model taxonomy;
+- training-only, inference-only, and shared nodes are distinguishable.
 
-Use high only for direct evidence or reproducible runtime evidence. Use medium for a well-supported inference. Use low for an unresolved hypothesis.
+If these are missing, do not claim the core architecture is covered.
+
+## Micro-Step completion gate
+
+A node is `done` only when the learner can, with evidence:
+
+- locate it from its caller;
+- state its local purpose;
+- reconstruct one input/output or shape/data boundary;
+- identify its downstream consumer;
+- answer or schedule the largest uncertainty.
+
+Otherwise use `blocked-prerequisite`, `review`, or `active`.
 
 ## Step completion gate
 
-A step is `完成` only when all of these are true:
+A Step is complete only when:
 
-- The learner can state the step's central idea in their own words.
-- At least one important call path and shape/data path has been reconstructed.
-- Important parameters and defaults have a source location or an explicit evidence gap.
-- The largest uncertainty has a verification action.
+- required micro Steps are complete or explicitly skipped with impact;
+- the learner demonstrates the central mechanism in their own words;
+- at least one important call path and data/shape path is reconstructed;
+- unresolved core dependencies have actions;
+- the record write and readback succeeded.
 
-Otherwise mark `需要补证据` or `需要复习`, and adjust the next step.
+Exposure, a long explanation, agreement, `继续`, self-confidence, or a manually advanced Step number is not evidence of mastery.
 
-## Active recall and teach-back
+## Active-recall closure
 
-End a step with 2–3 prompts selected from:
+After every learner answer provide:
 
-- Explain the mechanism without looking at the code.
-- Reconstruct the input/output shape at one module boundary.
-- Predict what changes if one parameter, layer, transform, or loss term is removed.
-- Point to the exact source that supports the main conclusion.
-- Explain one difference between the paper and this implementation.
+`verdict → correct parts → repair → complete reference answer → evidence → impact → save receipt`
 
-Do not count a correct yes/no confirmation as evidence of understanding.
+Never leave the learner with only an evaluation or partial hints.
 
-## Contradiction and change handling
+## Correction and final-note gate
 
-When sources conflict, retain both records until verified. When the repository revision changes, mark affected conclusions `需复核`, record the old/new revision, and re-check only the impacted files and claims.
+When wording changes, preserve the old wording, create a canonical correction, mark stale material, and update affected knowledge cards. Before final notes:
+
+- resolve correction IDs;
+- search for stale formulations;
+- verify terminology consistency;
+- distinguish exposure from demonstrated mastery;
+- report unresolved evidence honestly.
+
+## Context discipline
+
+Normal continuation reads hot state plus relevant IDs, not the full ledger or Q&A history. A response should teach one primary node unless the user requests synthesis.

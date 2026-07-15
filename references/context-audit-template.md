@@ -1,66 +1,43 @@
-# Context Audit Template
+# Global Coverage and Blind-Spot Audit
 
-Use this template for Step 9: Global context audit and blind-spot review.
+Use this for Step 9 or any checkpoint audit. Reinspect evidence; do not merely summarize prior prose.
 
-## Step 9: 全局上下文审视与盲点审计
+## 1. Runtime scenario coverage
 
-### 1. 已掌握证据回看
+| Scenario | Entrypoint | Required nodes | Traced nodes | Missing / stale nodes | Runtime verified |
+| --- | --- | --- | --- | --- | --- |
 
-- Project files inspected:
-- Paper sections inspected:
-- Configs inspected:
-- Entrypoints inspected:
-- Runtime evidence inspected:
-- User questions so far:
+Check training, inference, evaluation, export, or deployment paths that matter to the learner's goal.
 
-### 2. 仍然重要但被忽视的点
+## 2. Concept dependency coverage
 
-List important points that have not received enough attention.
+| Concept / node | Depends on | Was prerequisite taught first? | Behavioral evidence | Action |
+| --- | --- | --- | --- | --- |
 
-| Point | Why it matters | Current evidence | What to inspect next |
-| --- | --- | --- | --- |
-|  |  |  |  |
+Missing prerequisites require a backfill micro Step. Do not retroactively mark them learned because they appeared in a later summary.
 
-### 3. AI 当前没有把握的事情
+## 3. Questions, corrections, and feedback
 
-Do not hide uncertainty.
+- Unresolved/retest Q IDs:
+- Corrections that affect current summaries:
+- New or low-rated feedback:
+- User questions missing from the final-note plan:
+- Main-line anchors that were lost or changed without evidence:
 
-| Uncertain item | Why uncertain | Evidence needed | Risk if ignored |
-| --- | --- | --- | --- |
-|  |  |  |  |
+## 4. Evidence and implementation gaps
 
-### 4. 当前学习状态下最大的遗憾 / 缺口
+| Gap | Why it matters | Current evidence | Risk | Verification action |
+| --- | --- | --- | --- | --- |
 
-Name the biggest missing pieces honestly. Examples:
+Include source files only discovered but not read, paper claims not mapped, unverified defaults, runtime paths not executed, and repository revision drift.
 
-- Code has not been run.
-- Experiment configs have not been compared.
-- Dataset format has not been verified.
-- Paper formulas have not been traced to tensors.
-- Evaluation metric protocol is unclear.
-- Checkpoint compatibility or pretrained weights are unknown.
+## 5. Related-method and composition gaps
 
-### 5. 用户可能尚未意识到的问题
+- Same-task alternatives not compared:
+- Same-bottleneck methods not considered:
+- Analogous ideas worth studying:
+- Module-composition hypotheses lacking interface/objective checks:
 
-Surface hidden issues respectfully and concretely:
+## 6. Largest current regret and next actions
 
-- Reproduction risk:
-- Metric or evaluation trap:
-- Paper-code mismatch:
-- Hidden default config:
-- Data preprocessing assumption:
-- Train/inference inconsistency:
-- Performance or memory bottleneck:
-- Dataset/license/annotation issue:
-
-### 6. 下一步补强建议
-
-Give concrete next actions:
-
-- Files to upload:
-- Commands to run:
-- Paper sections to read:
-- Functions/classes to trace:
-- Shapes to verify:
-- Experiments to reproduce:
-- Questions to ask next:
+Name the single largest learning gap. Rank no more than three next actions by impact and verification cost. Update the dynamic route and records before declaring the audit complete.

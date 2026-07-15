@@ -1,188 +1,197 @@
-# Learning Ledger Protocol
+# Learning Record Protocol
 
-Use this protocol whenever creating, reading, updating, compacting, or recovering `PROJECT_STUDY_LOG.md`.
+Use this protocol whenever creating, reading, updating, validating, compacting, or migrating project-code-study records.
 
-The canonical structure is `assets/PROJECT_STUDY_LOG.template.md` with schema version 3.1. This asset is the single source of truth for headings, order, tables, status values, placeholders, and user feedback areas. Do not maintain a second prose copy of the template.
+## 1. Record architecture
 
-## 1. Purpose and boundaries
+Schema 4.0 uses two linked files:
 
-The ledger has four jobs:
+- `PROJECT_STUDY_LOG.md`: compact working state and trustworthy learning ledger.
+- `PROJECT_STUDY_QA.md`: detailed substantive questions, follow-ups, complete answers, learner reflections, and feedback.
 
-1. Recover the learning state quickly after context loss.
-2. Make evidence, uncertainty, misconceptions, and progress inspectable.
-3. Select the next best learning activity from demonstrated need.
-4. Supply trustworthy material for the final study note.
+The log retains its original durable jobs: recovery, route, knowledge cards, evidence, mastery, open items, corrections, experiments, conflicts, reviews, milestones, and sessions. Moving detailed Q&A out does not reduce those functions.
 
-It is not a transcript, a scratchpad, a hidden-reasoning dump, a generic TODO list, or the final polished note.
+The canonical templates are:
 
-## 2. Two-layer design
+- `assets/PROJECT_STUDY_LOG.template.md`
+- `assets/PROJECT_STUDY_QA.template.md`
 
-Maintain two layers in one file:
+## 2. Creation
 
-- Hot state: sections 0–13. Update these in place. They answer “where are we now?”
-- AI history: Section 14 session rows and milestone syntheses. Append or update records that answer “how did we get here?”
-- User input: Sections 15–16. Preserve the user's original words and use them as teaching signals.
+When the user authorizes writing and records do not exist:
 
-On session start, read the current snapshot, mastery rows due for review, blocking open loops, unresolved misconceptions, the latest session row, all unread user心得, and all new or low-rated feedback. Do not reread the entire history unless the current task requires it.
+1. confirm the project root or writable location;
+2. copy both templates unchanged;
+3. initialize placeholders in a second minimal edit;
+4. set repository revision, permissions, current scenario, Step, micro Step, and exact continuation node from evidence;
+5. validate both files with `scripts/validate_learning_ledger.py`;
+6. read back frontmatter and the current-state rows.
 
-## 2.1 Creation and initialization
+Never regenerate the schema from memory or overwrite an existing record with a fresh template.
 
-When no ledger exists and the user authorized writing:
+If only one record exists, preserve it and create the missing companion only with authorization. Link the two paths in frontmatter.
 
-1. Copy `assets/PROJECT_STUDY_LOG.template.md` to `<project-root>/PROJECT_STUDY_LOG.md` unchanged.
-2. Confirm that the destination is inside the authorized project root or save location.
-3. In a second, minimal edit, replace every `{{PLACEHOLDER}}` with known information or `待确认`.
-4. Set dates, repository revision, permissions, current mode, and current Step from evidence.
-5. Keep empty register sections and table headers intact.
-6. Validate with `scripts/validate_learning_ledger.py` when Python is available.
+## 3. Stable IDs
 
-Never generate a fresh structure from remembered instructions. Never overwrite an existing ledger. Never leave `{{PLACEHOLDER}}` values in an initialized project ledger.
+Use stable IDs and never recycle them:
 
-The following are schema invariants:
+- `RUN-`: runtime scenario/path
+- `NODE-`: call-graph node
+- `K-`: knowledge or demonstrated capability
+- `SRC-`: source/evidence
+- `Q-`: user question
+- `FB-`: user feedback
+- `NOTE-`: learner reflection
+- `U-`: AI uncertainty
+- `R-`: reproduction risk
+- `M-`: misconception or wording correction
+- `C-`: source/claim conflict
+- `EXP-`: experiment or command
+- `CMP-`: comparison or extension
 
-- YAML `schema_version` stays `3.1` until the bundled template itself is intentionally revised.
-- H2 names and order remain identical to the canonical asset.
-- Existing table columns are not renamed, removed, reordered, or given project-specific variants.
-- `## 14. 会话日志` is the AI-maintained session table; `## 15` and `## 16` remain fixed user input areas at the bottom.
-- Unknown and irrelevant values use `待确认`, `无`, or `不适用（原因）`; sections are not deleted.
+Register details once and reference IDs elsewhere. Mark obsolete claims `stale`; do not silently rewrite history.
 
-## 3. Stable IDs and single source of truth
+## 4. Context-selective reads
 
-Use stable IDs:
+For ordinary continuation, read only:
 
-- `SRC-` source or evidence
-- `K-` knowledge or skill
-- `Q-` user question
-- `U-` AI uncertainty
-- `R-` reproduction risk
-- `M-` misconception
-- `EXP-` experiment or command
-- `C-` source conflict
+- frontmatter and Section 1 hot state;
+- the active route/micro-Step row and exact continuation node;
+- due reviews and blocking open items;
+- corrections that affect the current node;
+- the latest session row;
+- relevant unresolved/retest Q IDs and new/low-rated feedback from the Q&A file.
 
-Register details once and reference the ID elsewhere. Never recycle an ID. When an item becomes obsolete, mark it `stale`; when finished, mark it closed/resolved. Do not delete history merely to make the ledger look clean.
+Do not reread all source history, all sessions, or all Q&A by default.
 
-## 4. Session start transaction
+Read full records only for:
 
-Before teaching:
+- schema migration or structural recovery;
+- user-requested historical review;
+- conflict resolution;
+- global coverage audit;
+- final-note generation.
 
-1. Verify the ledger path and write authorization.
-2. Read the current snapshot and latest session entry.
-3. Compare the current branch/commit or available file revision with the recorded revision.
-4. Calculate days since the last session when dates are available.
-5. Check the review queue, blocking open loops, and `retest-due` misconceptions.
-6. Select the session mode:
-   - quick: review/recovery, no new major topic;
-   - standard: review plus one bounded advance;
-   - deep: sustained source tracing, experiment, or synthesis.
-7. Propose one primary next action. If it conflicts with the user's immediate goal, explain the tradeoff and let the user decide.
+## 5. Main-line anchor
 
-If the learner returns after a gap, prioritize retrieval before new exposition. If the repository changed, revalidate only the conclusions linked to affected source IDs.
+Keep the top snapshot short enough to orient a new agent in about 60 seconds. It must contain:
 
-## 5. Feedback-guided teaching
+- current scenario;
+- current Step and micro Step;
+- current node and exact continuation node;
+- completed nodes on the representative path;
+- active side-question IDs;
+- blocking prerequisite or evidence gap;
+- exactly one primary next action.
 
-Before deciding what to explain, read Section 15 and Section 16. Prioritize feedback in this order:
-
-1. `new` or `retest-due` feedback that is blocking the current Step.
-2. Feedback rated below 3.
-3. Recurring user concerns or requests for a different explanation form.
-4. Positive notes that reveal what explanation style is working.
-
-Use feedback to change one or more of: pace, prerequisite explanation, code granularity, visual/shape tracing, paper context, practical exercise, retrieval question, or evidence request. Make the adjustment explicit in the AI column and the next Session Log row.
-
-Never rewrite the user's question, rating, or心得. If the user writes directly in Sections 15–16, preserve their wording and treat it as higher-priority learning evidence than an AI paraphrase.
+After every side question, update the side-question IDs and preserve the continuation node unless the route legitimately changes.
 
 ## 6. During-session capture
 
-Capture state-changing information, not every sentence:
+Capture state changes, not the transcript:
 
-- a source was actually inspected;
-- the learner demonstrated or failed a capability;
-- a misconception appeared or was resolved after retest;
-- a question changed the route or mental model;
-- a command provided runtime evidence or failed meaningfully;
-- a claim became confirmed, uncertain, contradicted, or stale;
-- the user changed goals, constraints, or permissions.
+- a source was inspected;
+- a runtime/call-path claim gained or lost evidence;
+- a node or concept was introduced, traced, applied, or failed;
+- a substantive question or follow-up was answered;
+- wording or a prior conclusion was corrected;
+- a route dependency, experiment, conflict, or risk changed;
+- the learner changed goals or teaching preferences.
 
-Keep the learner's wording only when it reveals a useful mental model, recurring confusion, or explicit goal. Never store secrets, credentials, unnecessary personal information, or private content unrelated to learning.
+Detailed Q&A belongs in the Q&A file. The log keeps the Q ID, status, one-line summary, affected node, and whether it changes final notes.
 
-## 7. Mastery transitions
+## 7. Mastery and completion
 
 Use observed behavior:
 
-- explanation supports `explainable`;
-- source/call/shape reconstruction supports `traceable`;
-- a correct modification, debug, or experimental design supports `applied`;
-- successful later retrieval or real execution supports `verified`.
+- `introduced`: exposed with evidence;
+- `explainable`: learner explains the mechanism;
+- `traceable`: learner reconstructs a caller/callee and data/shape boundary;
+- `applied`: learner predicts, modifies, debugs, or designs an experiment;
+- `verified`: later retrieval or runtime evidence succeeds;
+- `revisit`: later evidence reveals forgetting or brittle transfer.
 
-Exposure, agreement, copying an answer, or self-confidence alone does not advance mastery. A learner may report confidence 5 while demonstrated level remains `introduced`; preserve that mismatch because it guides teaching.
+Exposure, agreement, copied wording, a `继续` message, or a Step label is not completion evidence.
 
-Downgrade to `revisit` when later evidence reveals forgetting, brittle transfer, or a misconception. This is not failure; it is a scheduling signal.
+## 8. Write transaction and receipt
 
-## 8. Review scheduling
+After meaningful teaching or a substantive question, before the final response:
 
-Schedule from performance rather than a fixed calendar:
+1. reread the target sections if another writer may have changed them;
+2. patch only changed rows/sections;
+3. update route, anchor, question/correction/evidence/mastery as applicable;
+4. append one compact session row only when meaningful learning occurred;
+5. set exactly one next action;
+6. read back the changed IDs/rows and frontmatter;
+7. report a concise receipt.
 
-- wrong or unable to answer: later in the same session or next day;
-- correct only with hints: about 1–3 days;
-- correct unaided: about 7 days;
-- correctly applied in code/experiment: about 14–30 days;
-- failed later transfer: return to 1–3 days with a different task form.
+Example receipt:
 
-Rotate review form among explain, trace, predict, debug, and modify. Do not repeat the same wording until it becomes recognition rather than recall.
+```text
+saved: LOG current=4.3/NODE-007, next=NODE-008; QA Q-014; correction M-003
+```
 
-## 9. Session end transaction
+If any required write or readback fails, say `unsaved` and preserve a compact delta in chat. Never imply success from an intended tool call.
 
-After a meaningful session:
+## 9. Corrections and final wording
 
-1. Update the current snapshot in place.
-2. Update only state rows that changed.
-3. Add or update source, open-loop, misconception, question, experiment, and conflict records.
-4. Update mastery using observed evidence.
-5. Schedule reviews.
-6. Update the AI response, status, rating interpretation, and adjustment columns for feedback addressed in this session; never edit the user's original question,心得, or rating.
-7. Append one session-log row, including `blocked` or `interrupted` outcomes honestly.
-8. Set exactly one primary next action and a suggested return time.
-9. Confirm that the written ledger matches what was actually read, discussed, or run.
+When a user question or new evidence corrects a claim:
 
-If nothing meaningful changed, do not add a noisy session entry. Updating `Last meaningful update` is preferable to pretending progress.
+- preserve the original wording in the correction record;
+- write one canonical corrected formulation;
+- link the evidence and affected Steps/knowledge cards;
+- mark superseded wording `stale`;
+- schedule a retest when the conceptual model changed.
 
-## 10. Compaction and archiving
+Final notes use the canonical corrected wording. Run a stale-claim and terminology consistency audit before finalization.
 
-Compact when the current file becomes difficult to scan, contains repeated closed items, or approaches the host's practical context limit.
+## 10. Feedback-guided teaching
 
-Compaction order:
+Treat user wording as authoritative input about the experience. Preserve it in the Q&A file. Reflect only a compact status and teaching adjustment in the log.
 
-1. Remove accidental duplicates while preserving the canonical ID.
-2. Mark stale/closed rows instead of repeating them in active sections.
-3. Create a milestone synthesis from old session entries.
-4. Move only old closed session entries to `PROJECT_STUDY_LOG_ARCHIVE.md` after user authorization.
-5. Keep unresolved items, mastery state, source IDs they depend on, and the latest milestone synthesis in the main ledger.
+Prioritize:
 
-Never archive merely by age if the entry still explains an open question, misconception, experiment, or source conflict. Record the archive path and date in Maintenance State.
+1. blocking or `retest-due` feedback;
+2. ratings below 3;
+3. recurring complaints about pace, order, granularity, or missing answers;
+4. positive signals that identify a useful explanation style.
 
-## 11. Human edits and conflicting writers
+## 11. Compaction and archiving
 
-Treat user edits as authoritative unless they contradict observable evidence; in that case record the conflict and ask. Before writing, reread the target section if another agent or session may have edited it. Prefer minimal section-level patches over rewriting the whole file.
+Compact in this order:
 
-If two sessions produce conflicting updates, preserve both claims, source them, and create a `C-` conflict record. Do not silently choose the newest statement.
+1. remove accidental duplicates while preserving canonical IDs;
+2. keep only compact Q indexes in the main log;
+3. synthesize old session rows into milestones;
+4. move old closed session history to an archive only with authorization;
+5. preserve unresolved questions, corrections, risks, dependencies, and their evidence.
 
-## 12. Recovery when the ledger is missing or damaged
+Never archive an item merely by age if it still explains an active conclusion.
 
-- Missing but authorized: recreate from the template, label reconstructed fields, and ask the user to confirm the restart brief.
-- Missing and unauthorized: keep a chat-only ledger and state that it is unsaved.
-- Partially corrupted: preserve readable content, create a recovery copy only with authorization, and reconstruct current state from source evidence plus recent conversation.
-- Older schema: do not overwrite it. Ask before migration, preserve a backup or archive when authorized, copy the current canonical template, then migrate confirmed content into matching sections with stable IDs. Mark reconstructed fields and validate before replacing the active path.
+## 12. Legacy schema 3.1
+
+Existing schema 3.1 logs remain readable and valid. Do not overwrite them.
+
+For authorized migration:
+
+1. preserve a backup or archive;
+2. create new schema 4.0 files from the canonical templates;
+3. migrate confirmed current state, evidence, mastery, corrections, experiments, reviews, milestones, and sessions;
+4. move detailed user questions/feedback/reflections to the Q&A file while keeping compact IDs in the log;
+5. mark reconstructed fields;
+6. validate both new files before replacing active paths.
+
+If migration is not authorized, continue with the legacy log and keep Q&A unsaved or in an authorized companion file without pretending the schema was upgraded.
 
 ## 13. Quality check
 
 Before closing an update, verify:
 
-- The restart brief can orient a new agent in about 60 seconds.
-- The next action follows from a demonstrated gap, user goal, or blocking evidence need.
-- Every promoted mastery level has behavioral evidence.
-- Every important uncertainty has an owner/action or accepted-risk status.
-- Repository claims point to source IDs and revisions.
-- The session log describes what happened, not what the AI intended to do.
-- New and low-rated user feedback has either been addressed or explicitly scheduled.
-- User-written心得 and feedback were not overwritten.
-- No sensitive or irrelevant conversation content was stored.
+- a new agent can resume in about 60 seconds;
+- the route reflects actual runtime scenarios rather than a hard-coded architecture;
+- current and next nodes are unambiguous;
+- every promoted mastery level has behavior evidence;
+- substantive questions and corrections have durable IDs;
+- new/low-rated feedback changed teaching or has a scheduled action;
+- final-note material contains no known stale wording;
+- no full transcript, secrets, or irrelevant personal details were stored.

@@ -1,113 +1,61 @@
-# Step Template
+# Runtime-Node Micro-Step Template
 
-Use this template for Step 0-8 and Step 10 unless a more specific template applies.
+Use this template for Step 4.x and any source-learning activity driven by a runtime call path. Keep one primary node per response.
 
-## Step X: <title>
+## Step <N.x>: <scenario> — <Node ID> <symbol>
 
-### 1. 本 Step 学习目标
+### Main-line anchor
 
-- Explain what the user should understand after this step.
-- State why this step matters for reading, reproducing, or modifying the project.
+- Scenario:
+- Caller:
+- Current file / symbol:
+- Exact continuation node:
+- Relevant Q IDs:
 
-### 2. 证据来源
+### Learning target
 
-- Code: `<path>` -> `<class/function/config key>`
-- Paper: `<section/page/formula>` or `当前材料中未看到证据`
-- Runtime evidence: `<log/command/output>` or `当前材料中未看到证据`
-- Unverified assumptions: list separately and do not present them as facts.
+State one behavior the learner should demonstrate after this micro Step.
 
-### 3. 参数定义
+### Minimum evidence
 
-For each important parameter:
+- Source location:
+- Config / paper / runtime evidence when relevant:
+- What remains unverified:
 
-- Name:
-- Location:
-- Type / shape:
-- Default:
-- Meaning:
-- Affects:
-- Evidence:
+### Node explanation
 
-### 4. 代码讲解
+Explain only the useful parts:
 
-Explain by logical blocks, not line spam:
+- local responsibility;
+- important inputs/outputs and shapes;
+- key logic blocks;
+- non-obvious syntax that blocks understanding;
+- why the node exists;
+- downstream consumer;
+- one engineering or boundary risk when relevant.
 
-- Block:
-- What it does:
-- Why it exists:
-- Paper connection:
-- Important syntax:
-- Edge cases:
+Do not force every parameter, paper detail, AMP issue, or deployment concern into every node.
 
-### 5. 调用关系
+### Call boundary
 
-- Upstream caller:
-- Current module/function:
-- Downstream calls:
-- Training-time path:
-- Inference-time path:
-- Config or registry path:
-
-### 6. 语法讲解
-
-Explain non-obvious syntax only:
-
-- PyTorch module behavior such as `nn.Module`, `forward`, buffers, hooks, `ModuleList`, `Sequential`.
-- Tensor operations such as `view`, `reshape`, `permute`, `transpose`, `contiguous`, `cat`, `stack`, indexing, broadcasting.
-- Python patterns such as decorators, inheritance, dataclasses, argparse, dynamic imports, registries, context managers.
-- Config patterns such as YAML inheritance, override order, factory creation, or default merging.
-
-### 7. 张量形状变化
-
-Use a compact table.
-
-| Stage | Code / Operation | Shape | Meaning |
+| Boundary | Symbol / operation | Data or shape | Meaning |
 | --- | --- | --- | --- |
-| Input |  |  |  |
-| Intermediate |  |  |  |
-| Output |  |  |  |
+| Caller → node |  |  |  |
+| Inside node |  |  |  |
+| Node → callee |  |  |  |
 
-If the exact shape depends on config or data, say what is known and what needs evidence.
+### Dependency and comparison
 
-### 8. 模块作用与模块关系
+- Missing prerequisite, if any:
+- One useful same-task, same-bottleneck, analogous, or composable comparison, only if it clarifies this node:
 
-- Local role:
-- Relationship to previous modules:
-- Relationship to later modules:
-- Relationship to paper architecture:
-- What would break or change if this module were modified:
+### Verification
 
-### 9. 数学 / 论文含义
+Ask one or two retrieval/trace/predict questions. Wait for the learner. After the learner answers, follow `question-protocol.md` and provide a complete reference answer.
 
-- Formula or concept:
-- Code implementation:
-- Difference between paper and code:
-- Intuition:
-- Limitation:
+### End state
 
-### 10. 工程细节与调试
-
-- Initialization:
-- Device / dtype / AMP:
-- Memory or speed concerns:
-- Randomness / reproducibility:
-- Common bugs:
-- How to verify:
-
-### 11. 研究生复盘问题
-
-Ask 3-6 questions. Include at least:
-
-- Why is this design used instead of an alternative?
-- What changes if a key parameter/module is modified?
-- Does the code exactly implement the paper?
-- What evidence is still missing?
-
-### 12. 用户问题记录
-
-Record user questions from this step as:
-
-- Q:
-- A:
-- Evidence:
-- Whether it should appear in final notes:
+- Micro-Step status:
+- Most important unresolved issue:
+- Exact continuation node:
+- Persistence receipt:

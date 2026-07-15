@@ -1,152 +1,74 @@
 # Final Markdown Summary Template
 
-Use this structure when the user asks for final notes.
+Use the linked `PROJECT_STUDY_LOG.md` and `PROJECT_STUDY_QA.md` as primary memory, then verify important claims against source/paper/runtime evidence.
 
-Prefer the project's `PROJECT_STUDY_LOG.md` learning ledger as the source for completed steps, demonstrated mastery, milestone syntheses, user心得, user feedback, user questions, route adjustments, unresolved uncertainties, misconceptions, experiments, and reusable summary material. Resolve referenced stable IDs through the source/evidence register. Do not treat self-confidence, exposure, or a `done` step label as proof of understanding. If no ledger was saved, use the temporary conversation ledger.
+Before writing:
+
+1. resolve `SRC-`, `Q-`, `M-`, `C-`, `EXP-`, and `CMP-` references;
+2. use canonical corrected wording and exclude known stale statements;
+3. distinguish demonstrated mastery from exposure;
+4. audit scenario/node coverage and missing prerequisites;
+5. state unsaved or unavailable evidence.
 
 # <Project Name> 源码学习笔记
 
-## 1. 项目概览
+## 1. 项目与证据范围
 
-- Project:
-- Task:
-- Framework:
-- Main entrypoints:
-- Evidence scope:
-- Important missing evidence:
+- Goal, revision, entrypoints, scenarios, evidence inspected, and missing evidence.
 
-## 2. 论文背景与核心思想
+## 2. 任务、论文与相关方法
 
-- Paper:
-- Problem:
-- Main idea:
-- Key modules:
-- Key formulas:
-- What is paper evidence vs general background:
+- Problem formulation, design motivation, key paper claims, and bounded comparisons.
 
-## 3. 学习路线
+## 3. 动态学习路线与掌握证据
 
-| Step | Topic | Status | Demonstrated exit evidence | Key takeaway |
+| Step / micro Step | Scenario / Node | Status | Demonstrated evidence | Key takeaway |
 | --- | --- | --- | --- | --- |
-| 0 | Project map |  |  |  |
-| 1 | Task and paper problem |  |  |  |
-| 2 | Data and preprocessing |  |  |  |
-| 3 | Architecture |  |  |  |
-| 4 | Core source reading |  |  |  |
-| 5 | Paper-code mapping |  |  |  |
-| 6 | Loss/postprocess/metrics |  |  |  |
-| 7 | Training/config |  |  |  |
-| 8 | Inference/reproduction |  |  |  |
-| 9 | Context audit |  |  |  |
-| 10 | Graduate synthesis |  |  |  |
 
-## 4. 模块关系
+## 4. 运行时调用图
 
-Describe the architecture and call relationships. Use Mermaid if helpful.
+- Training/inference/evaluation paths, shared nodes, branches, and exact source symbols.
 
-```mermaid
-flowchart TD
-  A["Input"] --> B["Data pipeline"]
-  B --> C["Model"]
-  C --> D["Loss / Postprocess"]
-  D --> E["Metrics / Output"]
-```
+## 5. 核心节点源码精读
 
-## 5. 关键代码精读
+For each important node: caller, source, inputs/outputs, shapes, logic, design role, downstream use, and risks.
 
-For each key file/module:
+## 6. 完整架构重建
 
-- File:
-- Class/function:
-- Parameters:
-- Role:
-- Code logic:
-- Calls:
-- Paper relation:
-- Common mistakes:
+- Reconstruct the system only from traced nodes; identify training-only and inference-only components.
 
-## 6. Shape Flow
+## 7. 数据、目标函数、训练、推理与评估
 
-| Stage | Tensor | Shape | Meaning | Evidence |
+- Representative data path, objectives/assignment/loss, optimization/config, post-processing, metrics, and reproduction evidence.
+
+## 8. 论文—代码映射
+
+| Paper concept | Paper evidence | Code evidence | Status | Reproduction impact |
 | --- | --- | --- | --- | --- |
-|  |  |  |  |  |
 
-## 7. Paper-Code Mapping
+## 9. 用户问答与规范修正
 
-| Paper concept | Code implementation | Status | Notes |
-| --- | --- | --- | --- |
-|  |  | Match / Simplified / Changed / Missing / Unclear |  |
+- Include high-value Q&A from the Q&A file and a correction table.
 
-## 8. Data, Training, Inference, Evaluation
-
-- Data format:
-- Preprocessing:
-- Training loop:
-- Loss:
-- Optimizer/scheduler:
-- Inference:
-- Post-processing:
-- Metrics:
-- Reproduction commands:
-- Missing runtime evidence:
-
-## 9. 全局盲点审计
-
-- Important ignored points:
-- AI uncertainty:
-- Biggest current regret/gap:
-- User may not realize:
-- Evidence needed next:
-- Route adjustments from the learning ledger:
-- Unresolved questions carried forward:
-- Misconceptions still due for retest:
-- Stale conclusions caused by repository changes:
-
-## 10. 用户问题与回答
-
-| ID | Step | Question | Answer | Evidence IDs |
+| Correction ID | Original issue | Canonical wording | Evidence | Affected conclusions |
 | --- | --- | --- | --- | --- |
-| Q-... |  |  |  | SRC-... |
 
-## 10.1 用户心得与学习感受
+## 10. 相关模型、相似思想与模块组合
 
-Summarize the learner's own reflections without replacing their wording with an AI judgment.
+- Same-task, same-bottleneck, analogous-idea, and composable-module findings; distinguish integration from innovation.
 
-| 心得 ID | Step | 用户真正理解的内容 | 仍然困难的内容 | 用户希望的调整 |
-| --- | --- | --- | --- | --- |
-| NOTE-... |  |  |  |  |
+## 11. 实验、失败、调试与复现清单
 
-## 10.2 用户反馈与 AI 调整
+- Preserve failed attempts and unresolved risks.
 
-Include unresolved, low-rated, recurring, and representative feedback. Explain how the teaching changed in response.
+## 12. 全局盲点与未解决事项
 
-| Feedback ID | Step | 用户反馈 | 评分 | AI 调整 | 处理状态 | 后续动作 |
-| --- | --- | --- | --- | --- | --- | --- |
-| FB-... |  |  |  |  |  |  |
+- Missing nodes, unmet dependencies, uncertainties, stale claims, metric traps, and evidence actions.
 
-## 11. 易错点与调试清单
+## 13. 后续路线
 
-- Environment:
-- Data:
-- Shape:
-- Config:
-- Model:
-- Loss:
-- Evaluation:
-- Reproduction:
+- Reviews, experiments, ablations, modifications, papers, and one highest-value next action.
 
-## 12. 术语表
+## 14. 主动回忆题
 
-| Term | Meaning | Project-specific note |
-| --- | --- | --- |
-|  |  |  |
-
-## 13. 后续阅读与实验建议
-
-- Papers to read:
-- Code paths to inspect:
-- Experiments to reproduce:
-- Ablations to try:
-- Modifications worth implementing:
-- Review queue carried forward:
-- Single highest-value next action:
+Create questions from demonstrated weak points and unresolved transfers, not generic trivia.
