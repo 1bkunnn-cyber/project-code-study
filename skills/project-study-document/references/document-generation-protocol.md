@@ -67,11 +67,45 @@ Use this precedence:
 
 Chapter order must not be copied blindly from Step numbers or file layout.
 
-## 4. Write one coherent Markdown document
+## 4. Build complete Step-to-knowledge coverage
+
+### Create the Step manifest
+
+Enumerate every Step and micro Step from the completed dynamic route, including inserted prerequisite/backfill Steps and explicitly skipped Steps. Build one coverage row per Step with:
+
+- Step or micro-Step identifier and status;
+- the durable knowledge learned in that Step, not merely its topic or activity;
+- related RUN/NODE/K, source, question, misconception, and correction IDs;
+- mastery evidence;
+- the `UNIT-` relearning unit that teaches the knowledge again;
+- skip reason and impact when the Step was not learned.
+
+Every completed Step must map to one or more relearning units. Every relearning unit must map back to one or more Step rows. Multiple Steps may share a unit when they form one coherent concept, but each Step retains its own coverage row. Deduplicate explanations in the body, not coverage in the manifest.
+
+The manifest must report the number of completed, mapped, skipped, and unmapped Steps. `unmapped` must be zero before a complete document can be accepted.
+
+### Write standalone relearning units
+
+A one-line takeaway or route table is not enough for relearning. Each `UNIT-` unit must let a learner recover the knowledge without the original chat and should include:
+
+1. covered Steps and prerequisites;
+2. learning objective and runtime/conceptual position;
+3. a complete explanation of the mechanism;
+4. exact source symbols, configurations, formulas, and paper links when applicable;
+5. inputs, outputs, shapes, state changes, invariants, or data transformations;
+6. design rationale, alternatives, trade-offs, and failure modes;
+7. important user questions, misconceptions, and canonical corrections;
+8. evidence status and unresolved boundaries;
+9. a self-check or transfer question followed by a reference answer;
+10. the connection to the next runtime node or concept.
+
+Do not pad administrative Steps with invented technical content. Explain what durable project-navigation or evidence skill the learner gained. For skipped Steps, record the reason and impact without creating false mastery.
+
+## 5. Write one coherent Markdown document
 
 Default to `PROJECT_STUDY_DOCUMENT.md`. Treat it as a standalone learning artifact for a smart reader who does not have the original conversation.
 
-Use the canonical template. Every major chapter should answer:
+Use the canonical template. Organize the main explanation by runtime and conceptual dependency, then use the Step coverage manifest as a complete navigation layer. Every major chapter should answer:
 
 - What problem or role does this concept have?
 - Where is it in the actual runtime path?
@@ -83,7 +117,7 @@ Use the canonical template. Every major chapter should answer:
 
 Use Mermaid only when it materially clarifies call, data, dependency, or lifecycle relationships. Keep diagrams traceable to RUN/NODE IDs.
 
-## 5. Results-report-inspired synthesis
+## 6. Results-report-inspired synthesis
 
 The document is not a transcript. It must explicitly include:
 
@@ -96,15 +130,15 @@ The document is not a transcript. It must explicitly include:
 - next actions: stop, continue, review, reproduce, modify, compare, or experiment;
 - artifact and reproducibility index.
 
-Avoid chronological summaries such as “Step 1 discussed X, then Step 2 discussed Y” unless chronology itself explains learning progress.
+Avoid chronological transcript summaries such as “Step 1 discussed X, then Step 2 discussed Y.” Complete Step coverage is mandatory, but the teaching body should still follow runtime and conceptual relationships. Use the Step manifest to connect route order to the relevant relearning units.
 
-## 6. Writing transaction
+## 7. Writing transaction
 
 1. Confirm output path and overwrite behavior.
 2. Instantiate the template and replace all placeholders.
 3. Draft sections from the knowledge graph and evidence manifest.
-4. Run important-question and correction audits.
-5. Run the quality gates and validator.
+4. Run the Step coverage, important-question, and correction audits.
+5. Run the quality gates and validator with the source ledger.
 6. Read back high-risk sections.
 7. When authorized, add one ledger artifact record with path, revision, date, and validation result.
 8. Return a concise receipt.

@@ -1,14 +1,14 @@
 ---
 name: project-study-document
-description: This skill should be used when a learner has completed a project-code-study route, has no remaining questions for the study round, and explicitly asks to "生成学习文档", "整理最终源码学习笔记", or create a final evidence-grounded Markdown study document containing important user questions and corrected conclusions.
-version: 1.0.0
+description: This skill should be used when a learner has completed a project-code-study route, has no remaining questions for the study round, and explicitly asks to "生成学习文档", "整理最终源码学习笔记", or create a standalone evidence-grounded Markdown document from which every completed Step can be relearned, including important user questions and corrected conclusions.
+version: 1.1.0
 ---
 
 # Project Study Document
 
 ## Goal
 
-Turn a completed `project-code-study` evidence bundle into one durable, self-contained Markdown learning document. Reconstruct the project from verified learning records and source evidence; do not concatenate Step responses or rewrite the chat transcript.
+Turn a completed `project-code-study` evidence bundle into one durable, self-contained Markdown learning document from which the learner can relearn every completed Step after forgetting it. Reconstruct the project from verified learning records and source evidence; do not concatenate Step responses or rewrite the chat transcript.
 
 ## Entry Boundary
 
@@ -53,6 +53,8 @@ The learning records are memory and indexes, not automatic proof. Recheck high-i
 
 Identify the core learned abstractions from completed `RUN-`, `NODE-`, and knowledge records. Analyze their relationships and order chapters by actual runtime paths plus concept dependencies. Do not order chapters only by file layout, chat chronology, or Step number.
 
+Before drafting, enumerate every route Step and micro Step and build a Step-to-knowledge manifest. Every completed Step must map to at least one `UNIT-` relearning unit and every unit must map back to its source Steps. A route table with one-line takeaways is navigation only; it does not satisfy the relearning requirement.
+
 Within the single Markdown file, keep four reader modes distinguishable:
 
 - tutorial: the coherent learning path through the project;
@@ -60,28 +62,34 @@ Within the single Markdown file, keep four reader modes distinguishable:
 - explanation: design reasons, alternatives, and trade-offs;
 - how-to: reproduction, verification, modification, or experiment actions.
 
-### 4. Include important user questions
+### 4. Write standalone relearning units
+
+Each `UNIT-` unit must be useful after the learner has forgotten the original conversation. Include prerequisites, learning objective, runtime position, a complete explanation, exact source locations, important inputs/outputs/shapes/formulas/configuration, design rationale and trade-offs, misconceptions or corrections, important linked questions, evidence status, a self-check with reference answer, and the next conceptual or runtime connection.
+
+Units may combine tightly related Steps to avoid repetition, but the coverage manifest must retain one row per Step. A completed Step with no mapped unit is a blocking error. A skipped Step must state the reason and learning impact and must not be presented as learned.
+
+### 5. Include important user questions
 
 Select questions by learning impact, not recency. Include questions that changed a conclusion, exposed a misconception, unlocked a core node, clarified a shape/math/paper-code issue, affected reproduction, or led to a useful comparison or extension.
 
 For every included question preserve the learner's intent, then provide the canonical answer, evidence, affected understanding, and linked correction IDs. Exclude routine syntax questions unless they materially changed project understanding. Keep a compact index of omitted Q IDs when traceability matters.
 
-### 5. Write synthesis, not transcript
+### 6. Write synthesis, not transcript
 
 Use the template. Include the highest-confidence conclusions, what changed the learner's understanding, actual runtime call paths, core-node explanations, important questions, canonical corrections, limitations, unresolved items, related methods, module-composition ideas, reproducibility evidence, and next actions.
 
 Separate `已确认`, `可推断`, `背景知识`, and `待验证`. Preserve negative results and failed attempts when they change interpretation. Use the latest canonical wording and remove known stale formulations.
 
-### 6. Run quality gates
+### 7. Run quality gates
 
-Apply `references/quality-gates.md`. A final document fails if a core runtime scenario is missing, an important included claim lacks evidence, a correction still uses stale wording, important user questions were silently omitted, mastery is overstated, or the document depends on hidden chat context.
+Apply `references/quality-gates.md`. A final document fails if any completed Step lacks a mapped relearning unit, a unit is too thin to relearn from, a core runtime scenario is missing, an important included claim lacks evidence, a correction still uses stale wording, important user questions were silently omitted, mastery is overstated, or the document depends on hidden chat context.
 
-### 7. Persist and verify
+### 8. Persist and verify
 
 Write only after confirming the target. Read back frontmatter, table of contents, important-question section, correction section, evidence index, and final action section. Run:
 
 ```powershell
-python skills/project-study-document/scripts/validate_study_document.py PROJECT_STUDY_DOCUMENT.md
+python skills/project-study-document/scripts/validate_study_document.py PROJECT_STUDY_DOCUMENT.md --ledger PROJECT_STUDY_LOG.md
 ```
 
 If the companion skill is installed separately, run the validator from its actual installation path. Report `saved` with the artifact path and source revision, or `unsaved` with the reason. When authorized, add the artifact path and generation date to the learning ledger without rewriting its history.

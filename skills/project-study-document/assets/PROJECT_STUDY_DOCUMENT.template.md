@@ -1,6 +1,6 @@
 ---
 document_type: project-study-document
-schema_version: "1.0"
+schema_version: "1.1"
 status: "complete"
 project_name: "{{PROJECT_NAME}}"
 project_path: "{{PROJECT_PATH_OR_URL}}"
@@ -25,9 +25,9 @@ validation_status: "pending"
 - [1. 文档身份与证据范围](#1-文档身份与证据范围)
 - [2. 学习成果摘要](#2-学习成果摘要)
 - [3. 项目、任务与问题定义](#3-项目任务与问题定义)
-- [4. 动态学习路线与掌握情况](#4-动态学习路线与掌握情况)
+- [4. 动态学习路线、知识覆盖与掌握情况](#4-动态学习路线知识覆盖与掌握情况)
 - [5. 运行场景与真实调用链](#5-运行场景与真实调用链)
-- [6. 核心抽象与源码节点](#6-核心抽象与源码节点)
+- [6. 可重新学习的核心知识单元](#6-可重新学习的核心知识单元)
 - [7. 数据、Shape 与状态流](#7-数据shape-与状态流)
 - [8. 目标函数、训练、推理与评估](#8-目标函数训练推理与评估)
 - [9. 论文—代码映射与设计解释](#9-论文代码映射与设计解释)
@@ -67,30 +67,69 @@ validation_status: "pending"
 
 {{PROJECT_AND_PROBLEM}}
 
-## 4. 动态学习路线与掌握情况
+## 4. 动态学习路线、知识覆盖与掌握情况
 
-| Step / micro Step | RUN / NODE | 学习状态 | 掌握证据 | 核心结论 |
-| --- | --- | --- | --- | --- |
-| {{STEP}} | {{RUN_NODE}} | {{MASTERY_STATUS}} | {{MASTERY_EVIDENCE}} | {{TAKEAWAY}} |
+### 4.1 覆盖结论
+
+| 指标 | 数量或结论 |
+| --- | --- |
+| 已完成 Step / 微 Step | {{COMPLETED_STEP_COUNT}} |
+| 已映射到复习单元 | {{MAPPED_STEP_COUNT}} |
+| 已明确跳过 | {{SKIPPED_STEP_COUNT}} |
+| 未映射 Step | {{UNMAPPED_STEPS_OR_NONE}} |
+
+> 完整文档的“未映射 Step”必须为 `无`。每个已完成 Step 都必须在下表保留一行，并映射到至少一个 `UNIT-` 复习单元。
+
+### 4.2 Step 知识覆盖索引
+
+| Step / 微 Step | 状态 | 本 Step 学到的知识 | RUN / NODE / K | 掌握证据 | 重要 Q / 修正 | 复习单元 |
+| --- | --- | --- | --- | --- | --- | --- |
+| {{STEP}} | {{STEP_STATUS}} | {{STEP_KNOWLEDGE}} | {{RUN_NODE_K}} | {{MASTERY_EVIDENCE}} | {{RELATED_Q_M_C}} | [UNIT-{{UNIT_ID}}](#{{UNIT_ANCHOR}}) |
 
 ## 5. 运行场景与真实调用链
 
 {{RUNTIME_CALL_GRAPHS}}
 
-## 6. 核心抽象与源码节点
+## 6. 可重新学习的核心知识单元
 
-<!-- 按真实调用顺序与概念依赖组织，而不是按聊天或文件顺序。 -->
+<!-- 按真实调用顺序与概念依赖排列 UNIT，而不是照抄聊天时间线。每个已完成 Step 必须映射到至少一个 UNIT。 -->
 
-### {{CORE_ABSTRACTION}}
+### UNIT-{{UNIT_ID}} — {{UNIT_TITLE}}
 
-- 运行角色：{{RUNTIME_ROLE}}
-- 上游 / 下游：{{CALL_RELATION}}
-- 源码位置：{{SOURCE_LOCATION}}
-- 输入 / 输出 / Shape：{{IO_SHAPE}}
-- 核心机制：{{MECHANISM}}
-- 设计原因与取舍：{{RATIONALE_AND_TRADEOFF}}
-- 证据与状态：{{EVIDENCE_AND_STATUS}}
-- 关联问题 / 修正：{{RELATED_Q_M_C}}
+- 覆盖 Step：{{COVERED_STEPS}}
+- 前置知识：{{PREREQUISITES}}
+- 学习目标：{{UNIT_LEARNING_OBJECTIVE}}
+- 运行位置与上游 / 下游：{{RUNTIME_POSITION_AND_CALL_RELATION}}
+- 源码、配置、公式或论文位置：{{UNIT_SOURCE_LOCATIONS}}
+- 证据状态：{{UNIT_EVIDENCE_AND_STATUS}}
+
+#### 核心讲解
+
+{{UNIT_COMPLETE_EXPLANATION}}
+
+#### 输入、输出、Shape、公式与状态变化
+
+{{UNIT_IO_SHAPE_MATH_STATE}}
+
+#### 设计原因、替代方案与取舍
+
+{{UNIT_RATIONALE_ALTERNATIVES_TRADEOFFS}}
+
+#### 重要提问、误区与规范修正
+
+{{UNIT_QUESTIONS_MISCONCEPTIONS_CORRECTIONS}}
+
+#### 自测
+
+{{UNIT_SELF_CHECK}}
+
+#### 参考答案
+
+{{UNIT_SELF_CHECK_ANSWER}}
+
+#### 与下一知识单元的连接
+
+{{UNIT_NEXT_CONNECTION}}
 
 ## 7. 数据、Shape 与状态流
 

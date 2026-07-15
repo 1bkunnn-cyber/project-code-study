@@ -1,7 +1,7 @@
 ---
 name: project-code-study
 description: This skill should be used when a user asks to study a software or ML repository step by step, "按调用顺序读源码", "逐个类/函数学习", connect code with a paper, trace tensor shapes, reproduce or modify a project, preserve questions across sessions, or discover related methods and extension ideas.
-version: 4.1.0
+version: 4.2.0
 ---
 
 # Project Code Study
@@ -138,6 +138,7 @@ Do not generate the final learning document inside this workflow. Hand it to the
 - scenario, node, concept-dependency, correction, and stale-claim audits have passed;
 - every substantive user question is answered and either closed or explicitly deferred by the learner;
 - no active-recall answer or learner response is still pending;
+- every completed Step and micro Step has a durable knowledge record that is sufficient to build a standalone relearning unit; if a Step has only a status label or one-line exposure note, backfill its knowledge before finalization;
 - the learner has indicated that they have no more questions for this study round.
 
 Silence is not confirmation that questions are finished. When the route and audits are complete but the learner has not yet closed the question phase, make the single next action:
@@ -150,7 +151,7 @@ Continue answering and recording questions for as long as the learner has them. 
 
 ```text
 所有计划学习步骤和问题都已完成。是否现在生成 PROJECT_STUDY_DOCUMENT.md？
-它会整理真实调用链、核心知识、重要用户提问、规范修正、相关方法、复现证据和后续方向。
+它会整理每个 Step 可重新学习的知识、真实调用链、重要用户提问、规范修正、相关方法、复现证据和后续方向。
 ```
 
 Do not generate automatically. If the learner agrees, read and follow `skills/project-study-document/SKILL.md`. If the learner declines, record the decision when authorized and do not ask again unless they later request the document.

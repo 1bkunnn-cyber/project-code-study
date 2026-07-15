@@ -6,7 +6,7 @@
 **沿真实运行路径学习项目，而不是套用通用架构目录。**
 
 [![Agent Skills](https://img.shields.io/badge/Agent%20Skills-compatible-111827)](https://agentskills.io/)
-[![Version](https://img.shields.io/badge/version-4.1.0-2563EB)](SKILL.md)
+[![Version](https://img.shields.io/badge/version-4.2.0-2563EB)](SKILL.md)
 [![Claude](https://img.shields.io/badge/Claude-supported-D97706)](https://claude.ai/)
 [![Codex](https://img.shields.io/badge/Codex-supported-10A37F)](https://openai.com/codex/)
 [![GitHub stars](https://img.shields.io/github/stars/1bkunnn-cyber/project-code-study?style=flat)](https://github.com/1bkunnn-cyber/project-code-study/stargazers)
@@ -44,7 +44,7 @@
 | 对比与延伸 | 对比同任务方法、同瓶颈方法、跨领域相似思想以及可组合模块 |
 | 模块组合审查 | 从接口、Shape、目标函数、稳定性、成本、已有工作和消融设计判断“缝合”是否成立 |
 | 可恢复学习记忆 | 日常只加载热状态和相关记录，减少长会话中的上下文膨胀 |
-| 最终学习文档 | 所有 Step 和问题关闭后，经用户同意生成 `PROJECT_STUDY_DOCUMENT.md`，并保留重要提问与规范答案 |
+| 最终学习文档 | 所有 Step 和问题关闭后，经用户同意生成 `PROJECT_STUDY_DOCUMENT.md`；每个已完成 Step 都映射到可独立重新学习的知识单元，并保留重要提问与规范答案 |
 
 ## 双 Skill 架构
 
@@ -171,9 +171,12 @@ Q&A 文件保存高增长的交互详情：
 1. 所有计划 Step 和审计完成后，先询问用户是否还有问题；只要用户继续提问，就继续回答并记录。
 2. 用户明确表示没有更多问题后，才询问是否生成 `PROJECT_STUDY_DOCUMENT.md`。
 
-只有用户明确同意才会生成。伴生 Skill 会完整读取学习日志与 Q&A、重新核验关键结论，并生成一份综合性文档，而不是聊天转录。默认内容包括：
+只有用户明确同意才会生成。伴生 Skill 会完整读取学习日志与 Q&A、重新核验关键结论，并生成一份能够脱离原对话重新学习的综合性文档，而不是聊天转录。
+
+文档会为每个已完成 Step 和微 Step 保留知识覆盖行，并将其映射到一个或多个 `UNIT-` 复习单元。复习单元不能只有一句总结，必须包含前置知识、完整讲解、运行位置、源码与证据、输入输出/Shape/公式、设计取舍、重要提问与修正、自测和参考答案。多个紧密相关的 Step 可以共用一个单元以减少重复，但不能省略任何 Step 的独有知识。默认内容包括：
 
 - 项目任务、证据范围和学习成果；
+- 全部 Step 的知识覆盖索引和可独立重新学习的知识单元；
 - 训练、推理、评估等真实调用链；
 - 按运行关系和概念依赖组织的核心源码节点；
 - 数据、Shape、目标函数、训练、推理和评估；
@@ -244,9 +247,11 @@ Codex 用户级：      ~/.codex/skills/project-code-study
 | --- | --- |
 | `PROJECT_STUDY_LOG.md` | schema 4.0；紧凑的路线、状态、证据、修正和索引 |
 | `PROJECT_STUDY_QA.md` | schema 1.0；完整问题、追问、答案、反馈和关联记录 |
-| `PROJECT_STUDY_DOCUMENT.md` | schema 1.0；经用户同意后生成的最终学习文档 |
+| `PROJECT_STUDY_DOCUMENT.md` | schema 1.1；经用户同意后生成、覆盖每个 Step 知识的最终学习文档 |
 
 旧 `PROJECT_STUDY_LOG.md` schema 3.1 仍可校验。迁移旧日志必须先获得用户授权并保留备份，不能静默覆盖原记录。
+
+旧版最终学习文档 schema 1.0 仍可进行结构校验；新生成文档使用 schema 1.1，并要求通过源日志对账来证明所有已完成 Step 均已覆盖。
 
 ### 仓库结构
 
@@ -262,7 +267,7 @@ Codex 用户级：      ~/.codex/skills/project-code-study
 | [`references/quality-rubric.md`](references/quality-rubric.md) | 证据、路线、掌握和完成门槛 |
 | [`scripts/validate_learning_ledger.py`](scripts/validate_learning_ledger.py) | 校验主日志、Q&A 和旧版日志 |
 | [`skills/project-study-document/SKILL.md`](skills/project-study-document/SKILL.md) | 伴生学习文档 Skill |
-| [`skills/project-study-document/assets/PROJECT_STUDY_DOCUMENT.template.md`](skills/project-study-document/assets/PROJECT_STUDY_DOCUMENT.template.md) | 最终文档 schema 1.0 模板 |
+| [`skills/project-study-document/assets/PROJECT_STUDY_DOCUMENT.template.md`](skills/project-study-document/assets/PROJECT_STUDY_DOCUMENT.template.md) | 最终文档 schema 1.1 模板 |
 | [`skills/project-study-document/scripts/validate_study_document.py`](skills/project-study-document/scripts/validate_study_document.py) | 校验最终学习文档 |
 
 ### 校验模板
@@ -271,6 +276,14 @@ Codex 用户级：      ~/.codex/skills/project-code-study
 python scripts/validate_learning_ledger.py assets/PROJECT_STUDY_LOG.template.md --template
 python scripts/validate_learning_ledger.py assets/PROJECT_STUDY_QA.template.md --template
 python skills/project-study-document/scripts/validate_study_document.py skills/project-study-document/assets/PROJECT_STUDY_DOCUMENT.template.md --template
+```
+
+### 校验生成后的学习文档
+
+schema 1.1 必须同时提供源学习日志。验证器会对账所有 `done` / `skipped` Step、检查 `UNIT-` 复习单元映射，并拒绝未覆盖 Step、缺失源日志或内容过薄的复习单元：
+
+```powershell
+python skills/project-study-document/scripts/validate_study_document.py PROJECT_STUDY_DOCUMENT.md --ledger PROJECT_STUDY_LOG.md
 ```
 
 ## 适用目标与证据边界
@@ -325,7 +338,7 @@ Two persistent Markdown files preserve the learning process. The main ledger sto
 | Comparison and extension | Compares same-task methods, same-bottleneck methods, analogous ideas, and composable modules |
 | Composition review | Evaluates module “stitching” through interfaces, shapes, objectives, stability, cost, prior work, and ablations |
 | Recoverable memory | Loads only hot state and linked records during normal study to control long-context growth |
-| Final study document | After all steps and questions close, generates `PROJECT_STUDY_DOCUMENT.md` with consent and preserves high-impact learner questions |
+| Final study document | After all steps and questions close, generates `PROJECT_STUDY_DOCUMENT.md` with consent; every completed Step maps to a standalone relearning unit, with high-impact learner questions preserved |
 
 ## Two-skill architecture
 
@@ -452,9 +465,12 @@ Completion uses a two-stage handshake:
 1. After all planned steps and audits pass, the workflow first asks whether the learner has more questions. It continues answering and recording them for as long as needed.
 2. Only after the learner explicitly says there are no more questions does it ask whether to generate `PROJECT_STUDY_DOCUMENT.md`.
 
-Generation requires explicit consent. The companion skill then reads the full ledger and Q&A history, revalidates key claims, and creates a synthesis rather than a transcript. Its default content includes:
+Generation requires explicit consent. The companion skill then reads the full ledger and Q&A history, revalidates key claims, and creates a standalone relearning resource rather than a transcript.
+
+Every completed Step and micro-step receives a coverage row and maps to one or more `UNIT-` relearning units. A unit cannot be only a one-line takeaway: it must contain prerequisites, a complete explanation, runtime position, source and evidence, inputs/outputs/shapes/formulas, design trade-offs, important questions and corrections, a self-check, and a reference answer. Closely related Steps may share a unit to avoid repetition, but knowledge unique to any Step cannot be omitted. Default content includes:
 
 - project task, evidence scope, and learning outcomes;
+- complete Step knowledge coverage and standalone relearning units;
 - real call paths for training, inference, evaluation, and other applicable scenarios;
 - core source nodes organized by runtime and conceptual dependencies;
 - data, shapes, objectives, training, inference, and evaluation;
@@ -529,9 +545,11 @@ More copyable prompts are available in [`references/user-prompts.md`](references
 | --- | --- |
 | `PROJECT_STUDY_LOG.md` | Schema 4.0 compact route, state, evidence, correction, and index ledger |
 | `PROJECT_STUDY_QA.md` | Schema 1.0 full questions, follow-ups, answers, feedback, and links |
-| `PROJECT_STUDY_DOCUMENT.md` | Schema 1.0 final study document generated after explicit consent |
+| `PROJECT_STUDY_DOCUMENT.md` | Schema 1.1 final study document with complete Step knowledge coverage, generated after explicit consent |
 
 Legacy `PROJECT_STUDY_LOG.md` schema 3.1 remains valid. Migration requires learner authorization and a backup; the original record must not be silently overwritten.
+
+Legacy final study documents using schema 1.0 remain structurally valid. Newly generated documents use schema 1.1 and must be audited against the source ledger to prove that every completed Step is covered.
 
 ### Repository structure
 
@@ -547,7 +565,7 @@ Legacy `PROJECT_STUDY_LOG.md` schema 3.1 remains valid. Migration requires learn
 | [`references/quality-rubric.md`](references/quality-rubric.md) | Evidence, route, mastery, and completion gates |
 | [`scripts/validate_learning_ledger.py`](scripts/validate_learning_ledger.py) | Main ledger, Q&A, and legacy-ledger validator |
 | [`skills/project-study-document/SKILL.md`](skills/project-study-document/SKILL.md) | Companion final-document skill |
-| [`skills/project-study-document/assets/PROJECT_STUDY_DOCUMENT.template.md`](skills/project-study-document/assets/PROJECT_STUDY_DOCUMENT.template.md) | Final document schema 1.0 template |
+| [`skills/project-study-document/assets/PROJECT_STUDY_DOCUMENT.template.md`](skills/project-study-document/assets/PROJECT_STUDY_DOCUMENT.template.md) | Final document schema 1.1 template |
 | [`skills/project-study-document/scripts/validate_study_document.py`](skills/project-study-document/scripts/validate_study_document.py) | Final study document validator |
 
 ### Validate bundled templates
@@ -556,6 +574,14 @@ Legacy `PROJECT_STUDY_LOG.md` schema 3.1 remains valid. Migration requires learn
 python scripts/validate_learning_ledger.py assets/PROJECT_STUDY_LOG.template.md --template
 python scripts/validate_learning_ledger.py assets/PROJECT_STUDY_QA.template.md --template
 python skills/project-study-document/scripts/validate_study_document.py skills/project-study-document/assets/PROJECT_STUDY_DOCUMENT.template.md --template
+```
+
+### Validate a generated study document
+
+Schema 1.1 requires the source learning ledger. The validator reconciles every `done` / `skipped` Step, checks `UNIT-` relearning-unit mappings, and rejects uncovered Steps, a missing ledger, or units that are too thin to support relearning:
+
+```powershell
+python skills/project-study-document/scripts/validate_study_document.py PROJECT_STUDY_DOCUMENT.md --ledger PROJECT_STUDY_LOG.md
 ```
 
 ## Goals and evidence boundaries
