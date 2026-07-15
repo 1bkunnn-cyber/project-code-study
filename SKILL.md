@@ -1,7 +1,7 @@
 ---
 name: project-code-study
 description: This skill should be used when a user asks to study a software or ML repository step by step, "按调用顺序读源码", "逐个类/函数学习", connect code with a paper, trace tensor shapes, reproduce or modify a project, preserve questions across sessions, or discover related methods and extension ideas.
-version: 4.0.0
+version: 4.1.0
 ---
 
 # Project Code Study
@@ -33,8 +33,9 @@ Read only the resources needed for the current action:
 - `references/step-template.md`: one-node micro-Step response shape.
 - `references/paper-code-template.md`: paper-to-code work.
 - `references/context-audit-template.md`: global coverage audit.
-- `references/final-summary-template.md`: final notes.
+- `references/final-summary-template.md`: compact or legacy summary scaffold; it is not the consent-gated final learning document.
 - `references/user-prompts.md`: short copyable prompts, only when the user asks for them.
+- `skills/project-study-document/SKILL.md`: consent-gated final Markdown learning document, only after the study route and questions are closed.
 
 ## Default Workflow
 
@@ -131,6 +132,29 @@ Before synthesis, audit source coverage, scenario coverage, concept dependencies
 
 Final notes must use the latest corrected canonical wording. Resolve `Q-`, `M-`, `C-`, and `SRC-` links, exclude stale claims, and distinguish demonstrated mastery from exposure.
 
+Do not generate the final learning document inside this workflow. Hand it to the bundled `project-study-document` companion only after all of these are true:
+
+- every required Step and micro Step is complete under the quality gates, or explicitly skipped with impact accepted by the learner;
+- scenario, node, concept-dependency, correction, and stale-claim audits have passed;
+- every substantive user question is answered and either closed or explicitly deferred by the learner;
+- no active-recall answer or learner response is still pending;
+- the learner has indicated that they have no more questions for this study round.
+
+Silence is not confirmation that questions are finished. When the route and audits are complete but the learner has not yet closed the question phase, make the single next action:
+
+```text
+所有计划学习步骤已经完成。你还有希望继续提问或讨论的问题吗？
+```
+
+Continue answering and recording questions for as long as the learner has them. After the learner explicitly says there are no more questions, ask once:
+
+```text
+所有计划学习步骤和问题都已完成。是否现在生成 PROJECT_STUDY_DOCUMENT.md？
+它会整理真实调用链、核心知识、重要用户提问、规范修正、相关方法、复现证据和后续方向。
+```
+
+Do not generate automatically. If the learner agrees, read and follow `skills/project-study-document/SKILL.md`. If the learner declines, record the decision when authorized and do not ask again unless they later request the document.
+
 ## Response Contract
 
 Every response that advances learning ends with:
@@ -142,6 +166,8 @@ Every response that advances learning ends with:
 - persistence receipt (`saved` with IDs/sections, or `unsaved` with reason).
 
 Do not automatically jump to the next micro Step while an active-recall answer, blocking prerequisite, or user question remains open.
+
+When the final-document readiness gate passes, the consent question above becomes the single next action.
 
 ## Optional Host Metadata
 
