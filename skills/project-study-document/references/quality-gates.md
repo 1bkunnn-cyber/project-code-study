@@ -2,75 +2,65 @@
 
 The document is accepted only when every blocking gate passes.
 
-## 1. Identity and source gate
+## 1. Readiness and identity
 
-- output is Markdown and has the canonical frontmatter;
-- project name, project path, repository revision, generation date, language, learning goal, and status are explicit;
-- source artifacts list the ledger, Q&A record, and available source/paper/runtime evidence;
-- unavailable evidence is disclosed.
+- a fresh finalization manifest reports `ready: true`;
+- explicit question closure and generation consent are recorded;
+- canonical schema 1.2 frontmatter contains project identity, real ISO generation time, immutable repository revision, source LOG/QA, source/readiness transaction IDs, language, goal, and status;
+- unavailable evidence is disclosed;
+- `complete/validated` appears only after final zero-error validation.
 
-## 2. Coverage gate
+## 2. Coverage and uniqueness
 
-- every completed Step and micro Step has exactly one coverage row and maps to at least one `UNIT-` relearning unit;
-- every `UNIT-` unit maps back to one or more Step rows;
-- completed, mapped, skipped, and unmapped counts are explicit, and the unmapped count is zero;
-- skipped Steps state the reason and learning impact and are not represented as mastered;
-- every required runtime scenario is represented;
-- every core NODE is explained or explicitly listed as skipped/missing with impact;
-- concept dependencies needed for the final mental model are present;
-- training-only, inference-only, evaluation-only, and shared components are distinguishable;
-- chapter order follows runtime and conceptual relationships rather than chat chronology.
+- each required Step/micro Step has exactly one coverage row;
+- every done Step maps to >=1 UNIT and every UNIT maps back to >=1 done Step;
+- UNIT IDs, headings, and explicit anchors are unique;
+- completed/mapped/skipped/unmapped counts reconcile; unmapped is zero;
+- skipped Steps state reason/impact/acceptance and are not mastered;
+- required RUN scenarios, core NODEs, dependencies, and scenario-specific/shared components are covered;
+- Step, micro-Step, and NODE counts are never mixed.
 
-## 3. Relearning gate
+## 3. Independent relearning
 
-- the document can teach every completed Step without access to the original conversation;
-- a route row or one-line takeaway is not treated as a relearning unit;
-- each `UNIT-` unit identifies prerequisites, learning objective, runtime/conceptual position, core explanation, source evidence, important data/shape/formula/configuration details, rationale and trade-offs, relevant questions/corrections, and the next connection;
-- each unit contains a self-check or transfer question and a visible reference answer;
-- merged units preserve separate Step coverage rows and do not hide knowledge unique to any Step;
-- administrative Steps preserve the durable navigation/evidence knowledge learned without inventing technical mechanisms.
+With no chat, every UNIT teaches objective, prerequisites, actual RUN/NODE position, upstream/downstream, source execution order, I/O/Shape/formula/config/state, rationale/alternatives/trade-offs/failures, important questions/corrections, evidence boundary, self-check/full answer, and next connection.
 
-## 4. Evidence gate
+Step 5/6/9/10 and administrative Steps must preserve durable architecture, reproduction, audit, or synthesis knowledge rather than one-line conclusions. They must not invent technical mechanisms.
 
-- high-impact claims link to source, paper, configuration, or runtime evidence;
-- `已确认`, `可推断`, `背景知识`, and `待验证` are not conflated;
-- executed commands/results are distinguishable from suggested verification;
-- polished prose does not replace missing evidence.
+Forbidden fillers include `详见 chat`, `同上`, `前文已解释`, `见之前回答`, circular `详见对应 UNIT`, and generic `不涉及此方面`. A truly inapplicable dimension must explain why and what evidence or durable skill replaces it.
 
-## 5. Question and correction gate
+## 4. Evidence and correction
 
-- all correction-triggering questions are represented;
-- important questions include canonical complete answers and learning impact;
-- omitted questions remain traceable by Q ID/category when available;
-- stale wording is absent from promoted conclusions;
-- M/C records use the latest canonical formulation.
+- high-impact claims link source/paper/config/runtime evidence and status;
+- suggested, executed, and observed results are distinct;
+- paper/source coverage is not overstated;
+- every M/C preserves original/canonical wording, evidence, impact, stale pattern, and transaction;
+- promoted summary, UNIT, Q&A, and conclusions contain no stale pattern; historical correction tables may quote it only as history.
 
-## 6. Mastery honesty gate
+## 5. Questions and mastery
 
-- demonstrated mastery is separated from exposure;
-- unresolved reviews, weak transfer, or skipped nodes are visible;
-- the document does not claim the learner can reproduce or modify behavior without supporting evidence.
+- Q&A source has no hidden-chat dependency and every Q has a standalone answer;
+- correction-triggering and core-NODE-unlocking questions are included;
+- included Qs preserve intent, canonical answer, evidence, impact, and M/C links;
+- omitted Qs remain traceable;
+- exposure is not represented as explainable/traceable/applied/verified without behavior evidence.
 
-## 7. Synthesis gate
+## 6. Structure and navigation
 
-- the document is not a transcript or a concatenation of Step outputs;
-- main conclusions are easy to locate;
-- failures, negative results, limitations, and uncertainties are retained when relevant;
-- the “what changed understanding” section reflects actual questions/corrections;
-- comparisons and module compositions distinguish integration from research novelty.
+- TOC targets exist once;
+- code fences are balanced;
+- content is within expected UNIT/section boundaries;
+- visuals are materially useful, readable in Markdown, and label RUN/NODE IDs;
+- terminology is consistent and the document ends with concrete actions and evidence/artifact indexes.
 
-## 8. Reader and navigation gate
+## 7. Persistence
 
-- a reader without the chat can explain the project purpose and representative call paths;
-- table of contents and internal links work;
-- diagrams add information and use clear labels;
-- terminology is consistent;
-- reference tables are searchable;
-- the document ends with concrete next actions and an artifact/evidence index.
+- the target was confirmed and not silently overwritten;
+- a temporary sibling file was assembled once from the unique map;
+- preflight passed with `validation_status: pending`;
+- final validation passed after changing only that field to `validated`;
+- high-risk sections and final target were read back;
+- receipt reports path, revision, TX/readiness IDs, coverage, validators, cold-start evidence, and limitations.
 
-## 9. Safety and persistence gate
+## 8. Cold-start acceptance
 
-- no credentials, hidden reasoning, full chat transcript, or irrelevant personal data are included;
-- an existing output was not overwritten without confirmation;
-- write was read back and validator passed;
-- receipt reports path, revision, validation status, and any remaining limitations.
+For each UNIT, a no-chat reader must recover objective/runtime position, call order, I/O/Shape/state, important Q, canonical correction, self-check answer, next NODE, and unverified boundary. Static semantic checks are only a proxy. If a real fresh-session/cross-model run is not performed, record it as `not-run`, never `pass`.

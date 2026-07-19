@@ -1,61 +1,76 @@
-# Runtime-Node Micro-Step Template
+# Runtime-NODE Micro-Step Template
 
-Use this template for Step 4.x and any source-learning activity driven by a runtime call path. Keep one primary node per response.
+Use for Step 4.x and any runtime-driven source lesson. Keep one primary NODE per teaching response.
 
-## Step <N.x>: <scenario> — <Node ID> <symbol>
+## Step <N.x>: <RUN scenario> — <NODE ID> <symbol>
 
-### Main-line anchor
+### Main-line preflight
 
-- Scenario:
-- Caller:
-- Current file / symbol:
-- Exact continuation node:
-- Relevant Q IDs:
+- Interaction state before teaching: `TEACHING_CURRENT_NODE`
+- Scenario / caller / current symbol:
+- Exact continuation NODE:
+- Pending learner response: `false`
+- Relevant Q/M/C IDs:
 
-### Learning target
+### Learning target and evidence
 
-State one behavior the learner should demonstrate after this micro Step.
+State one observable behavior for completion.
 
-### Minimum evidence
+- Source location and revision:
+- Config/paper/runtime evidence when relevant:
+- Evidence status: `已确认` / `可推断` / `背景知识` / `待验证`
+- Largest unverified boundary:
 
-- Source location:
-- Config / paper / runtime evidence when relevant:
-- What remains unverified:
+### NODE explanation
 
-### Node explanation
+Explain local responsibility, important inputs/outputs and Shape/state, key logic in execution order, blocking syntax, design rationale/trade-offs, downstream consumer, and one relevant risk. Do not force unrelated paper, AMP, deployment, or every parameter into the NODE.
 
-Explain only the useful parts:
-
-- local responsibility;
-- important inputs/outputs and shapes;
-- key logic blocks;
-- non-obvious syntax that blocks understanding;
-- why the node exists;
-- downstream consumer;
-- one engineering or boundary risk when relevant.
-
-Do not force every parameter, paper detail, AMP issue, or deployment concern into every node.
-
-### Call boundary
-
-| Boundary | Symbol / operation | Data or shape | Meaning |
+| Boundary | Symbol / operation | Data, Shape, or state | Meaning / evidence |
 | --- | --- | --- | --- |
-| Caller → node |  |  |  |
-| Inside node |  |  |  |
-| Node → callee |  |  |  |
+| Caller -> NODE |  |  |  |
+| Inside NODE |  |  |  |
+| NODE -> callee |  |  |  |
 
 ### Dependency and comparison
 
-- Missing prerequisite, if any:
-- One useful same-task, same-bottleneck, analogous, or composable comparison, only if it clarifies this node:
+- Missing prerequisite/backfill, if any:
+- One useful comparison only when it clarifies this NODE:
 
-### Verification
+### Verification and pause
 
-Ask one or two retrieval/trace/predict questions. Wait for the learner. After the learner answers, follow `question-protocol.md` and provide a complete reference answer.
+Ask one or two retrieval/trace/predict questions, set `interaction_state: AWAITING_RECALL`, and wait. Do not include the answer or next NODE teaching in the same turn.
+
+After the learner responds, follow `question-protocol.md`, persist the complete reference answer, set `interaction_state: AWAITING_QUESTIONS_OR_CONTINUE`, preserve the continuation NODE, and stop.
+
+### Durable knowledge card (required before `done`)
+
+```text
+K ID:
+Step / NODE:
+Transaction ID:
+Prerequisites:
+Learning objective:
+Runtime position:
+Complete explanation:
+Source locations:
+Inputs / outputs / Shapes / states:
+Rationale / alternatives / trade-offs:
+Important Q IDs:
+Canonical M/C IDs and wording:
+Evidence status and remaining boundary:
+Self-check:
+Complete reference answer:
+Next connection:
+Mastery behavior evidence:
+```
+
+Empty fields, answer placeholders, or one-line exposure notes fail completion.
 
 ### End state
 
 - Micro-Step status:
+- Current scenario / NODE:
 - Most important unresolved issue:
-- Exact continuation node:
-- Persistence receipt:
+- Exact continuation NODE:
+- Interaction state:
+- Persistence receipt with TX/Q/M/C/K IDs and strict validation:

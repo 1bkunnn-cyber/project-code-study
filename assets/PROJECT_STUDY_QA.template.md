@@ -1,12 +1,14 @@
 ---
 document_type: project-code-study-qa
-schema_version: "1.0"
+schema_version: "1.1"
 project_name: "{{PROJECT_NAME}}"
 project_path: "{{PROJECT_PATH_OR_URL}}"
 ledger_path: "PROJECT_STUDY_LOG.md"
 created_at: "{{CREATED_AT}}"
 updated_at: "{{UPDATED_AT}}"
 write_authorized: "yes"
+last_question_id: "none"
+last_transaction_id: "TX-0001"
 ---
 
 <!--
@@ -16,15 +18,16 @@ PROJECT CODE STUDY Q&A CONTRACT
 2. Every substantive new or follow-up question receives a unique Q-ID.
 3. Every active-recall response receives a complete reference answer after the learner responds.
 4. Link corrections to M-/C- records in PROJECT_STUDY_LOG.md.
-5. Prefer append-only entries and small status patches. Verify writes by readback.
+5. Answers must be standalone; hidden-chat references and circular placeholders are forbidden.
+6. Prefer append-only entries and small status patches. Verify both files and strict validation before `saved`.
 -->
 
 # {{PROJECT_NAME}} 用户问答与学习反馈
 
 ## 1. 问题索引
 
-| Q ID | 日期 | Step / Node | 类型 | 问题摘要 | Parent Q | 状态 | 回答位置 | 修正 ID |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| Q ID | 日期 | Step / Node | 类型 | 问题摘要 | Parent Q | 状态 | 回答位置 | 修正 ID | Transaction ID |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 
 类型：`concept` / `code` / `syntax` / `shape` / `paper` / `runtime` / `comparison` / `review`。
 
@@ -48,7 +51,9 @@ PROJECT CODE STUDY Q&A CONTRACT
 - 关联 M-/C-/SRC- ID：
 - 最小验证动作：
 - 回到主线：
-- 状态：open / answered / retest-due / closed / stale
+- 状态：open / answered / retest-due / closed / deferred / stale
+- Transaction ID：
+- Persistence receipt：
 -->
 
 ## 3. 用户心得与学习感受
@@ -69,5 +74,6 @@ PROJECT CODE STUDY Q&A CONTRACT
 | --- | --- |
 | 最近一次写入回读验证 | `尚未执行` |
 | 最近一个 Q ID | `无` |
+| 最近成功事务 ID | `TX-0001` |
 | 建议归档 | `no` |
 | 用户授权归档 | `no` |

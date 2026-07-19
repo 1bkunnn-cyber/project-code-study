@@ -15,12 +15,12 @@ The final learning document should preserve questions that shaped understanding,
 
 ## Usually exclude from the main section
 
-- local syntax questions with no effect on project understanding;
+- local syntax questions only when they truly have no effect on project understanding; a syntax/shape question that unlocks a core RUN/NODE must be included;
 - duplicate follow-ups fully absorbed into one canonical answer;
 - logistical questions about paths or tooling that do not affect the learned project;
 - already-stale answers superseded by a correction.
 
-Excluded questions are not deleted. Preserve a compact Q-ID index or count when the Q&A record exists.
+Do not classify Transformer, matcher, criterion, data-container, mask, objective, post-processing, or evaluation-mechanism questions as routine merely because they originated from a local line of code. Excluded questions are not deleted; preserve a compact Q-ID index and exclusion reason.
 
 ## Required presentation for each included question
 
@@ -49,3 +49,4 @@ Before finalizing:
 4. verify every correction-triggering question is included or explicitly represented in the correction section;
 5. verify no included answer uses stale wording;
 6. verify the important-question section can be understood without the original chat.
+7. fail if any selected answer uses `详见 chat`, `同上`, a circular UNIT reference, or stale wording.

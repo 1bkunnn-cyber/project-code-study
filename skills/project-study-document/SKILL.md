@@ -1,104 +1,105 @@
 ---
 name: project-study-document
-description: This skill should be used when a learner has completed a project-code-study route, has no remaining questions for the study round, and explicitly asks to "生成学习文档", "整理最终源码学习笔记", or create a standalone evidence-grounded Markdown document from which every completed Step can be relearned, including important user questions and corrected conclusions.
-version: 1.1.0
+description: This skill should be used when a learner has completed a project-code-study route, explicitly closed the question phase, passed finalization readiness, and asks to "生成学习文档", "整理最终源码学习笔记", or create a standalone evidence-grounded Markdown document from which every completed Step can be relearned.
+version: 2.0.0
 ---
 
 # Project Study Document
 
 ## Goal
 
-Turn a completed `project-code-study` evidence bundle into one durable, self-contained Markdown learning document from which the learner can relearn every completed Step after forgetting it. Reconstruct the project from verified learning records and source evidence; do not concatenate Step responses or rewrite the chat transcript.
+Transform a ready `project-code-study` evidence bundle into one self-contained Markdown document from which every completed Step can be relearned without the original chat. Reconstruct from verified records and source evidence; never concatenate Step responses or invent missing teaching.
 
-## Entry Boundary
+## Fail-closed entry boundary
 
-Run only after the parent workflow confirms all required Steps and micro Steps are complete, audits have passed, substantive questions are answered or intentionally deferred, no learner response is pending, and the learner explicitly consents to generation.
+Run `scripts/validate_finalization_bundle.py --ledger PROJECT_STUDY_LOG.md --qa PROJECT_STUDY_QA.md` before planning or writing. Formal generation is allowed only when `ready: true`, including explicit question-phase closure and learner consent.
 
-If invoked directly, recheck those conditions. If they fail, return a short readiness report and hand control back to `project-code-study`; do not disguise an incomplete route as a final document. A user may explicitly request an incomplete draft, but its frontmatter and title must say `status: incomplete-draft` and list every blocking gap.
+If any field blocks:
 
-## Required Resources
+- do not create or overwrite a `complete` document;
+- return the full readiness report and one minimum backfill action;
+- hand control back to `project-code-study`;
+- generate only `status: incomplete-draft` when the learner explicitly requests an early draft, and list every blocker in frontmatter/body.
 
-Read these before writing:
+Direct invocation does not bypass the gate. Silence, elapsed time, the last numbered Step, or a polished ledger is not consent.
 
-- `references/document-generation-protocol.md`: evidence bundle, chapter planning, writing transaction, and results-report-inspired synthesis rules.
-- `references/important-question-selection.md`: select and present important user questions without copying the whole Q&A history.
-- `references/quality-gates.md`: completeness, evidence, correction, readability, and final acceptance checks.
-- `assets/PROJECT_STUDY_DOCUMENT.template.md`: canonical single-file Markdown structure.
+## Required resources
 
-Use `scripts/validate_study_document.py` after writing the artifact.
+Read completely before writing:
 
-## Default Output
+- `references/document-generation-protocol.md`: source lock, unique UNIT map, temporary assembly, preflight, and atomic commit.
+- `references/important-question-selection.md`: select questions by NODE-unlocking and learning impact.
+- `references/quality-gates.md`: readiness, independent relearning, evidence/correction, and cold-start gates.
+- `assets/PROJECT_STUDY_DOCUMENT.template.md`: canonical schema 1.2 structure.
 
-Write one file in the studied project root:
+Use `scripts/validate_study_document.py` after assembly.
 
-```text
-PROJECT_STUDY_DOCUMENT.md
-```
+## Default output
 
-Use another path only when the learner requests it. Do not split the document merely because it is long. Prefer a table of contents, concise reference tables, appendices, and internal links. If the target already exists, ask whether to update it or create a dated copy; never overwrite silently.
+Write one `PROJECT_STUDY_DOCUMENT.md` in the studied project root unless the learner chooses another path. If it exists, ask whether to update it or create a dated copy. Never overwrite silently.
 
 ## Workflow
 
 ### 1. Revalidate readiness and consent
 
-Confirm the dynamic route—not a hard-coded Step number—is complete. Check scenario/node/dependency coverage, mastery gates, open questions, pending active recall, corrections, stale claims, and user consent.
+Run the bundle validator immediately before source lock. Record its manifest and successful LOG/QA transaction IDs. A failed manifest stops formal generation.
 
 ### 2. Lock the source bundle
 
-Read the complete `PROJECT_STUDY_LOG.md` and `PROJECT_STUDY_QA.md` because this is a finalization action. Lock the repository revision, source/paper/runtime evidence, experiments, comparisons, and relevant generated artifacts. Record unavailable sources explicitly.
+Read the complete LOG and Q&A. Lock repository revision, source/paper/runtime evidence, experiments, comparisons, and relevant artifacts. Learning records are indexes/memory, not automatic proof; recheck promoted high-impact claims against linked evidence. Record unavailable sources.
 
-The learning records are memory and indexes, not automatic proof. Recheck high-impact technical claims against their linked evidence before promoting them into the document.
+### 3. Build one unique Step/UNIT manifest
 
-### 3. Derive the document plan
+Enumerate every required Step and micro Step exactly once, including backfills and accepted skips. Build an in-memory map with one unique UNIT ID and explicit anchor per unit. Every done Step maps to at least one UNIT; every UNIT maps back to at least one done Step. A route row is navigation, not a UNIT.
 
-Identify the core learned abstractions from completed `RUN-`, `NODE-`, and knowledge records. Analyze their relationships and order chapters by actual runtime paths plus concept dependencies. Do not order chapters only by file layout, chat chronology, or Step number.
+Order the teaching body by actual runtime and concept dependencies, not file layout, chat chronology, or Step numbering alone. Keep tutorial, reference, explanation, and how-to modes distinguishable.
 
-Before drafting, enumerate every route Step and micro Step and build a Step-to-knowledge manifest. Every completed Step must map to at least one `UNIT-` relearning unit and every unit must map back to its source Steps. A route table with one-line takeaways is navigation only; it does not satisfy the relearning requirement.
+### 4. Write independent relearning UNITs
 
-Within the single Markdown file, keep four reader modes distinguishable:
+Every UNIT must answer:
 
-- tutorial: the coherent learning path through the project;
-- reference: exact symbols, parameters, shapes, evidence IDs, and paths;
-- explanation: design reasons, alternatives, and trade-offs;
-- how-to: reproduction, verification, modification, or experiment actions.
+1. what problem the Step solves;
+2. its actual RUN/NODE position;
+3. upstream inputs and downstream outputs;
+4. source execution order;
+5. Shape/formula/config/state changes;
+6. rationale, alternatives, trade-offs, and failure modes;
+7. important learner questions that unlocked understanding;
+8. historical misconception and current canonical correction;
+9. evidence status and unresolved boundary;
+10. a self-check plus complete reference answer;
+11. connection to the next NODE or concept.
 
-### 4. Write standalone relearning units
+Administrative Steps teach durable navigation, audit, or evidence methods without fabricated technical mechanisms. Step 5/6/9/10 receive complete relearning content, not administrative summaries.
 
-Each `UNIT-` unit must be useful after the learner has forgotten the original conversation. Include prerequisites, learning objective, runtime position, a complete explanation, exact source locations, important inputs/outputs/shapes/formulas/configuration, design rationale and trade-offs, misconceptions or corrections, important linked questions, evidence status, a self-check with reference answer, and the next conceptual or runtime connection.
+Forbidden fillers include `详见 chat`, `同上`, circular `详见对应 UNIT`, and unexplained `不涉及此方面`. When a dimension truly does not apply, explain why, cite the evidence boundary, and state what replaces that dimension.
 
-Units may combine tightly related Steps to avoid repetition, but the coverage manifest must retain one row per Step. A completed Step with no mapped unit is a blocking error. A skipped Step must state the reason and learning impact and must not be presented as learned.
+### 5. Include important questions and canonical corrections
 
-### 5. Include important user questions
+Select by learning impact. Preserve learner intent, standalone canonical answer, evidence, affected mental model, and M/C IDs. Core mechanism questions are not excluded merely because they look local. Scan summary, UNITs, important questions, and conclusions for stale patterns before promotion.
 
-Select questions by learning impact, not recency. Include questions that changed a conclusion, exposed a misconception, unlocked a core node, clarified a shape/math/paper-code issue, affected reproduction, or led to a useful comparison or extension.
+### 6. Assemble once, validate twice, commit atomically
 
-For every included question preserve the learner's intent, then provide the canonical answer, evidence, affected understanding, and linked correction IDs. Exclude routine syntax questions unless they materially changed project understanding. Keep a compact index of omitted Q IDs when traceability matters.
+Follow `document-generation-protocol.md`:
 
-### 6. Write synthesis, not transcript
+1. render the entire unique UNIT map into a temporary sibling file;
+2. set real `generated_at`, immutable revision, source TX, and readiness TX/receipt;
+3. use `status: complete`, `validation_status: pending` during preflight;
+4. run the document validator with `--preflight --ledger ... --qa ...`;
+5. if preflight passes, change only `validation_status` to `validated` and run final validation without `--preflight`;
+6. read back frontmatter, TOC, UNIT/anchor counts, question/correction/evidence sections, and final actions;
+7. atomically replace the target only after final validation passes.
 
-Use the template. Include the highest-confidence conclusions, what changed the learner's understanding, actual runtime call paths, core-node explanations, important questions, canonical corrections, limitations, unresolved items, related methods, module-composition ideas, reproducibility evidence, and next actions.
+Never repair a failed document by unconstrained string replacement or tail append. Rebuild the affected UNIT map and reassemble the temporary file.
 
-Separate `已确认`, `可推断`, `背景知识`, and `待验证`. Preserve negative results and failed attempts when they change interpretation. Use the latest canonical wording and remove known stale formulations.
+### 7. Cold-start acceptance
 
-### 7. Run quality gates
+Static validation is necessary, not sufficient. Record a cold-start test for each UNIT when release evidence is required: with no chat, recover objective/runtime position, call order, I/O/Shape/state, important Q, canonical correction, self-check, next NODE, and unverified boundary. If a real cross-model run was not performed, report it as an outstanding observation rather than claiming it passed.
 
-Apply `references/quality-gates.md`. A final document fails if any completed Step lacks a mapped relearning unit, a unit is too thin to relearn from, a core runtime scenario is missing, an important included claim lacks evidence, a correction still uses stale wording, important user questions were silently omitted, mastery is overstated, or the document depends on hidden chat context.
+## Receipt
 
-### 8. Persist and verify
+Report `saved` only after target replacement and final readback. Include path, repository revision, source/readiness transaction IDs, Step/UNIT/Q coverage, validator results, cold-start evidence status, and remaining limitations. Otherwise report `unsaved` and preserve the temporary/readiness diagnostics.
 
-Write only after confirming the target. Read back frontmatter, table of contents, important-question section, correction section, evidence index, and final action section. Run:
+## Safety boundaries
 
-```powershell
-python skills/project-study-document/scripts/validate_study_document.py PROJECT_STUDY_DOCUMENT.md --ledger PROJECT_STUDY_LOG.md
-```
-
-If the companion skill is installed separately, run the validator from its actual installation path. Report `saved` with the artifact path and source revision, or `unsaved` with the reason. When authorized, add the artifact path and generation date to the learning ledger without rewriting its history.
-
-## Quality and Safety Boundaries
-
-- Do not create the document before explicit learner consent.
-- Do not use temporary model memory as the primary source.
-- Do not turn questions into invented learner quotes or expose hidden reasoning.
-- Do not include credentials, private paths that the learner did not authorize, or irrelevant personal information.
-- Do not claim complete mastery where the ledger records only exposure.
-- Do not hide missing evidence behind polished prose.
+Do not expose hidden reasoning, full chat transcripts, credentials, unauthorized private paths, or irrelevant personal data. Do not overstate mastery, execution, paper coverage, or experiment results. Missing evidence remains visible.

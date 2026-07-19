@@ -1,72 +1,73 @@
 # Study Quality Rubric
 
-Use this rubric without turning every answer into a checklist recital.
+Apply these gates without reciting the checklist in every response.
 
 ## Evidence levels
 
 | Level | Meaning | Permitted wording |
 | --- | --- | --- |
-| E0 | No project evidence | `当前材料中未看到证据` |
-| E1 | Direct source/document observation | `已确认` with path/symbol/page |
-| E2 | Cross-source inference | `可推断` plus missing verification |
-| E3 | Runtime/experiment verification | `已验证` with command/log/output |
+| E0 | no project evidence | `当前材料中未看到证据` |
+| E1 | direct source/document observation | `已确认` with path/symbol/page |
+| E2 | cross-source inference | `可推断` plus missing verification |
+| E3 | runtime/experiment verification | `已验证` with command/log/output |
 
-Background knowledge is separate from E0–E3 project evidence.
+Background knowledge is separate from E0–E3. Suggested commands, executed commands, and observed results are distinct records.
 
-## Route quality gate
+## Route gate
 
-Before deep source teaching:
+Before deep teaching, the relevant source inventory is indexed; representative RUN scenarios are chosen; Step 3 records caller/callee nodes and dependencies; Step 4.x comes from the graph; and shared/training/inference/evaluation nodes are distinguishable. Every NODE uses one allowed state. Deferred/skipped nodes include reason, impact, revisit condition, and acceptance.
 
-- relevant source inventory was scanned or indexed;
-- at least one representative runtime scenario was chosen;
-- Step 3 records caller/callee nodes and concept dependencies;
-- Step 4.x order comes from the call graph rather than a fixed model taxonomy;
-- training-only, inference-only, and shared nodes are distinguishable.
+## Micro-Step semantic completion gate
 
-If these are missing, do not claim the core architecture is covered.
+A micro Step is `done` only when all are true:
 
-## Micro-Step completion gate
+1. one primary NODE was taught in its actual scenario;
+2. caller, symbol, callee, source location, execution order, inputs/outputs, Shape/state, design reason, and relevant risk are explained;
+3. blocking prerequisites are resolved or the Step remains blocked;
+4. important Q/M/C records contain standalone canonical content;
+5. the learner passes a recall/trace/predict task and receives the complete reference answer;
+6. a non-placeholder durable K card contains every field from `step-template.md`;
+7. the transaction writes and exactly reads back both records;
+8. strict validation passes;
+9. the workflow pauses and waits for a fresh continue before leaving.
 
-A node is `done` only when the learner can, with evidence:
+Exposure, a long explanation, agreement, continue, or a status label never substitutes for these gates.
 
-- locate it from its caller;
-- state its local purpose;
-- reconstruct one input/output or shape/data boundary;
-- identify its downstream consumer;
-- answer or schedule the largest uncertainty.
+## Step gate
 
-Otherwise use `blocked-prerequisite`, `review`, or `active`.
+A Step is complete only when required micro Steps are done or explicitly skipped with accepted impact, the central mechanism has behavior evidence, a key call/data boundary is reconstructable, unresolved dependencies have actions, every done item has durable knowledge, and the final transaction validates.
 
-## Step completion gate
+## Q&A and interaction gate
 
-A Step is complete only when:
+Active recall closure is:
 
-- required micro Steps are complete or explicitly skipped with impact;
-- the learner demonstrates the central mechanism in their own words;
-- at least one important call path and data/shape path is reconstructed;
-- unresolved core dependencies have actions;
-- the record write and readback succeeded.
+`verdict -> correct parts -> repair -> complete answer -> evidence -> impact -> save receipt -> pause`.
 
-Exposure, a long explanation, agreement, `继续`, self-confidence, or a manually advanced Step number is not evidence of mastery.
+Every substantive question has a unique Q ID and complete answer. Side questions and recall do not move the continuation NODE. An earlier continue cannot survive a question. The answer response contains no next-NODE teaching.
 
-## Active-recall closure
+## Correction promotion gate
 
-After every learner answer provide:
+Every M/C record contains original wording, canonical wording, evidence/status, impact, stale pattern, retest, and transaction. Scan hot summaries, K cards, final summaries, relearning units, important questions, and conclusions for stale patterns. Historical correction tables may quote old wording only as explicitly historical.
 
-`verdict → correct parts → repair → complete reference answer → evidence → impact → save receipt`
+High-impact claims require evidence labels. Do not write `全部匹配`, `全部确认`, or equivalent when the linked paper/source was not fully inspected.
 
-Never leave the learner with only an evaluation or partial hints.
+## Document-ready gate
 
-## Correction and final-note gate
+Run `scripts/validate_finalization_bundle.py`. Formal finalization requires:
 
-When wording changes, preserve the old wording, create a canonical correction, mark stale material, and update affected knowledge cards. Before final notes:
+- all required Steps final and every done Step backed by a durable K card;
+- required scenario/NODE/dependency coverage complete;
+- no open/retest question or pending learner response;
+- Q&A contains no hidden-chat dependency;
+- correction/stale audit passes;
+- learner explicitly closed questions and consented.
 
-- resolve correction IDs;
-- search for stale formulations;
-- verify terminology consistency;
-- distinguish exposure from demonstrated mastery;
-- report unresolved evidence honestly.
+Any blocker yields a readiness report. Only an explicitly requested early artifact may use `status: incomplete-draft`; it must list all blockers.
+
+## Cold-start relearning gate
+
+For each final UNIT, a reader with no chat must be able to state its objective/runtime position, reconstruct the main sequence, explain input/output/Shape/state, answer important Qs, give canonical corrections, solve the self-check, and identify the next NODE plus unverified boundary. Static validation is a minimum proxy; release evidence should record any real cross-model cold-start run separately.
 
 ## Context discipline
 
-Normal continuation reads hot state plus relevant IDs, not the full ledger or Q&A history. A response should teach one primary node unless the user requests synthesis.
+Normal continuation reads authoritative hot state and relevant IDs, not full history. Teach one primary NODE unless the user explicitly requests synthesis.

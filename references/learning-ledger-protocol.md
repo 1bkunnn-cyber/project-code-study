@@ -2,196 +2,142 @@
 
 Use this protocol whenever creating, reading, updating, validating, compacting, or migrating project-code-study records.
 
-## 1. Record architecture
+## 1. Record architecture and authority
 
-Schema 4.0 uses two linked files:
+Schema 4.1 uses two linked files:
 
-- `PROJECT_STUDY_LOG.md`: compact working state and trustworthy learning ledger.
-- `PROJECT_STUDY_QA.md`: detailed substantive questions, follow-ups, complete answers, learner reflections, and feedback.
+- `PROJECT_STUDY_LOG.md`: authoritative working state, route, evidence, mastery, durable knowledge, corrections, experiments, reviews, transactions, milestones, and sessions.
+- `PROJECT_STUDY_QA.md`: authoritative full questions, follow-ups, standalone answers, learner reflections, and feedback.
 
-The log retains its original durable jobs: recovery, route, knowledge cards, evidence, mastery, open items, corrections, experiments, conflicts, reviews, milestones, and sessions. Moving detailed Q&A out does not reduce those functions.
-
-The canonical templates are:
+Templates:
 
 - `assets/PROJECT_STUDY_LOG.template.md`
 - `assets/PROJECT_STUDY_QA.template.md`
 
+The authoritative state fields are `current_scenario`, `current_step`, `current_micro_step`, `current_node_id`, `continuation_node_id`, `interaction_state`, `pending_user_response`, `active_side_question_ids`, `last_question_id`, `last_transaction_id`, and `updated_at`. Frontmatter and Section 1 must match exactly. Route tables, indexes, review queues, knowledge cards, and session rows are derived views; update them in the same transaction.
+
 ## 2. Creation
 
-When the user authorizes writing and records do not exist:
+When writing is authorized and records do not exist:
 
-1. confirm the project root or writable location;
-2. copy both templates unchanged;
+1. confirm the project root;
+2. instantiate both canonical templates;
 3. initialize placeholders in a second minimal edit;
-4. set repository revision, permissions, current scenario, Step, micro Step, and exact continuation node from evidence;
-5. validate both files with `scripts/validate_learning_ledger.py`;
-6. read back frontmatter and the current-state rows.
+4. set revision, permissions, authoritative state, and exact continuation NODE from evidence;
+5. allocate `TX-0001` for creation;
+6. validate both with `scripts/validate_learning_ledger.py --strict` and their peer paths;
+7. read back frontmatter, hot state, and transaction rows.
 
-Never regenerate the schema from memory or overwrite an existing record with a fresh template.
-
-If only one record exists, preserve it and create the missing companion only with authorization. Link the two paths in frontmatter.
+Never regenerate a schema from memory or overwrite an existing record with a template. If only one file exists, preserve it and create the companion only with authorization.
 
 ## 3. Stable IDs
 
-Use stable IDs and never recycle them:
+Never recycle IDs:
 
 - `RUN-`: runtime scenario/path
 - `NODE-`: call-graph node
-- `K-`: knowledge or demonstrated capability
+- `K-`: durable knowledge or demonstrated capability
 - `SRC-`: source/evidence
-- `Q-`: user question
-- `FB-`: user feedback
+- `Q-`: substantive question or active-recall response
+- `FB-`: teaching feedback
 - `NOTE-`: learner reflection
-- `U-`: AI uncertainty
+- `U-`: uncertainty
 - `R-`: reproduction risk
-- `M-`: misconception or wording correction
+- `M-`: misconception/wording correction
 - `C-`: source/claim conflict
 - `EXP-`: experiment or command
-- `CMP-`: comparison or extension
+- `CMP-`: comparison/extension
+- `TX-`: cross-file write transaction
 
-Register details once and reference IDs elsewhere. Mark obsolete claims `stale`; do not silently rewrite history.
+Register details once and reference IDs elsewhere. Preserve superseded claims as history and mark their promoted use `stale`.
 
-## 4. Context-selective reads
+## 4. Enumerated states
 
-For ordinary continuation, read only:
+Use only these values:
 
-- frontmatter and Section 1 hot state;
-- the active route/micro-Step row and exact continuation node;
-- due reviews and blocking open items;
-- corrections that affect the current node;
-- the latest session row;
-- relevant unresolved/retest Q IDs and new/low-rated feedback from the Q&A file.
+- Step/micro Step: `planned`, `active`, `blocked-prerequisite`, `review`, `done`, `skipped`, `stale`.
+- NODE: `discovered`, `planned`, `active`, `traced`, `verified`, `blocked-prerequisite`, `deferred`, `skipped`, `stale`.
+- question: `open`, `answered`, `retest-due`, `closed`, `deferred`, `stale`.
+- interaction: states defined in `SKILL.md`.
 
-Do not reread all source history, all sessions, or all Q&A by default.
+Each object has exactly one current state. A range summary is allowed only when every member row exists with an individual state. `deferred` and `skipped` NODE rows require reason, impact, revisit condition, and learner acceptance. Count Steps, micro Steps, and NODEs separately.
 
-Read full records only for:
+## 5. Context-selective reads
 
-- schema migration or structural recovery;
-- user-requested historical review;
-- conflict resolution;
-- global coverage audit;
-- final-note generation.
+For ordinary continuation, read only authoritative state, the active route/NODE, exact continuation, due reviews, blockers, affected corrections, latest transaction/session, and relevant Q/feedback IDs. Read the full bundle only for migration, global audit, conflict recovery, or finalization.
 
-## 5. Main-line anchor
+## 6. Main-line anchor and interaction state
 
-Keep the top snapshot short enough to orient a new agent in about 60 seconds. It must contain:
+Keep the hot snapshot readable in about 60 seconds. It must show current scenario, Step/micro Step, NODE, completed representative nodes, active side questions, blocker, exact continuation NODE, interaction state, pending response, and exactly one primary next action.
 
-- current scenario;
-- current Step and micro Step;
-- current node and exact continuation node;
-- completed nodes on the representative path;
-- active side-question IDs;
-- blocking prerequisite or evidence gap;
-- exactly one primary next action.
+Side questions and recall closure preserve `continuation_node_id`. After their answers are saved, set `interaction_state: AWAITING_QUESTIONS_OR_CONTINUE` and `pending_user_response: true`. Only a fresh continue event may enter `TEACHING_CURRENT_NODE`; consume it once.
 
-After every side question, update the side-question IDs and preserve the continuation node unless the route legitimately changes.
+## 7. Mastery and durable knowledge
 
-## 6. During-session capture
+Use behavior evidence:
 
-Capture state changes, not the transcript:
+- `introduced`: exposed with evidence
+- `explainable`: learner explains mechanism
+- `traceable`: learner reconstructs a call/data boundary
+- `applied`: learner predicts, modifies, debugs, or designs an experiment
+- `verified`: later retrieval/runtime evidence succeeds
+- `revisit`: later evidence shows brittle transfer
 
-- a source was inspected;
-- a runtime/call-path claim gained or lost evidence;
-- a node or concept was introduced, traced, applied, or failed;
-- a substantive question or follow-up was answered;
-- wording or a prior conclusion was corrected;
-- a route dependency, experiment, conflict, or risk changed;
-- the learner changed goals or teaching preferences.
+A `done` Step requires a detailed `K-` card, behavior evidence, successful transaction, and these non-placeholder fields:
 
-Detailed Q&A belongs in the Q&A file. The log keeps the Q ID, status, one-line summary, affected node, and whether it changes final notes.
+`prerequisites`, `learning_objective`, `runtime_position`, `complete_explanation`, `source_locations`, `inputs_outputs_shapes`, `rationale_tradeoffs`, `important_questions`, `canonical_corrections`, `evidence_status`, `self_check`, `reference_answer`, `next_connection`.
 
-## 7. Mastery and completion
+Exposure, agreement, copied wording, a continue message, or a status label is not completion evidence.
 
-Use observed behavior:
+## 8. Atomic logical transaction
 
-- `introduced`: exposed with evidence;
-- `explainable`: learner explains the mechanism;
-- `traceable`: learner reconstructs a caller/callee and data/shape boundary;
-- `applied`: learner predicts, modifies, debugs, or designs an experiment;
-- `verified`: later retrieval or runtime evidence succeeds;
-- `revisit`: later evidence reveals forgetting or brittle transfer.
-
-Exposure, agreement, copied wording, a `继续` message, or a Step label is not completion evidence.
-
-## 8. Write transaction and receipt
-
-After meaningful teaching or a substantive question, before the final response:
-
-1. reread the target sections if another writer may have changed them;
-2. patch only changed rows/sections;
-3. update route, anchor, question/correction/evidence/mastery as applicable;
-4. append one compact session row only when meaningful learning occurred;
-5. set exactly one next action;
-6. read back the changed IDs/rows and frontmatter;
-7. report a concise receipt.
-
-Example receipt:
+Markdown hosts cannot guarantee a filesystem-wide atomic rename, so use a fail-closed logical transaction with one monotonic `TX-` ID:
 
 ```text
-saved: LOG current=4.3/NODE-007, next=NODE-008; QA Q-014; correction M-003
+construct delta and TX ID
+  -> write Q&A detail/index/correction references
+  -> exact Q&A readback
+  -> write ledger state/index/knowledge/session/transaction
+  -> exact ledger readback
+  -> cross-file ID and state reconciliation
+  -> strict validation
+  -> saved only if all pass
 ```
 
-If any required write or readback fails, say `unsaved` and preserve a compact delta in chat. Never imply success from an intended tool call.
+Required readback checks:
 
-## 9. Corrections and final wording
+- Q ID, parent, complete answer, status, main-line anchor, linked M/C/SRC/K, and TX ID;
+- current/continuation NODE, interaction state, pending response, last Q/TX IDs, and updated time;
+- LOG and Q&A maximum Q ID and transaction ID agree;
+- relevant `retest-due`, M/C, and review-queue views agree.
 
-When a user question or new evidence corrects a claim:
+If the Q&A write succeeds but the ledger write/readback fails, return `unsaved-partial`, list exact written/missing pieces, retain the compact delta, and set the next action to repair—not teaching. Never issue `saved` from an intended or dispatched tool call.
 
-- preserve the original wording in the correction record;
-- write one canonical corrected formulation;
-- link the evidence and affected Steps/knowledge cards;
-- mark superseded wording `stale`;
-- schedule a retest when the conceptual model changed.
+A success receipt contains files, TX/Q/M/C IDs, current, next, interaction state, and strict validation result.
 
-Final notes use the canonical corrected wording. Run a stale-claim and terminology consistency audit before finalization.
+## 9. Questions, corrections, and final wording
 
-## 10. Feedback-guided teaching
+Detailed Q&A belongs in Q&A; the log keeps a compact index. When evidence corrects a claim, preserve original wording, canonical wording, evidence, impact, stale pattern, and retest. Update every current summary and affected K card in the same transaction. Finalization scans promoted sections for stale patterns.
 
-Treat user wording as authoritative input about the experience. Preserve it in the Q&A file. Reflect only a compact status and teaching adjustment in the log.
+Separate suggested commands, executed commands, and observed results. Never promote `not-run` to runtime evidence or claim complete paper/code agreement without direct inspection.
 
-Prioritize:
+## 10. Feedback and compaction
 
-1. blocking or `retest-due` feedback;
-2. ratings below 3;
-3. recurring complaints about pace, order, granularity, or missing answers;
-4. positive signals that identify a useful explanation style.
+Preserve learner wording in Q&A and only a compact status/adjustment in the log. Prioritize blocking/retest feedback, ratings below 3, and recurring pace/order/granularity issues.
 
-## 11. Compaction and archiving
+Compact by removing accidental duplicates, keeping only Q indexes in the log, synthesizing old sessions into milestones, and archiving only with authorization. Never archive an item still supporting an active conclusion.
 
-Compact in this order:
+## 11. Compatibility and migration
 
-1. remove accidental duplicates while preserving canonical IDs;
-2. keep only compact Q indexes in the main log;
-3. synthesize old session rows into milestones;
-4. move old closed session history to an archive only with authorization;
-5. preserve unresolved questions, corrections, risks, dependencies, and their evidence.
+Schema 4.0 and legacy 3.1 remain readable. Strict cross-file guarantees apply to 4.1. Migrate only with authorization:
 
-Never archive an item merely by age if it still explains an active conclusion.
-
-## 12. Legacy schema 3.1
-
-Existing schema 3.1 logs remain readable and valid. Do not overwrite them.
-
-For authorized migration:
-
-1. preserve a backup or archive;
-2. create new schema 4.0 files from the canonical templates;
-3. migrate confirmed current state, evidence, mastery, corrections, experiments, reviews, milestones, and sessions;
-4. move detailed user questions/feedback/reflections to the Q&A file while keeping compact IDs in the log;
+1. preserve a backup;
+2. instantiate 4.1 templates;
+3. migrate confirmed state, route, evidence, mastery, knowledge, corrections, experiments, reviews, and sessions;
+4. migrate full Q&A while retaining compact indexes;
 5. mark reconstructed fields;
-6. validate both new files before replacing active paths.
+6. run strict validation before replacing active paths.
 
-If migration is not authorized, continue with the legacy log and keep Q&A unsaved or in an authorized companion file without pretending the schema was upgraded.
+## 12. Quality check
 
-## 13. Quality check
-
-Before closing an update, verify:
-
-- a new agent can resume in about 60 seconds;
-- the route reflects actual runtime scenarios rather than a hard-coded architecture;
-- current and next nodes are unambiguous;
-- every promoted mastery level has behavior evidence;
-- substantive questions and corrections have durable IDs;
-- new/low-rated feedback changed teaching or has a scheduled action;
-- final-note material contains no known stale wording;
-- no full transcript, secrets, or irrelevant personal details were stored.
+Before closing a transaction, verify that a new agent can resume in about 60 seconds, route and state views agree, every promoted mastery has behavior evidence, questions/corrections have durable IDs and complete content, stale wording is absent from current conclusions, exactly one next action exists, and no transcript, secrets, or irrelevant personal data were stored.

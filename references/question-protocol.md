@@ -1,82 +1,84 @@
 # Question, Feedback, and Correction Protocol
 
-Use this protocol whenever the learner asks a substantive question, answers an active-recall prompt, corrects the agent, or reports a teaching problem.
+Use this protocol when the learner asks a substantive question, answers active recall, corrects a claim, or reports a teaching problem.
 
-## 1. What must be recorded
+## 1. Allocate a stable Q ID
 
-Create a new `Q-` entry for:
+Create a new Q entry for every first question, follow-up asking for a different reason/example/implication/path, new question in the same Step, syntax question that affects the current NODE, active-recall response, or question that revises an earlier claim. Do not create Q entries for operational acknowledgements such as `继续`, `好的`, or `明白` unless they change constraints.
 
-- the first question on a topic;
-- a follow-up that asks for a different reason, example, implication, or code path;
-- a new question during the same Step;
-- a syntax question that affects reading the current node;
-- a question that reveals or corrects an imprecise prior claim.
+Never reuse an ID. Set `parent_id` for follow-ups. Preserve the current scenario, Step/NODE, interaction state, and exact continuation NODE before answering.
 
-Do not create Q entries for operational acknowledgements such as `继续`, `好的`, or `明白` unless they also change the route or constraints.
+## 2. Standalone Q&A record
 
-Never reuse or overwrite a Q ID. Use `parent_id` for follow-ups.
+Every Q detail must contain:
 
-## 2. Persistence transaction
+- user's question intent;
+- parent Q or `none`;
+- current main-line anchor and return position;
+- complete canonical answer, including the reasoning needed to reuse it;
+- code/paper/runtime/background evidence and evidence status;
+- whether it changes an old conclusion;
+- linked M/C/SRC/K IDs;
+- minimum verification action;
+- Q status and transaction receipt.
 
-After answering a substantive question in the same turn:
+Forbidden answer substitutions: `详见 chat`, `同上`, `前文已解释`, `见之前回答`, circular `详见对应 UNIT`, or a summary that omits the key derivation. One Q entry must be understandable without chat history.
 
-1. append or update the full Q&A entry in `PROJECT_STUDY_QA.md`;
-2. update the compact question index or open item in `PROJECT_STUDY_LOG.md`;
-3. update the main-line continuation anchor;
-4. if the answer changes a prior claim, create/update an `M-` or `C-` record and the affected Step knowledge card;
-5. read back the Q ID and affected rows;
-6. report `saved: Q-xxx` or explicitly report `unsaved` with the reason.
+## 3. Persistence order
 
-Do not wait until the end of a large Step to save questions.
+In the same turn as the answer:
 
-## 3. Active-recall answer contract
+1. allocate one TX ID;
+2. write Q&A detail and Q&A index;
+3. read back Q ID, parent, complete answer, status, anchor, evidence links, and TX ID;
+4. write the LOG Q index, authoritative state, correction/K-card changes, and same TX ID;
+5. read back LOG current/next/state and affected rows;
+6. run strict cross-file validation;
+7. return `saved` only after all checks pass.
 
-After the learner answers, always provide all of the following:
+Do not batch questions until the end of a Step. Partial success is `unsaved-partial`, never `saved`.
 
-1. **Verdict**: `正确`, `部分正确`, `错误`, or `证据不足`.
-2. **Correct parts**: what should be preserved.
-3. **Repair**: what is missing, ambiguous, or wrong.
-4. **Complete reference answer**: a standalone answer suitable for later review, even when the learner was fully correct.
-5. **Evidence**: source/paper/runtime evidence or an explicit project-specific evidence gap.
-6. **Impact**: whether the answer changes mastery, a prior conclusion, the route, or a review schedule.
-7. **Persistence**: Q/M/C IDs and save receipt.
+## 4. Active-recall closure
 
-Never reply only with “基本正确，我来精确化” or a verdict without the complete answer.
+After the learner answers, always provide:
 
-## 4. Canonical correction chain
+1. verdict: `正确`, `部分正确`, `错误`, or `证据不足`;
+2. correct parts to preserve;
+3. repair for missing, ambiguous, or wrong parts;
+4. a standalone complete reference answer even when fully correct;
+5. source/paper/runtime evidence or an explicit project-specific gap;
+6. impact on mastery, prior conclusions, route, and review schedule;
+7. Q/M/C/K IDs and honest transaction receipt.
 
-When a statement is corrected, preserve a compact chain:
+Then set `interaction_state: AWAITING_QUESTIONS_OR_CONTINUE`, preserve the continuation NODE, and stop. The response must not teach the next micro Step.
+
+## 5. One-use continuation rule
+
+A continue instruction is valid only when received after entering `AWAITING_QUESTIONS_OR_CONTINUE`. Consume it on transition to `TEACHING_CURRENT_NODE`. If a side question or recall answer intervenes, any earlier continue is expired. Answer completion restores the anchor and waits for a new user message.
+
+## 6. Canonical correction chain
+
+Preserve:
 
 ```text
 Correction ID: M-xxx or C-xxx
 Original wording:
-Why it was imprecise or wrong:
-Canonical corrected wording:
-Evidence:
-Affected Steps / notes:
+Why imprecise or wrong:
+Canonical wording:
+Evidence and status:
+Affected Steps / K / Q:
+Stale pattern:
 Retest question:
 Status:
+Transaction ID:
 ```
 
-Mark superseded wording `stale`. Update current summaries and final-note material to use the canonical wording. Do not erase the history that explains why the correction occurred.
+Mark superseded promoted wording stale. Update hot summaries and affected K cards in the same transaction. Finalization must scan summary, units, important questions, and conclusions for stale patterns; the historical correction section may quote the old wording only when clearly marked historical.
 
-## 5. Side questions and the main line
+## 7. Multiple questions and feedback
 
-Answer side questions fully, but keep them subordinate to the main route. End with:
+When multiple substantive questions arrive, allocate one ID per intent, answer in a bounded sequence, and preserve the same continuation NODE unless evidence legitimately changes the route. Teaching feedback receives an `FB-` ID and records concrete adjustment without advancing.
 
-- how the question relates to the current node;
-- the current main-line anchor;
-- the exact continuation node.
+## 8. Read strategy
 
-When multiple questions arrive together, assign IDs to each, answer them in a bounded sequence, and preserve the same continuation anchor unless a question legitimately changes the route.
-
-## 6. Read strategy
-
-On ordinary continuation, read only:
-
-- unresolved or `retest-due` questions relevant to the current node;
-- recent follow-ups for the active parent Q;
-- low-rated or new feedback;
-- corrections affecting the current explanation.
-
-Read the full Q&A file only for migration, conflict recovery, a user-requested question review, global audit, or finalization.
+Ordinary continuation reads only unresolved/retest questions for the current NODE, recent follow-ups for the active parent, low-rated/new feedback, and relevant corrections. Read the full Q&A only for migration, conflict recovery, global audit, requested review, or finalization.

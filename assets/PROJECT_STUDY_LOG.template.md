@@ -1,6 +1,6 @@
 ---
 document_type: project-code-study-ledger
-schema_version: "4.0"
+schema_version: "4.1"
 project_name: "{{PROJECT_NAME}}"
 project_path: "{{PROJECT_PATH_OR_URL}}"
 qa_path: "PROJECT_STUDY_QA.md"
@@ -11,19 +11,28 @@ updated_at: "{{UPDATED_AT}}"
 current_step: "0"
 current_micro_step: "0.1"
 current_scenario: "map"
-current_node: "待确认"
+current_node_id: "NODE-pending"
+continuation_node_id: "NODE-pending"
+interaction_state: "TEACHING_CURRENT_NODE"
+pending_user_response: false
+active_side_question_ids: "none"
+last_question_id: "none"
+last_transaction_id: "TX-0001"
+learner_closed_question_phase: false
+learner_consented_to_generation: false
 study_mode: "new"
 write_authorized: "yes"
 ---
 
 <!--
-PROJECT CODE STUDY LEDGER CONTRACT — schema 4.0
+PROJECT CODE STUDY LEDGER CONTRACT — schema 4.1
 
 1. This file stores compact state, route, evidence, mastery, corrections, experiments, reviews, milestones, and sessions.
 2. Detailed questions, answers, learner reflections, and feedback belong in PROJECT_STUDY_QA.md; keep compact IDs here.
 3. Preserve heading order, table columns, stable IDs, user content, and stale/correction history.
 4. Prefer small patches. Never store full conversations, hidden reasoning, credentials, or irrelevant private data.
-5. A write is successful only after changed rows are read back.
+5. A write is successful only after both files are exactly read back and strict validation passes.
+6. Frontmatter and Section 1 are the same authoritative state; all other views derive from them.
 -->
 
 # {{PROJECT_NAME}} 源码学习记录
@@ -48,11 +57,12 @@ PROJECT CODE STUDY LEDGER CONTRACT — schema 4.0
 | 对象 | 允许值 |
 | --- | --- |
 | Step / 微 Step | `planned` / `active` / `blocked-prerequisite` / `review` / `done` / `skipped` / `stale` |
-| 节点 | `discovered` / `queued` / `active` / `traced` / `deferred` / `out-of-scope` / `stale` |
+| 节点 | `discovered` / `planned` / `active` / `traced` / `verified` / `blocked-prerequisite` / `deferred` / `skipped` / `stale` |
 | 掌握度 | `unseen` / `introduced` / `explainable` / `traceable` / `applied` / `verified` / `revisit` |
 | 证据等级 | `E0` / `E1` / `E2` / `E3` |
 | 置信度 | `high` / `medium` / `low` |
-| 问题 | `open` / `answered` / `retest-due` / `closed` / `stale` |
+| 问题 | `open` / `answered` / `retest-due` / `closed` / `deferred` / `stale` |
+| 交互状态 | `TEACHING_CURRENT_NODE` / `AWAITING_RECALL` / `ANSWERING_RECALL` / `ANSWERING_SIDE_QUESTION` / `AWAITING_QUESTIONS_OR_CONTINUE` / `FINAL_QUESTION_PHASE` / `FINAL_AUDIT` / `DOCUMENT_CONSENT` / `READY_TO_GENERATE` |
 | 会话结果 | `advanced` / `reviewed` / `blocked` / `interrupted` / `finalized` |
 
 ---
@@ -67,13 +77,19 @@ PROJECT CODE STUDY LEDGER CONTRACT — schema 4.0
 | 目标结果 | `{{TARGET_OUTCOME}}` |
 | 当前场景 | `map` |
 | 当前 Step / 微 Step | `0 / 0.1` |
-| 当前节点 | `待确认` |
+| 当前节点 | `NODE-pending` |
+| 继续节点 ID | `NODE-pending` |
+| 交互状态 | `TEACHING_CURRENT_NODE` |
+| 等待用户回应 | `false` |
 | 已完成主链节点 | `无` |
-| 当前支线问题 | `无` |
+| 当前支线问题 | `none` |
 | 精确继续位置 | `完成项目证据盘点` |
 | 当前阻塞 / 前置缺口 | `待确认` |
 | 到期复习 | `无` |
 | 用户当前最关心的问题 | `{{USER_CURRENT_CONCERN}}` |
+| 最近 Q ID | `none` |
+| 最近事务 ID | `TX-0001` |
+| 更新时间 | `{{UPDATED_AT}}` |
 
 ### 1.1 恢复摘要
 
@@ -119,27 +135,27 @@ PROJECT CODE STUDY LEDGER CONTRACT — schema 4.0
 
 ### 3.1 路线骨架
 
-| Step | 主题 | 状态 | 完成标准 | 当前行为证据 | 下一决策 |
-| --- | --- | --- | --- | --- | --- |
-| 0 | 项目地图与证据边界 | `active` | 能定位代表性入口和证据范围 | 待学习 | 继续 |
-| 1 | 任务背景、相关方法与问题定义 | `planned` | 能解释任务、动机及至少一个有效对比 | 待学习 | 待定 |
-| 2 | 代表性输入与数据路径 | `planned` | 能追踪一个输入进入主执行路径 | 待学习 | 待定 |
-| 3 | 运行场景、调用图与概念依赖 | `planned` | 形成训练/推理等场景的节点顺序 | 待学习 | 待定 |
-| 4.x | 动态源码微 Step | `planned` | 逐节点通过定位、调用和数据边界验证 | 待生成 | 由 Step 3 生成 |
-| 5 | 完整架构重建与论文代码映射 | `planned` | 能从已学节点重建系统 | 待学习 | 待定 |
-| 6+ | 目标函数、训练、推理、评估与复现 | `planned` | 按项目目标生成完成标准 | 待生成 | 动态调整 |
-| 9 | 全局覆盖与盲点审计 | `planned` | 核心节点、依赖和问题缺口已审计 | 待学习 | 待定 |
-| 10 | 综合复盘与研究延伸 | `planned` | 能提出有证据的批判与实验 | 待学习 | 待定 |
+| Step | 主题 | Required | 状态 | 完成标准 | 当前行为证据 | K ID | Transaction ID | 下一决策 |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| 0 | 项目地图与证据边界 | `yes` | `active` | 能定位代表性入口和证据范围 | 待学习 | none | TX-0001 | 继续 |
+| 1 | 任务背景、相关方法与问题定义 | `yes` | `planned` | 能解释任务、动机及至少一个有效对比 | 待学习 | none | none | 待定 |
+| 2 | 代表性输入与数据路径 | `yes` | `planned` | 能追踪一个输入进入主执行路径 | 待学习 | none | none | 待定 |
+| 3 | 运行场景、调用图与概念依赖 | `yes` | `planned` | 形成训练/推理等场景的节点顺序 | 待学习 | none | none | 待定 |
+| 4.x | 动态源码微 Step | `yes` | `planned` | 逐节点通过定位、调用和数据边界验证 | 待生成 | none | none | 由 Step 3 生成 |
+| 5 | 完整架构重建与论文代码映射 | `yes` | `planned` | 能从已学节点重建系统 | 待学习 | none | none | 待定 |
+| 6+ | 目标函数、训练、推理、评估与复现 | `yes` | `planned` | 按项目目标生成完成标准 | 待生成 | none | none | 动态调整 |
+| 9 | 全局覆盖与盲点审计 | `yes` | `planned` | 核心节点、依赖和问题缺口已审计 | 待学习 | none | none | 待定 |
+| 10 | 综合复盘与研究延伸 | `yes` | `planned` | 能提出有证据的批判与实验 | 待学习 | none | none | 待定 |
 
 ### 3.2 运行场景
 
-| Scenario ID | 场景 | 入口 / 命令 | 目标输出 | 静态或运行验证 | 状态 |
-| --- | --- | --- | --- | --- | --- |
+| Scenario ID | 场景 | Required | 入口 / 命令 | 目标输出 | 静态或运行验证 | 状态 |
+| --- | --- | --- | --- | --- | --- | --- |
 
 ### 3.3 调用节点与微 Step 顺序
 
-| 顺序 | 场景 | 微 Step | Node ID | 调用者 | 当前类 / 函数 | 下游节点 | 输入 / 输出 | 前置依赖 | 状态 |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| 顺序 | 场景 | 微 Step | Node ID | 调用者 | 当前类 / 函数 | 下游节点 | 输入 / 输出 | 前置依赖 | 状态 | Reason | Impact | Revisit condition | Learner acceptance |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 
 ### 3.4 路线调整记录
 
@@ -152,8 +168,32 @@ PROJECT CODE STUDY LEDGER CONTRACT — schema 4.0
 
 ### 4.1 Step / 微 Step 知识卡
 
-| Step | Node ID | 核心结论 | 调用 / Shape 边界 | 证据 ID | 修正 ID | 状态 |
-| --- | --- | --- | --- | --- | --- | --- |
+| K ID | Step | Node ID | 核心结论 | 调用 / Shape 边界 | 证据 ID | 修正 ID | 掌握行为证据 | Transaction ID | 状态 |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+
+### 4.1.1 Durable knowledge card details
+
+<!-- 每个 done Step/微 Step 都需要一个独立 K 卡；以下字段不得用占位句。 -->
+
+<!--
+### K-xxx — Step <x> / NODE-xxx
+
+- Transaction ID:
+- Prerequisites:
+- Learning objective:
+- Runtime position:
+- Complete explanation:
+- Source locations:
+- Inputs / outputs / Shapes / states:
+- Rationale / alternatives / trade-offs:
+- Important Q IDs:
+- Canonical M/C IDs and wording:
+- Evidence status and remaining boundary:
+- Self-check:
+- Complete reference answer:
+- Next connection:
+- Mastery behavior evidence:
+-->
 
 ### 4.2 掌握度地图
 
@@ -180,8 +220,8 @@ PROJECT CODE STUDY LEDGER CONTRACT — schema 4.0
 
 ## 7. 误区、纠正与规范表述
 
-| ID | 原表述 / 误解 | 问题 | 规范修正表述 | 证据 | 影响范围 | 重测问题 | 状态 |
-| --- | --- | --- | --- | --- | --- | --- | --- |
+| ID | 原表述 / 误解 | 问题 | 规范修正表述 | 证据 | 影响范围 | Stale pattern | 重测问题 | Transaction ID | 状态 |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 
 旧表述需标记 `stale`；最终文档只使用仍有效的规范表述。
 
@@ -235,12 +275,20 @@ PROJECT CODE STUDY LEDGER CONTRACT — schema 4.0
 | 项目 | 当前值 |
 | --- | --- |
 | 最近一次写入回读验证 | `尚未执行` |
+| 最近成功事务 ID | `TX-0001` |
+| 最近成功事务时间 | `{{UPDATED_AT}}` |
 | 最近一次重复 / 过期检查 | `尚未执行` |
 | Q&A 路径 | `PROJECT_STUDY_QA.md` |
 | 建议归档 | `no` |
 | 用户授权归档 | `no` |
 | 可进入最终总结的材料 | `无` |
 | 明确不进入最终总结的材料 | `无` |
+
+### 12.1 事务日志
+
+| Transaction ID | 时间 | QA delta | LOG delta | 精确回读 | Strict validation | Receipt |
+| --- | --- | --- | --- | --- | --- | --- |
+| TX-0001 | {{UPDATED_AT}} | initialized | initialized | pass | pass | saved |
 
 ---
 

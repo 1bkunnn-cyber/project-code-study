@@ -1,6 +1,6 @@
 interface:
   display_name: "Project Code Study"
-  short_description: "按运行时调用链进行研究生级源码学习与持续问答记录"
+  short_description: "按真实运行链逐节点学习，并以严格事务、问答和就绪门槛持续记录"
   default_prompt: "Use $project-code-study to scan this repository, build a runtime call route, and teach one source node at a time."
 
 policy:

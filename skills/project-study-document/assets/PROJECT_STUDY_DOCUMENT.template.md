@@ -1,10 +1,13 @@
 ---
 document_type: project-study-document
-schema_version: "1.1"
-status: "complete"
+schema_version: "1.2"
+status: "pending-readiness"
 project_name: "{{PROJECT_NAME}}"
 project_path: "{{PROJECT_PATH_OR_URL}}"
 repository_revision: "{{REPOSITORY_REVISION}}"
+source_transaction_id: "{{SOURCE_TRANSACTION_ID}}"
+readiness_transaction_id: "{{READINESS_TRANSACTION_ID}}"
+readiness_status: "{{READINESS_STATUS}}"
 learning_goal: "{{LEARNING_GOAL}}"
 audience: "{{AUDIENCE}}"
 language: "zh-CN"
@@ -14,6 +17,7 @@ source_qa: "PROJECT_STUDY_QA.md"
 source_artifacts:
   - "{{SOURCE_ARTIFACT}}"
 validation_status: "pending"
+cold_start_status: "not-run"
 ---
 
 # {{PROJECT_NAME}} 项目学习文档
@@ -48,6 +52,7 @@ validation_status: "pending"
 | 主要运行场景 | {{RUNTIME_SCENARIOS}} |
 | 已使用证据 | {{EVIDENCE_SCOPE}} |
 | 缺失或不可用证据 | {{MISSING_EVIDENCE}} |
+| Readiness manifest / transaction | {{READINESS_STATUS}} / {{READINESS_TRANSACTION_ID}} |
 
 ## 2. 学习成果摘要
 
@@ -84,7 +89,7 @@ validation_status: "pending"
 
 | Step / 微 Step | 状态 | 本 Step 学到的知识 | RUN / NODE / K | 掌握证据 | 重要 Q / 修正 | 复习单元 |
 | --- | --- | --- | --- | --- | --- | --- |
-| {{STEP}} | {{STEP_STATUS}} | {{STEP_KNOWLEDGE}} | {{RUN_NODE_K}} | {{MASTERY_EVIDENCE}} | {{RELATED_Q_M_C}} | [UNIT-{{UNIT_ID}}](#{{UNIT_ANCHOR}}) |
+| {{STEP}} | {{STEP_STATUS}} | {{STEP_KNOWLEDGE}} | {{RUN_NODE_K}} | {{MASTERY_EVIDENCE}} | {{RELATED_Q_M_C}} | [UNIT-{{UNIT_ID}}](#unit-{{UNIT_ID}}) |
 
 ## 5. 运行场景与真实调用链
 
@@ -94,18 +99,26 @@ validation_status: "pending"
 
 <!-- 按真实调用顺序与概念依赖排列 UNIT，而不是照抄聊天时间线。每个已完成 Step 必须映射到至少一个 UNIT。 -->
 
+<a id="unit-{{UNIT_ID}}"></a>
+
 ### UNIT-{{UNIT_ID}} — {{UNIT_TITLE}}
 
 - 覆盖 Step：{{COVERED_STEPS}}
 - 前置知识：{{PREREQUISITES}}
+- 本单元解决的问题：{{UNIT_PROBLEM}}
 - 学习目标：{{UNIT_LEARNING_OBJECTIVE}}
 - 运行位置与上游 / 下游：{{RUNTIME_POSITION_AND_CALL_RELATION}}
 - 源码、配置、公式或论文位置：{{UNIT_SOURCE_LOCATIONS}}
 - 证据状态：{{UNIT_EVIDENCE_AND_STATUS}}
+- 未验证边界：{{UNIT_UNVERIFIED_BOUNDARY}}
 
 #### 核心讲解
 
 {{UNIT_COMPLETE_EXPLANATION}}
+
+#### 关键源码执行顺序
+
+{{UNIT_SOURCE_EXECUTION_ORDER}}
 
 #### 输入、输出、Shape、公式与状态变化
 
@@ -165,9 +178,9 @@ validation_status: "pending"
 
 ## 11. 误区、规范修正与认知变化
 
-| M/C ID | 原问题或旧说法 | 规范表述 | 证据 | 影响范围 |
-| --- | --- | --- | --- | --- |
-| {{CORRECTION_ID}} | {{OLD_WORDING}} | {{CANONICAL_WORDING}} | {{CORRECTION_EVIDENCE}} | {{AFFECTED_SCOPE}} |
+| M/C ID | 原问题或旧说法 | 规范表述 | 证据 | 影响范围 | Stale pattern |
+| --- | --- | --- | --- | --- | --- |
+| {{CORRECTION_ID}} | {{OLD_WORDING}} | {{CANONICAL_WORDING}} | {{CORRECTION_EVIDENCE}} | {{AFFECTED_SCOPE}} | {{STALE_PATTERN}} |
 
 ## 12. 相关方法、相似思想与模块组合
 
@@ -202,6 +215,7 @@ validation_status: "pending"
 - 应补充验证：{{VERIFY_NEXT}}
 - 可开展实验：{{EXPERIMENT_NEXT}}
 - 最高价值下一行动：{{PRIMARY_NEXT_ACTION}}
+- 冷启动验收：{{COLD_START_EVIDENCE}}
 
 ## 16. 证据与产物索引
 

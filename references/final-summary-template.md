@@ -1,4 +1,6 @@
-# Final Markdown Summary Template
+# Compact / Legacy Markdown Summary Template
+
+This template is not the consent-gated final learning document and must never be labelled `complete` or `validated`. Formal finalization belongs to `skills/project-study-document` after a passing readiness manifest.
 
 Use the linked `PROJECT_STUDY_LOG.md` and `PROJECT_STUDY_QA.md` as primary memory, then verify important claims against source/paper/runtime evidence.
 
@@ -28,6 +30,7 @@ Before writing:
 ## 4. 运行时调用图
 
 - Training/inference/evaluation paths, shared nodes, branches, and exact source symbols.
+- Prefer a short linear chain, a mapping table, or Mermaid labelled with RUN/NODE IDs. Use ASCII only for a very short alignment-stable sketch.
 
 ## 5. 核心节点源码精读
 

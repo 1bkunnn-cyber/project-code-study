@@ -1,146 +1,92 @@
 # Final Study Document Generation Protocol
 
-Use this protocol to transform completed learning evidence into a durable Markdown artifact. The design combines three useful patterns:
-
-- post-process synthesis from `results-report`: lock source artifacts, separate supported conclusions from tentative interpretation, retain failures and limitations, state what changed understanding, and finish with evidence plus next actions;
-- codebase-to-tutorial generation: identify core abstractions, analyze relationships, order chapters, write each chapter with prior context, then combine the result;
-- documentation coverage discipline: keep tutorial, reference, explanation, and how-to reader modes distinct even inside one file.
+Transform a ready learning bundle into one durable artifact. The process is fail-closed and uses a unique in-memory UNIT map, a temporary sibling file, two validation passes, and one atomic target replacement.
 
 ## 1. Readiness decision
 
-Final generation is allowed only when:
+Formal generation requires a fresh passing manifest from:
 
-1. every required dynamic Step and micro Step is complete or explicitly skipped with accepted impact;
-2. required runtime scenarios and core nodes pass coverage audit;
-3. no blocking concept dependency remains;
-4. every substantive user question is answered and closed or intentionally deferred;
-5. no active-recall answer or learner response is pending;
-6. correction and stale-claim audits pass;
-7. the learner says they have no more questions for this round and explicitly accepts generation.
+```powershell
+python scripts/validate_finalization_bundle.py --ledger PROJECT_STUDY_LOG.md --qa PROJECT_STUDY_QA.md
+```
 
-Do not infer consent from silence, elapsed time, or the last numbered Step.
+The manifest must report a final route, complete required scenarios/NODEs/dependencies, no open/retest questions, no pending learner response, no unresolved corrections or stale promoted wording, no done Step without durable knowledge, no hidden-chat Q&A dependency, explicit question-phase closure, explicit consent, and zero record-validation errors.
 
-## 2. Source-bundle manifest
+Any blocker returns a readiness report. Only an explicit early-draft request permits `status: incomplete-draft`; a draft lists all blockers and cannot use `validation_status: validated`.
 
-Lock the following before drafting:
+## 2. Source-bundle lock
 
-| Source class | Expected content | Required treatment |
+Lock paths, schema, last transaction IDs, and immutable revision for:
+
+| Source class | Expected content | Treatment |
 | --- | --- | --- |
-| Learning ledger | route, RUN/NODE/K/SRC/M/C/EXP/CMP records, mastery, milestones | read fully; record path and schema |
-| Q&A record | user questions, follow-ups, complete answers, feedback | read fully; select important Q IDs |
-| Repository | revision, entrypoints, symbols, configs, tests | pin revision; verify promoted technical claims |
-| Paper/docs | paper claims, formulas, official documentation | identify exact source and version |
-| Runtime evidence | commands, logs, outputs, metrics | distinguish executed evidence from planned checks |
-| Experiments | successes, failures, negative results, ablations | retain interpretation-changing results |
+| LOG | authoritative state, route, RUN/NODE/K/SRC/M/C/EXP/CMP | read fully; record last TX |
+| Q&A | all questions, standalone answers, feedback | read fully; reject hidden chat references |
+| repository | revision, entrypoints, symbols, configs, tests | pin immutable revision; verify promoted claims |
+| paper/docs | claims, formulas, official docs | record exact source/version |
+| runtime | commands, logs, outputs, metrics | separate executed from suggested |
+| experiments | successes, failures, negative results | retain interpretation-changing results |
 
-If a source is missing, state the limitation in frontmatter and the evidence-boundary section. The ledger can point to evidence but cannot replace it for high-impact claims.
+Missing evidence is disclosed. A ledger pointer never substitutes for direct verification of a high-impact claim.
 
-## 3. Build a document knowledge graph
+## 3. Build the knowledge graph
 
-### Identify abstractions
+Derive abstractions from durable learning records, not repository popularity or model memory. For each abstraction collect related RUN/NODE/K, source/paper evidence, I/O or Shape/state boundary, upstream/downstream relationships, Q/M/C, mastery behavior, and unresolved limits.
 
-Derive abstractions from completed learning records, not from repository popularity or model memory. Typical abstractions include runtime scenarios, lifecycle components, data representations, objective mechanisms, configuration systems, and evaluation contracts.
+Order chapters by prerequisites, primary runtime order, inserted dependencies, alternate scenarios/shared differences, architecture reconstruction, and reproduction/comparison/extension.
 
-For each abstraction collect:
+## 4. Build a unique Step and UNIT manifest
 
-- related RUN/NODE/K IDs;
-- source and paper evidence IDs;
-- input/output or shape boundary;
-- upstream/downstream relationships;
-- important Q/M/C IDs;
-- mastery evidence and unresolved limitations.
+Enumerate every required Step/micro Step once. Each coverage row records status, durable knowledge, RUN/NODE/K, evidence, Q/M/C, behavior evidence, UNIT IDs, and accepted skip impact.
 
-### Analyze relationships
+Build one in-memory mapping before rendering:
 
-Represent relationships such as `calls`, `constructs`, `transforms`, `supervises`, `matches`, `optimizes`, `post-processes`, or `evaluates`. Prefer actual runtime and data relationships over generic architecture labels.
+```text
+UNIT ID -> unique title -> unique explicit anchor -> covered Step IDs -> complete UNIT content
+```
 
-### Order chapters
+Gates before rendering:
 
-Use this precedence:
+- Step coverage IDs are unique;
+- UNIT IDs, headings, and anchors are unique;
+- every done Step maps to >=1 UNIT;
+- every UNIT maps to >=1 done Step;
+- skipped Steps are not presented as learned;
+- completed/mapped/skipped/unmapped counts reconcile and unmapped is zero.
 
-1. prerequisites needed to understand the representative input;
-2. actual runtime order in the primary scenario;
-3. concept dependencies that must be inserted before a downstream node;
-4. alternate scenarios and shared-node differences;
-5. architecture reconstruction and cross-cutting explanations;
-6. reproduction, comparison, and extension material.
+Do not create a second UNIT for material already mapped; revise the existing map.
 
-Chapter order must not be copied blindly from Step numbers or file layout.
+## 5. Independent UNIT contract
 
-## 4. Build complete Step-to-knowledge coverage
+Each UNIT contains covered Steps/prerequisites, objective and RUN/NODE position, full mechanism in source execution order, exact source/config/formula/paper locations, I/O/Shape/state changes, rationale/alternatives/trade-offs/failure modes, important Q and canonical M/C, evidence status/unverified boundary, self-check/full answer, and next connection.
 
-### Create the Step manifest
+A route row, takeaway, pseudocode fragment, or cross-reference is not a relearning unit. `详见 chat`, `同上`, `前文已解释`, circular `详见对应 UNIT`, and unexplained `不涉及` are forbidden. A genuinely inapplicable field explains why and gives the applicable evidence/skill instead.
 
-Enumerate every Step and micro Step from the completed dynamic route, including inserted prerequisite/backfill Steps and explicitly skipped Steps. Build one coverage row per Step with:
+## 6. Synthesis rules
 
-- Step or micro-Step identifier and status;
-- the durable knowledge learned in that Step, not merely its topic or activity;
-- related RUN/NODE/K, source, question, misconception, and correction IDs;
-- mastery evidence;
-- the `UNIT-` relearning unit that teaches the knowledge again;
-- skip reason and impact when the Step was not learned.
+The document is not chronological chat. Include highest-confidence conclusions, project identity/decision context, mechanisms explaining most behavior, evidence strength, failures/negative results/limitations, what changed understanding, reproducibility evidence, related methods, composition hypotheses, and one next action.
 
-Every completed Step must map to one or more relearning units. Every relearning unit must map back to one or more Step rows. Multiple Steps may share a unit when they form one coherent concept, but each Step retains its own coverage row. Deduplicate explanations in the body, not coverage in the manifest.
+Use the latest canonical correction globally. Historical old wording appears only in the correction history and is labelled historical/stale. Distinguish `已确认`, `可推断`, `背景知识`, and `待验证`.
 
-The manifest must report the number of completed, mapped, skipped, and unmapped Steps. `unmapped` must be zero before a complete document can be accepted.
+For visuals, prefer the smallest useful linear chain or table; use Mermaid for multi-layer call/data/state graphs and label RUN/NODE IDs. Avoid fragile large ASCII art.
 
-### Write standalone relearning units
+## 7. One-pass assembly and atomic commit
 
-A one-line takeaway or route table is not enough for relearning. Each `UNIT-` unit must let a learner recover the knowledge without the original chat and should include:
+1. Confirm output path and overwrite choice.
+2. Create a temporary sibling file in the same directory.
+3. Instantiate schema 1.2 once from the unique Step/UNIT map.
+4. Set real ISO generation time, immutable revision (or explicit `uncommitted:<hash>`), source LOG/QA paths, source TX, readiness receipt, and source limitations.
+5. Set `status: complete`, `validation_status: pending` for preflight.
+6. Run:
 
-1. covered Steps and prerequisites;
-2. learning objective and runtime/conceptual position;
-3. a complete explanation of the mechanism;
-4. exact source symbols, configurations, formulas, and paper links when applicable;
-5. inputs, outputs, shapes, state changes, invariants, or data transformations;
-6. design rationale, alternatives, trade-offs, and failure modes;
-7. important user questions, misconceptions, and canonical corrections;
-8. evidence status and unresolved boundaries;
-9. a self-check or transfer question followed by a reference answer;
-10. the connection to the next runtime node or concept.
+```powershell
+python skills/project-study-document/scripts/validate_study_document.py <temp> --ledger PROJECT_STUDY_LOG.md --qa PROJECT_STUDY_QA.md --preflight
+```
 
-Do not pad administrative Steps with invented technical content. Explain what durable project-navigation or evidence skill the learner gained. For skipped Steps, record the reason and impact without creating false mastery.
+7. On any error, do not touch the target. Rebuild the affected UNIT map/section and reassemble; never use unconstrained global replacement or tail append.
+8. After zero preflight errors, change only `validation_status` to `validated`.
+9. Run final validation without `--preflight`.
+10. Read back frontmatter, TOC, counts, all UNIT headings/anchors, important questions, corrections, evidence index, and next action.
+11. Atomically replace the target. If authorized, add one truthful ledger artifact transaction and revalidate the bundle.
 
-## 5. Write one coherent Markdown document
-
-Default to `PROJECT_STUDY_DOCUMENT.md`. Treat it as a standalone learning artifact for a smart reader who does not have the original conversation.
-
-Use the canonical template. Organize the main explanation by runtime and conceptual dependency, then use the Step coverage manifest as a complete navigation layer. Every major chapter should answer:
-
-- What problem or role does this concept have?
-- Where is it in the actual runtime path?
-- What evidence supports the explanation?
-- What are the important inputs, outputs, shapes, parameters, or invariants?
-- Why is it designed this way, and what alternatives exist?
-- What did the learner initially misunderstand or ask about?
-- What remains uncertain or unverified?
-
-Use Mermaid only when it materially clarifies call, data, dependency, or lifecycle relationships. Keep diagrams traceable to RUN/NODE IDs.
-
-## 6. Results-report-inspired synthesis
-
-The document is not a transcript. It must explicitly include:
-
-- highest-confidence learning conclusions;
-- study identity and decision context: project revision, learning goal, route, and audience;
-- main findings: the few mechanisms that explain most project behavior;
-- evidence strength and unsupported-claim boundaries;
-- failures, negative results, limitations, and missing evidence;
-- what changed the learner's understanding, especially through questions and corrections;
-- next actions: stop, continue, review, reproduce, modify, compare, or experiment;
-- artifact and reproducibility index.
-
-Avoid chronological transcript summaries such as “Step 1 discussed X, then Step 2 discussed Y.” Complete Step coverage is mandatory, but the teaching body should still follow runtime and conceptual relationships. Use the Step manifest to connect route order to the relevant relearning units.
-
-## 7. Writing transaction
-
-1. Confirm output path and overwrite behavior.
-2. Instantiate the template and replace all placeholders.
-3. Draft sections from the knowledge graph and evidence manifest.
-4. Run the Step coverage, important-question, and correction audits.
-5. Run the quality gates and validator with the source ledger.
-6. Read back high-risk sections.
-7. When authorized, add one ledger artifact record with path, revision, date, and validation result.
-8. Return a concise receipt.
-
-Never claim the document is final if validation fails or a readiness condition was discovered to be false.
+Code fences must balance and all content must remain within intended heading boundaries. The final receipt records path, revision, TX/readiness IDs, coverage counts, final validation, cold-start evidence, and limitations.
