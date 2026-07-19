@@ -62,7 +62,7 @@
 
 ### 3.4 文档与维护
 
-- `README.md`：提供以中文为主、英文为附录的 5.0 使用说明，涵盖行为、schema、命令、兼容性与限制。
+- `README.md`：提供中英双语的 5.0 使用说明，涵盖行为、schema、命令、兼容性与限制。
 - `REMEDIATION_REPORT_5.0.0.md`：使用中文记录本次优化范围、问题闭环、验证结果和剩余观察项。
 - `agents/openai.yaml`：更新展示摘要。
 - `.gitignore`：忽略 Python 缓存产物。
@@ -95,4 +95,4 @@ git diff --check：空白修复后通过
 
 `project-code-study` 5.0.0 已完成任务书中可确定性实现和验证的核心修缮：学习路线以真实运行证据为基础；问答、继续与节点推进受到显式状态控制；跨文件保存采用可审计事务；Step 完成需要语义与行为证据；最终文档生成受 readiness、用户同意、双阶段校验和原子写入共同约束。
 
-面向学习者生成的 `PROJECT_STUDY_DOCUMENT.md` 默认使用简体中文。源码符号、命令、路径、公式、schema 字段、ID 和固定协议枚举保持原样，并在中文正文中解释。只有用户明确要求其他语言时才切换输出语言。
+面向学习者生成的 `PROJECT_STUDY_LOG.md`、`PROJECT_STUDY_QA.md` 和 `PROJECT_STUDY_DOCUMENT.md` 默认使用简体中文。源码符号、命令、路径、公式、schema 字段、ID 和固定协议枚举保持原样，并在中文正文中解释。只有用户明确要求其他语言时才切换输出语言。Skill 内部协议和维护文档可以使用英文，README 保持中英双语。

@@ -42,14 +42,14 @@ LOG_40_METADATA = COMMON_METADATA + [
     "current_node", "study_mode",
 ]
 LOG_41_METADATA = COMMON_METADATA + [
-    "qa_path", "current_step", "current_micro_step", "current_scenario",
+    "language", "qa_path", "current_step", "current_micro_step", "current_scenario",
     "current_node_id", "continuation_node_id", "interaction_state",
     "pending_user_response", "active_side_question_ids", "last_question_id",
     "last_transaction_id", "learner_closed_question_phase",
     "learner_consented_to_generation", "study_mode",
 ]
 QA_10_METADATA = COMMON_METADATA + ["ledger_path"]
-QA_11_METADATA = COMMON_METADATA + ["ledger_path", "last_question_id", "last_transaction_id"]
+QA_11_METADATA = COMMON_METADATA + ["language", "ledger_path", "last_question_id", "last_transaction_id"]
 
 LOG_40_HEADERS = [
     {"Step", "主题", "状态", "完成标准", "当前行为证据", "下一决策"},
@@ -364,6 +364,8 @@ def validate_text(text: str, *, allow_template: bool = False, strict: bool = Fal
     for key in required:
         if key not in fm:
             errors.append(f"missing metadata key: {key}")
+    if schema in {"4.1", "1.1"} and clean(fm.get("language")).lower() != "zh-cn":
+        errors.append("current generated learning artifacts require language: zh-CN")
     validate_headings(text, headings, errors)
     validate_headers(tables, headers, errors)
     if not allow_template:

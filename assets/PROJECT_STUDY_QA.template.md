@@ -3,6 +3,7 @@ document_type: project-code-study-qa
 schema_version: "1.1"
 project_name: "{{PROJECT_NAME}}"
 project_path: "{{PROJECT_PATH_OR_URL}}"
+language: "zh-CN"
 ledger_path: "PROJECT_STUDY_LOG.md"
 created_at: "{{CREATED_AT}}"
 updated_at: "{{UPDATED_AT}}"
@@ -20,6 +21,7 @@ PROJECT CODE STUDY Q&A CONTRACT
 4. Link corrections to M-/C- records in PROJECT_STUDY_LOG.md.
 5. Answers must be standalone; hidden-chat references and circular placeholders are forbidden.
 6. Prefer append-only entries and small status patches. Verify both files and strict validation before `saved`.
+7. Write learner-facing questions, answers, feedback, and reflections in Simplified Chinese; preserve code symbols, IDs, and protocol enums exactly.
 -->
 
 # {{PROJECT_NAME}} 用户问答与学习反馈

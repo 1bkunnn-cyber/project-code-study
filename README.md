@@ -26,6 +26,10 @@
 
 5.0 版本重点修复了长期学习中的真实性与控制流问题：保存回执必须经过跨文件回读与严格校验；回答问题后必须暂停；每个节点只有一个状态；`done` 必须有可重新学习的知识卡；最终文档必须先通过不可绕过的 readiness gate。
 
+### 生成产物语言
+
+Skill 内部协议和维护文档可以使用英文，README 保持中英双语。使用 Skill 在目标项目中生成的 `PROJECT_STUDY_LOG.md`、`PROJECT_STUDY_QA.md` 和 `PROJECT_STUDY_DOCUMENT.md` 默认使用简体中文；源码符号、命令、路径、公式、schema 字段、稳定 ID 和固定状态枚举保持原样，并在中文正文中解释。只有用户明确要求其他语言时才切换。
+
 ### 核心保证
 
 | 保证 | 5.0 行为 |
@@ -233,6 +237,10 @@ Skill 区分 `已确认`、`可推断`、`背景知识` 和 `待验证`。发现
 ## English
 
 `project-code-study` is an evidence-grounded Agent Skill for learning a repository through its actual runtime scenarios and call nodes. Version 5.0 adds fail-closed persistence, an explicit interaction state machine, unique NODE states, standalone Q&A, durable knowledge cards, a readiness manifest, schema 1.2 relearning units, and executable T-01–T-16 regressions.
+
+### Generated artifact language
+
+Internal Skill protocols and maintenance documents may use English, while this README remains bilingual. The three learner-owned artifacts generated in the studied project—`PROJECT_STUDY_LOG.md`, `PROJECT_STUDY_QA.md`, and `PROJECT_STUDY_DOCUMENT.md`—default to Simplified Chinese. Source symbols, commands, paths, formulas, schema fields, stable IDs, and fixed state enums remain unchanged and are explained in Chinese. Another output language is used only when the learner explicitly requests it.
 
 ### Key behavior
 

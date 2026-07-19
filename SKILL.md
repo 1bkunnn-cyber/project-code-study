@@ -22,6 +22,18 @@ Guide a learner from repository evidence to a verified mental model. Prefer a pr
 - Each route object has one current enumerated state. Never record mixed states such as `skipped or tracked` or combine Step and NODE counts.
 - Formal finalization is impossible until the readiness manifest passes and the learner explicitly closes the question phase and consents.
 
+## Generated artifact language
+
+The language rule applies to the three learner-owned artifacts generated in the studied project, not to this Skill's internal implementation documentation:
+
+- `PROJECT_STUDY_LOG.md`
+- `PROJECT_STUDY_QA.md`
+- `PROJECT_STUDY_DOCUMENT.md`
+
+Generate all learner-facing titles, explanations, summaries, questions, answers, feedback, corrections, evidence descriptions, limitations, and next actions in Simplified Chinese (`zh-CN`) by default. Set `language: "zh-CN"` in all three files. Preserve source-code symbols, commands, paths, formulas, schema keys, stable IDs, and fixed protocol enum values exactly, and explain those technical identifiers in Chinese. Use another output language only when the learner explicitly requests it.
+
+Internal Skill protocols and maintenance documents may use English. `README.md` remains bilingual in Simplified Chinese and English.
+
 ## Required resources
 
 Read only what the current action needs, but read each selected resource completely:

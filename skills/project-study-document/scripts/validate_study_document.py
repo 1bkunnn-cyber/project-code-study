@@ -299,6 +299,8 @@ def validate(path: Path, *, allow_template: bool, ledger_path: Path | None, qa_p
     for key in required_fm:
         if key not in fm or is_empty(fm.get(key)):
             errors.append(f"missing or empty frontmatter field: {key}")
+    if clean(fm.get("language")).lower() != "zh-cn":
+        errors.append("generated project study document requires language: zh-CN")
     revision = norm(fm.get("repository_revision"))
     if revision in {"head", "unknown", "latest"}:
         errors.append("repository_revision must be immutable or explicit uncommitted:<hash>")

@@ -376,6 +376,38 @@ class RegressionTests(unittest.TestCase):
         self.assertIn("RUN/NODE", text)
         self.assertIn("Avoid large shaded character art", text)
 
+    def test_generated_artifacts_require_simplified_chinese(self) -> None:
+        log, qa = make_bundle(self.root)
+        self.assertEqual(self.strict_errors(log, qa), [])
+
+        log.write_text(
+            log.read_text(encoding="utf-8").replace('language: "zh-CN"', 'language: "en-US"'),
+            encoding="utf-8",
+        )
+        self.assertTrue(any("language" in item.lower() for item in self.strict_errors(log, qa)))
+
+        log, qa = make_bundle(self.root)
+        qa.write_text(
+            qa.read_text(encoding="utf-8").replace('language: "zh-CN"', 'language: "en-US"'),
+            encoding="utf-8",
+        )
+        self.assertTrue(any("language" in item.lower() for item in self.strict_errors(log, qa)))
+
+        log, qa = make_bundle(self.root)
+        document = make_document(self.root)
+        document.write_text(
+            document.read_text(encoding="utf-8").replace('language: "zh-CN"', 'language: "en-US"'),
+            encoding="utf-8",
+        )
+        errors = validate_study_document.validate(
+            document,
+            allow_template=False,
+            ledger_path=log,
+            qa_path=qa,
+            preflight=False,
+        )
+        self.assertTrue(any("language" in item.lower() for item in errors))
+
 
 if __name__ == "__main__":
     unittest.main()

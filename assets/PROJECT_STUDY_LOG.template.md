@@ -3,6 +3,7 @@ document_type: project-code-study-ledger
 schema_version: "4.1"
 project_name: "{{PROJECT_NAME}}"
 project_path: "{{PROJECT_PATH_OR_URL}}"
+language: "zh-CN"
 qa_path: "PROJECT_STUDY_QA.md"
 branch: "{{BRANCH_OR_UNKNOWN}}"
 commit: "{{COMMIT_OR_UNKNOWN}}"
@@ -33,6 +34,7 @@ PROJECT CODE STUDY LEDGER CONTRACT — schema 4.1
 4. Prefer small patches. Never store full conversations, hidden reasoning, credentials, or irrelevant private data.
 5. A write is successful only after both files are exactly read back and strict validation passes.
 6. Frontmatter and Section 1 are the same authoritative state; all other views derive from them.
+7. Write learner-facing content in Simplified Chinese; preserve code symbols, schema keys, IDs, and protocol enums exactly.
 -->
 
 # {{PROJECT_NAME}} 源码学习记录

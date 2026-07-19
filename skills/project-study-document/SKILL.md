@@ -40,7 +40,7 @@ Write one `PROJECT_STUDY_DOCUMENT.md` in the studied project root unless the lea
 
 ## Language policy
 
-Use Simplified Chinese (`zh-CN`) for the final document by default. Write all learner-facing titles, explanations, table headings, captions, conclusions, limitations, and next actions in Chinese unless the learner explicitly requests another language. Preserve source-code symbols, commands, paths, formulas, schema keys, IDs, and fixed protocol enum values exactly; explain them in Chinese instead of translating identifiers that validators or source references depend on.
+This policy applies to the generated `PROJECT_STUDY_DOCUMENT.md`, not to the companion Skill's internal implementation documentation. Use Simplified Chinese (`zh-CN`) for the final document by default. Write all learner-facing titles, explanations, table headings, captions, conclusions, limitations, and next actions in Chinese unless the learner explicitly requests another language. Preserve source-code symbols, commands, paths, formulas, schema keys, IDs, and fixed protocol enum values exactly; explain them in Chinese instead of translating identifiers that validators or source references depend on.
 
 The language declared in frontmatter must match the actual document body. A few necessary English identifiers do not make a document bilingual. Do not add a full English duplicate or English appendix unless the learner explicitly asks for one.
 
