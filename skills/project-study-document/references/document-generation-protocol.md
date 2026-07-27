@@ -2,6 +2,8 @@
 
 Transform a ready learning bundle into one durable artifact. The process is fail-closed and uses a unique in-memory UNIT map, a temporary sibling file, two validation passes, and one atomic target replacement.
 
+The parent `scripts/finalize_project_study.py` is the sole formal commit entry. This protocol describes the candidate it consumes; it does not authorize a model or companion Skill to write the formal target directly.
+
 ## 1. Readiness decision
 
 Formal generation requires a fresh passing manifest from:
@@ -12,7 +14,7 @@ python scripts/validate_finalization_bundle.py --ledger PROJECT_STUDY_LOG.md --q
 
 The manifest must report a final route, complete required scenarios/NODEs/dependencies, no open/retest questions, no pending learner response, no unresolved corrections or stale promoted wording, no done Step without durable knowledge, no hidden-chat Q&A dependency, explicit question-phase closure, explicit consent, and zero record-validation errors.
 
-Any blocker returns a readiness report. Only an explicit early-draft request permits `status: incomplete-draft`; a draft lists all blockers and cannot use `validation_status: validated`.
+Any blocker returns a readiness report. Only an explicit early-draft request permits `status: incomplete-draft` under a separate target; a draft lists all blockers and cannot use `validation_status: validated`.
 
 ## 2. Source-bundle lock
 
@@ -87,6 +89,6 @@ python skills/project-study-document/scripts/validate_study_document.py <temp> -
 8. After zero preflight errors, change only `validation_status` to `validated`.
 9. Run final validation without `--preflight`.
 10. Read back frontmatter, TOC, counts, all UNIT headings/anchors, important questions, corrections, evidence index, and next action.
-11. Atomically replace the target. If authorized, add one truthful ledger artifact transaction and revalidate the bundle.
+11. Return the validated candidate to the parent `scripts/finalize_project_study.py` for atomic target replacement. If authorized, add one truthful ledger artifact transaction and revalidate the bundle.
 
 Code fences must balance and all content must remain within intended heading boundaries. The final receipt records path, revision, TX/readiness IDs, coverage counts, final validation, cold-start evidence, and limitations.

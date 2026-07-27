@@ -1,7 +1,7 @@
 ---
 name: project-study-document
 description: This skill should be used when a learner has completed a project-code-study route, explicitly closed the question phase, passed finalization readiness, and asks to "生成学习文档", "整理最终源码学习笔记", or create a standalone evidence-grounded Markdown document from which every completed Step can be relearned.
-version: 2.0.0
+version: 2.1.0
 ---
 
 # Project Study Document
@@ -12,14 +12,14 @@ Transform a ready `project-code-study` evidence bundle into one self-contained M
 
 ## Fail-closed entry boundary
 
-Run `scripts/validate_finalization_bundle.py --ledger PROJECT_STUDY_LOG.md --qa PROJECT_STUDY_QA.md` before planning or writing. Formal generation is allowed only when `ready: true`, including explicit question-phase closure and learner consent.
+Run `scripts/validate_finalization_bundle.py --ledger PROJECT_STUDY_LOG.md --qa PROJECT_STUDY_QA.md` before planning or writing. Formal generation is allowed only when `ready: true`, including explicit question-phase closure and learner consent. Use the parent Skill's `scripts/finalize_project_study.py` as the unique commit entry; direct target writes are not formal generation.
 
 If any field blocks:
 
 - do not create or overwrite a `complete` document;
 - return the full readiness report and one minimum backfill action;
 - hand control back to `project-code-study`;
-- generate only `status: incomplete-draft` when the learner explicitly requests an early draft, and list every blocker in frontmatter/body.
+- generate only `status: incomplete-draft` under a separate target when the learner explicitly requests an early draft, and list every blocker in frontmatter/body.
 
 Direct invocation does not bypass the gate. Silence, elapsed time, the last numbered Step, or a polished ledger is not consent.
 
@@ -36,7 +36,7 @@ Use `scripts/validate_study_document.py` after assembly.
 
 ## Default output
 
-Write one `PROJECT_STUDY_DOCUMENT.md` in the studied project root unless the learner chooses another path. If it exists, ask whether to update it or create a dated copy. Never overwrite silently.
+Prepare one candidate for `PROJECT_STUDY_DOCUMENT.md` in the studied project root. Let `scripts/finalize_project_study.py` decide the target replacement after preflight and final validation. Never overwrite silently or bypass that entry.
 
 ## Language policy
 
@@ -94,7 +94,7 @@ Follow `document-generation-protocol.md`:
 4. run the document validator with `--preflight --ledger ... --qa ...`;
 5. if preflight passes, change only `validation_status` to `validated` and run final validation without `--preflight`;
 6. read back frontmatter, TOC, UNIT/anchor counts, question/correction/evidence sections, and final actions;
-7. atomically replace the target only after final validation passes.
+7. return the candidate to `finalize_project_study.py`, which atomically replaces the target only after final validation passes.
 
 Never repair a failed document by unconstrained string replacement or tail append. Rebuild the affected UNIT map and reassemble the temporary file.
 

@@ -1,281 +1,188 @@
 # Project Code Study
 
-<div align="center">
+[![Skill version](https://img.shields.io/badge/version-5.3.0-blue.svg)](CHANGELOG.md)
+[![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
-**Learn a repository from its real runtime paths—not from a generic architecture outline.**<br>
-**沿真实运行路径学习项目，而不是套用通用架构目录。**
+`project-code-study` 是一个面向真实代码项目的中文研究型学习 Skill。它把“读代码”组织成可复现、可追问、可校验的学习闭环：先从真实运行调用链建立路线，再一次只学习一个 `RUN/NODE`，通过主动回忆确认理解，最后把问答、进度、证据和学习文档持久化为可独立复习的材料。
 
-[![Agent Skills](https://img.shields.io/badge/Agent%20Skills-compatible-111827)](https://agentskills.io/)
-[![Version](https://img.shields.io/badge/version-5.0.0-2563EB)](SKILL.md)
-[![Claude](https://img.shields.io/badge/Claude-supported-D97706)](https://claude.ai/)
-[![Codex](https://img.shields.io/badge/Codex-supported-10A37F)](https://openai.com/codex/)
-[![GitHub stars](https://img.shields.io/github/stars/1bkunnn-cyber/project-code-study?style=flat)](https://github.com/1bkunnn-cyber/project-code-study/stargazers)
-[![License](https://img.shields.io/github/license/1bkunnn-cyber/project-code-study)](LICENSE)
+## 它解决什么问题
 
-[简体中文](#简体中文) · [English](#english)
+长对话中的代码学习容易出现四类断裂：讲解脱离真实源码，模型把猜测说成事实；用户回答没有被逐项评价；QA/LOG/总结文件发生串写或互相矛盾；对话被压缩或中断后，学习状态丢失。这个 Skill 将这些问题拆成教学协议、持久化协议、证据核验和最终化门禁，并使用本地脚本进行严格检查。
 
-</div>
+它适合：
 
----
+- 从零梳理深度学习、后端、工具链或其他复杂项目的执行路径；
+- 以“生活化例子 → 公式/规则 → 代码/语法 → 对应关系”的方式理解实现；
+- 对输入输出、Shape、状态、配置、运行结果和论文对应关系进行证据化学习；
+- 在长会话、上下文压缩或异常中断后继续学习，而不依赖模型记住全部历史。
 
-<a id="简体中文"></a>
+它不是自动生成一篇项目介绍的摘要器，也不是把源码逐行加注释的工具。完整代码讲解必须解释执行顺序、数据与状态变化、设计取舍、失败模式和证据边界；正式学习文档必须经过机器可验证的最终化流程。
 
-## 简体中文
+## 核心工作流
 
-`project-code-study` 是面向 Claude Code、Codex 和其他 Agent Skills 宿主的证据驱动源码学习工作流。它先扫描项目并建立训练、推理、评估等真实运行路径，再按调用关系一次学习一个 `RUN/NODE`，同时把路线、证据、问答、修正和掌握行为持久化为可审计的 Markdown 记录。
+```mermaid
+flowchart TD
+    A[真实源码与运行证据] --> B[Preflight 建立 RUN/NODE 路线]
+    B --> C[讲解一个 NODE]
+    C --> D[主动回忆与复合问题拆分]
+    D --> E{回答是否完整且正确}
+    E -- 否 --> F[纠正 + retest-due]
+    F --> G{retest 通过}
+    G -- 否 --> F
+    G -- 是 --> H[记录事务：QA + 回读 + LOG + 对账]
+    E -- 是 --> H
+    H --> I{receipt 与 strict validation}
+    I -- 失败 --> J[unsaved-partial，阻断推进]
+    J --> H
+    I -- 通过 --> K[AWAITING_QUESTIONS_OR_CONTINUE]
+    K --> L[用户关闭问题并发出新的 continue]
+    L --> M[推进下一个 NODE]
+    M --> C
+    K --> N[生成 fresh readiness manifest]
+    N --> O{ready}
+    O -- 否 --> P[修复缺口]
+    P --> N
+    O -- 是 --> Q[唯一 finalizer 原子生成正式文档]
+```
 
-5.0 版本重点修复了长期学习中的真实性与控制流问题：保存回执必须经过跨文件回读与严格校验；回答问题后必须暂停；每个节点只有一个状态；`done` 必须有可重新学习的知识卡；最终文档必须先通过不可绕过的 readiness gate。
+关键规则：
 
-### 生成产物语言
-
-Skill 内部协议和维护文档可以使用英文，README 保持中英双语。使用 Skill 在目标项目中生成的 `PROJECT_STUDY_LOG.md`、`PROJECT_STUDY_QA.md` 和 `PROJECT_STUDY_DOCUMENT.md` 默认使用简体中文；源码符号、命令、路径、公式、schema 字段、稳定 ID 和固定状态枚举保持原样，并在中文正文中解释。只有用户明确要求其他语言时才切换。
-
-### 核心保证
-
-| 保证 | 5.0 行为 |
+| 领域 | Skill 的强制约束 |
 | --- | --- |
-| 项目专属路线 | 从实际入口、运行场景和概念依赖生成路线，不硬套 Backbone/Transformer/Head |
-| 一次一个节点 | 源码阶段每轮只教学一个类、函数、目标函数或后处理节点 |
-| 显式交互状态 | 主动回忆、支线问答、等待继续、最终审计和文档同意都有明确状态 |
-| 单次继续令牌 | 只有等待状态中收到的新 `继续` 才能推进；问答前的旧指令不会再次生效 |
-| 独立 Q&A | 每个实质性问题和追问都有 Q-ID、完整规范答案、证据、主线锚点和事务 ID |
-| 真实保存回执 | LOG/QA 写入、精确回读、跨文件对账和 strict validator 全部通过后才能返回 `saved` |
-| 唯一 NODE 状态 | 仅允许枚举值；跳过/延后必须记录原因、影响、重访条件和学习者接受情况 |
-| 语义完成门槛 | 讲过不等于掌握；`done` 需要行为验证、完整参考答案、durable K 卡和成功事务 |
-| 修正全局生效 | M/C 保存旧说法、规范说法、证据、影响和 stale pattern；最终化扫描旧措辞 |
-| 最终化 fail-closed | 路线、场景、NODE、问题、K 卡、修正、用户关闭问题阶段和同意全部通过才能生成正式文档 |
-| 独立重学 UNIT | 每个完成 Step 映射到可脱离聊天重新学习的 UNIT，并具有唯一 ID 和显式 anchor |
-| 可执行回归 | 状态机、记录校验、readiness 和最终文档均有 Python 校验器与 T-01～T-16 测试 |
+| 路线 | 基于真实运行调用链规划；单次只推进一个 `RUN/NODE`。 |
+| 证据 | 声明按类型交给对应 verifier；源码、配置、运行、数学、论文、比较和学习者判断分别核验。 |
+| 问答 | 用户问题进入回答和记录流程；复合问题拆成独立 `Q-ID`；错误或部分正确回答必须复测。 |
+| 持久化 | `Q/M/C/TX` 由 allocator 分配；QA 写入、精确回读、LOG 更新、跨文件对账和 strict validation 组成事务。 |
+| 状态 | 保存后停在 `AWAITING_QUESTIONS_OR_CONTINUE`；旧 `continue`、未保存问题和 `retest-due` 都不能推进主线。 |
+| 失败处理 | 没有机器 receipt 不能声称 `saved`；部分失败返回 `unsaved-partial` 并 fail-closed。 |
+| 最终化 | 正式文档只能由唯一 finalizer 根据 fresh readiness manifest 生成；`ready=false` 时目标文件保持不变。 |
+| 记忆 | 连续性记忆使用受控的文件化事实、索引、去重、更新和归档协议；恢复以 manifest 和 receipt 为准。 |
 
-## 双 Skill 架构
+## 输出与控制面
 
-1. [`project-code-study`](SKILL.md) 负责项目扫描、动态路线、逐节点教学、问答、修正、证据与持久化。
-2. [`project-study-document`](skills/project-study-document/SKILL.md) 只在 readiness 通过且用户明确同意后，生成最终学习文档。
+一次正常学习循环会产生两层输出：聊天中给出结论、关键原因、证据摘要、`Q-ID`、QA 位置和当前主线状态；QA 中保存可独立阅读的规范答案。学习产物包括：
 
-伴生 Skill 不参与日常教学。路线未闭合时，它只返回 readiness report；用户明确要求阶段性产物时，也只能生成 `status: incomplete-draft`。
+| 产物 | 作用 |
+| --- | --- |
+| `PROJECT_STUDY_ROUTE.md` | `RUN/NODE` 路线、上下游、完成条件和证据边界。 |
+| `PROJECT_STUDY_LOG.md` | 已完成节点、问题状态、纠正、复测和事务回执。 |
+| `PROJECT_STUDY_QA.md` | 完整、可独立阅读的规范问答。 |
+| `PROJECT_STUDY_MEMORY.md` | 可恢复的连续性记忆与当前工作状态。 |
+| `PROJECT_STUDY_FINAL.md` | 通过 readiness 后由 finalizer 生成的正式学习文档。 |
 
-## 工作流
+推荐从以下入口理解实现：
 
-```text
-仓库 / 论文 / 配置 / 运行证据
-  -> Step 0：项目地图与证据边界
-  -> Step 1–2：问题背景、相关方法、代表性输入与数据路径
-  -> Step 3：RUN 场景、NODE 调用图与概念依赖
-  -> Step 4.x：按真实调用顺序，一次学习一个 NODE
-  -> 主动回忆 / 调用追踪 / Shape 或状态推演 / 修改预测
-  -> Step 5：从已理解节点重建架构与论文—代码映射
-  -> Step 6+：目标函数、训练、推理、评估、复现和实验
-  -> 覆盖、问题、修正与 stale 审计
-  -> 明确关闭问题阶段
-  -> readiness pass
-  -> 明确同意
-  -> PROJECT_STUDY_DOCUMENT.md
-```
-
-Step 编号只是可调整骨架。实际路线由项目入口、运行分支、概念前置和学习目标决定。
-
-### 问答后的状态控制
-
-教学结束进入等待；用户回答主动回忆或提出支线问题后，Skill 必须给出完整答案并保存，然后停在 `AWAITING_QUESTIONS_OR_CONTINUE`。同一回复不得开始下一个 NODE。状态转换的可执行参考位于 [`scripts/interaction_state.py`](scripts/interaction_state.py)。
-
-### 跨文件事务
-
-```text
-分配 TX-ID
-  -> 写 Q&A 详情和索引
-  -> 精确回读 Q/Parent/完整答案/状态/锚点/TX
-  -> 写 LOG 热状态、索引、K 卡、路线、session 与 TX
-  -> 精确回读 current/next/interaction/Q/TX
-  -> LOG/QA 对账
-  -> strict validator
-  -> 全部通过才是 saved
-```
-
-部分成功返回 `unsaved-partial`，并保留紧凑 delta；修复记录一致性是唯一下一行动，不能继续教学。
-
-## 持久化文件
-
-| 文件 | Schema | 作用 |
-| --- | --- | --- |
-| `PROJECT_STUDY_LOG.md` | 4.1 | 权威热状态、RUN/NODE 路线、证据、掌握度、K 卡、M/C、实验、事务和 session |
-| `PROJECT_STUDY_QA.md` | 1.1 | 完整问题、追问、主动回忆答案、证据、反馈、锚点和事务回执 |
-| `PROJECT_STUDY_DOCUMENT.md` | 1.2 | readiness 与用户同意后生成的独立重学文档 |
-
-兼容读取仍支持 LOG schema 4.0/3.1、Q&A schema 1.0 和最终文档 schema 1.0/1.1。严格语义与跨文件校验要求新 schema；迁移旧记录必须获得授权并保留备份。
-
-## 微 Step 与 durable K 卡
-
-每个微 Step 至少说明场景、调用者、当前符号、下游、源码位置、执行顺序、输入输出/Shape/状态、设计原因、证据和未验证边界。标记 `done` 前还必须保存完整 K 卡：
-
-- prerequisites 与 learning objective；
-- runtime position 与 complete explanation；
-- source locations 与 inputs/outputs/Shapes/states；
-- rationale、alternatives、trade-offs 和 failure modes；
-- important Q、canonical M/C 与 evidence status；
-- self-check、完整 reference answer、next connection 和行为掌握证据；
-- 成功的 TX-ID。
-
-## 最终化 Readiness Gate
-
-正式生成前运行：
-
-```powershell
-python scripts/validate_finalization_bundle.py `
-  --ledger PROJECT_STUDY_LOG.md `
-  --qa PROJECT_STUDY_QA.md
-```
-
-必须同时满足：路线和必要场景最终化、核心 NODE 无缺口、没有 open/retest 问题、没有待回应用户输入、没有未解决修正或 stale 提升、每个 done Step 有 durable K 卡、Q&A 无隐藏聊天依赖、问题阶段已明确关闭、用户已明确同意、LOG/QA strict 校验为零错误。
-
-## 最终文档写入流程
-
-最终文档不再通过尾部追加或无边界字符串替换“补齐”。伴生 Skill 会先在内存建立唯一 Step/UNIT 映射，再一次性渲染临时同目录文件：
-
-1. `validation_status: pending` 执行 preflight；
-2. 零错误后只改为 `validated`；
-3. 执行最终校验；
-4. 回读 frontmatter、目录、UNIT/anchor、Q/M/C、证据和下一行动；
-5. 原子替换正式目标。
-
-每个 UNIT 必须能在没有原聊天的情况下重新教授目标、RUN/NODE 位置、源码执行顺序、I/O/Shape/状态、设计取舍、重要问题、规范修正、自测答案、下一节点和未验证边界。
+- [SKILL.md](SKILL.md)：运行时总协议和资源路由；
+- [user-prompts.md](references/user-prompts.md)：用户意图路由，不把 QA、LOG、暂停和 readiness 门禁推回给用户；
+- [prompt-workflow-patterns.md](references/prompt-workflow-patterns.md)：将外部工作流抽象为通用提示词模式；
+- [continuity-memory-protocol.md](references/continuity-memory-protocol.md)：上下文压缩和异常恢复协议；
+- [teaching-output-contract.md](references/teaching-output-contract.md)：代码讲解和聊天/QA 双层输出契约；
+- [transaction-and-evidence-protocol.md](references/transaction-and-evidence-protocol.md)：事务、receipt、校验和证据协议；
+- [scripts/](scripts/)：状态机、账本、最终化、记忆和声明门禁工具；
+- [tests/](tests/)：旧测试与端到端回归测试。
 
 ## 安装
 
-```bash
-git clone https://github.com/1bkunnn-cyber/project-code-study.git
+将检出的本目录安装到宿主支持的 Skill 目录，并确保运行时可以执行 Python 3。例如当前工作区可使用：
+
+```powershell
+Copy-Item -Recurse -Force '.\*' 'D:\skills\project-code-study'
 ```
 
-将完整目录复制或链接到宿主支持的 Skill 目录，例如：
-
-```text
-Claude Code 用户级：~/.claude/skills/project-code-study
-Codex 用户级：      ~/.codex/skills/project-code-study
-项目级：            <project>/<host-skill-directory>/project-code-study
-```
-
-请保留 `skills/project-study-document` 子目录。
+如果使用本地目录，直接把 `D:/skills/project-code-study` 注册为 Skill 路径即可。伴生的 [project-study-document](skills/project-study-document/SKILL.md) 负责将已验证的学习记录整理为独立 UNIT；它不能绕过主 Skill 的事务和 readiness 门禁。
 
 ## 快速开始
 
-```text
-请使用 $project-code-study 带我学习当前项目。
-目标：<读懂 / 复现 / 修改 / 研究扩展>
-基础：<一句话>
-本轮先确认记录权限、证据边界和项目专属路线，只完成 Step 0。
-```
-
-继续时只需：
+启动时只需说明项目、目标和深度：
 
 ```text
-继续主线。本轮只学习精确继续位置对应的一个 NODE。
+启动 project-code-study。项目根目录是 <PROJECT_ROOT>。
+目标是沿真实运行调用链学习 <TOPIC>，先建立路线，然后一次讲一个 NODE。
+使用中文；每个 NODE 先讲生活化例子，再讲公式/规则、代码和对应关系。
+完成讲解后进行主动回忆；问题、QA、LOG、receipt 和状态由 Skill 自动维护。
 ```
 
-直接提出支线问题即可。Q-ID、保存、暂停和主线锚点是 Skill 内部保证，不需要用户反复粘贴控制提示。恢复与诊断示例见 [`references/user-prompts.md`](references/user-prompts.md)。
-
-## 校验与测试
-
-### 模板结构
-
-```powershell
-python scripts/validate_learning_ledger.py assets/PROJECT_STUDY_LOG.template.md --template
-python scripts/validate_learning_ledger.py assets/PROJECT_STUDY_QA.template.md --template
-python skills/project-study-document/scripts/validate_study_document.py `
-  skills/project-study-document/assets/PROJECT_STUDY_DOCUMENT.template.md --template
-```
-
-### 实际 LOG/QA 严格校验
-
-```powershell
-python scripts/validate_learning_ledger.py PROJECT_STUDY_LOG.md `
-  --strict --qa PROJECT_STUDY_QA.md
-```
-
-### 最终文档双阶段校验
-
-```powershell
-python skills/project-study-document/scripts/validate_study_document.py <temp.md> `
-  --ledger PROJECT_STUDY_LOG.md --qa PROJECT_STUDY_QA.md --preflight
-
-python skills/project-study-document/scripts/validate_study_document.py PROJECT_STUDY_DOCUMENT.md `
-  --ledger PROJECT_STUDY_LOG.md --qa PROJECT_STUDY_QA.md
-```
-
-### T-01～T-16 回归
-
-```powershell
-python -m unittest discover -s tests -v
-```
-
-测试覆盖事务部分失败、连续追问、问答后暂停、旧继续令牌失效、中断节点、NODE 枚举、未完成路线阻断、隐藏聊天依赖、重复 UNIT/anchor、占位句、stale correction、伪 `validated`、Step/NODE 分离、冷启动静态代理、无控制长提示和图示策略。
-
-> 冷启动静态代理只能证明 UNIT 结构与语义字段齐备。真实的新会话/跨模型重学测试必须单独记录为 `pass`、`fail` 或 `not-run`；未运行时不能宣称通过。
-
-## 仓库结构
-
-| 路径 | 职责 |
-| --- | --- |
-| [`SKILL.md`](SKILL.md) | 主 Skill 不变量、状态机、事务与工作流 |
-| [`references/`](references) | 调用图、问答、记录、完成门槛、论文映射和诊断协议 |
-| [`assets/PROJECT_STUDY_LOG.template.md`](assets/PROJECT_STUDY_LOG.template.md) | LOG schema 4.1 |
-| [`assets/PROJECT_STUDY_QA.template.md`](assets/PROJECT_STUDY_QA.template.md) | Q&A schema 1.1 |
-| [`scripts/interaction_state.py`](scripts/interaction_state.py) | 交互状态机可执行参考 |
-| [`scripts/validate_learning_ledger.py`](scripts/validate_learning_ledger.py) | 结构、语义与 LOG/QA 对账 |
-| [`scripts/validate_finalization_bundle.py`](scripts/validate_finalization_bundle.py) | fail-closed readiness manifest |
-| [`skills/project-study-document/`](skills/project-study-document) | 最终文档伴生 Skill、schema 1.2 模板和 validator |
-| [`tests/test_regressions.py`](tests/test_regressions.py) | T-01～T-16 可重复回归 |
-
-## 证据与安全边界
-
-Skill 区分 `已确认`、`可推断`、`背景知识` 和 `待验证`。发现文件不等于读过文件；建议命令不等于实际执行；论文主张不等于当前实现；聊天中的同意不等于掌握。
-
-未读取的实现不得凭模型记忆补全。记录不保存完整聊天、隐藏推理、凭据或无关隐私。文件写入、命令、联网、下载和源码修改始终受用户授权与宿主权限约束。
-
----
-
-<a id="english"></a>
-
-## English
-
-`project-code-study` is an evidence-grounded Agent Skill for learning a repository through its actual runtime scenarios and call nodes. Version 5.0 adds fail-closed persistence, an explicit interaction state machine, unique NODE states, standalone Q&A, durable knowledge cards, a readiness manifest, schema 1.2 relearning units, and executable T-01–T-16 regressions.
-
-### Generated artifact language
-
-Internal Skill protocols and maintenance documents may use English, while this README remains bilingual. The three learner-owned artifacts generated in the studied project—`PROJECT_STUDY_LOG.md`, `PROJECT_STUDY_QA.md`, and `PROJECT_STUDY_DOCUMENT.md`—default to Simplified Chinese. Source symbols, commands, paths, formulas, schema fields, stable IDs, and fixed state enums remain unchanged and are explained in Chinese. Another output language is used only when the learner explicitly requests it.
-
-### Key behavior
-
-- Build project-specific `RUN-` paths and `NODE-` graphs from repository evidence.
-- Teach one runtime node per micro-step.
-- Pause after recall or side-question closure; only a fresh, single-use continue event advances.
-- Persist every substantive question with a complete standalone answer and one cross-file `TX-` ID.
-- Report `saved` only after exact LOG/QA readback, reconciliation, and strict validation.
-- Require behavior evidence and a complete durable `K-` card before `done`.
-- Block formal document generation until route, scenarios, nodes, questions, corrections, knowledge cards, explicit question closure, and consent all pass.
-- Generate unique, anchored relearning units that do not depend on chat history.
-
-### Quick start
+正常继续时使用新的明确指令：
 
 ```text
-Use $project-code-study to teach me the current repository.
-Goal: <understand / reproduce / modify / research extension>
-Background: <one sentence>
-Confirm record permissions and build the project-specific route; complete only Step 0.
+继续学习下一个 NODE。
 ```
 
-### Validation
+恢复、异常诊断和专项学习可参考 [user-prompts.md](references/user-prompts.md) 中的模板。模板只负责启动、选择讲解方式、恢复和诊断；它不要求用户手工维护记录，也不允许用户提示词绕过状态门禁。
+
+## 验证
+
+在提交或发布前运行：
 
 ```powershell
-python scripts/validate_learning_ledger.py PROJECT_STUDY_LOG.md `
-  --strict --qa PROJECT_STUDY_QA.md
-
-python scripts/validate_finalization_bundle.py `
-  --ledger PROJECT_STUDY_LOG.md --qa PROJECT_STUDY_QA.md
-
-python -m unittest discover -s tests -v
+python -m unittest discover -s tests -p "test_*.py" -v
+python scripts/validate_learning_ledger.py <PROJECT_STUDY_LOG.md> --strict --qa <PROJECT_STUDY_QA.md>
+python scripts/validate_finalization_bundle.py <READINESS_MANIFEST.json> --target <PROJECT_STUDY_FINAL.md>
+python scripts/validate_protocol_memory.py <MEMORY_ROOT>
+python scripts/response_claim_guard.py <RESPONSE.md> --receipt <RECEIPT.json>
+git diff --check
 ```
 
-Final schema 1.2 documents use a preflight pass with `validation_status: pending`, followed by a final pass after changing only that field to `validated`. Real cold-start/cross-model acceptance remains a separately recorded test; a static proxy is not reported as a real run.
+验证重点不是“validator 能报告错误”，而是验证错误后不存在成功旁路：正式目标文件不被创建或覆盖，没有 receipt 不能产生 `saved`，重复 ID、相邻 QA 污染、无效链接、占位路径、不完整 UNIT 和旧状态穿透都会被拒绝。
+
+当前测试包含静态/本地回归测试；真实宿主行为、不同模型行为和跨会话持久化环境必须在对应宿主中另行验证，不能把代理测试结果当作真实宿主已通过。
+
+## 目录结构
+
+```text
+project-code-study/
+├── SKILL.md
+├── README.md
+├── LICENSE
+├── CHANGELOG.md
+├── references/
+│   ├── user-prompts.md
+│   ├── prompt-workflow-patterns.md
+│   ├── continuity-memory-protocol.md
+│   ├── teaching-output-contract.md
+│   └── transaction-and-evidence-protocol.md
+├── scripts/
+├── tests/
+└── skills/
+    └── project-study-document/
+```
+
+## 安全与边界
+
+- 只把项目源码、运行日志和用户明确纳入范围的材料作为输入；不要把密钥、令牌或隐私内容写入记忆、QA 或最终文档。
+- 绝不把模型口头确认当作持久化成功；以 receipt、精确回读和 strict validation 为准。
+- 发现证据不足时标记未知、请求补证或停止推进，不用猜测填空。
+- 正式文档生成使用临时同目录文件、preflight、final validation 和原子替换；草稿只能标记为 `incomplete-draft`。
+- 记录文件属于用户学习产物；Skill 的维护只修改协议、脚本、模板和测试，不覆盖已有学习记录。
+
+## 致谢与参考项目
+
+本 Skill 借鉴了下列公开项目或文档中的通用思想，并进行了独立抽象和实现：
+
+| 项目/文档 | 借鉴的通用思想 | 说明 |
+| --- | --- | --- |
+| [Engramory](https://github.com/tinqiao-oss/engramory) | 文件化连续性记忆、受控索引、单事实记录、去重/更新/归档 | 启发了本 Skill 的 memory 协议；未复制其源代码。该仓库 README 标注为 MIT。 |
+| [learn-codebase](https://github.com/ktaletsk/learn-codebase) | 苏格拉底式提问、先预测后揭示、主动回忆、渐进式支架和学习日志 | 启发了主动回忆、复测和教学输出契约；许可证以其仓库为准。 |
+| [VS Code Agents documentation](https://github.com/microsoft/vscode-docs/blob/main/docs/copilot/concepts/agents.md) | Understand → Act → Validate 循环、计划阶段、动作结果反馈 | 启发了本 Skill 的执行—验证闭环；许可证以其仓库为准。 |
+| [GitHub Awesome Copilot](https://github.com/github/awesome-copilot) | preflight、条件步骤、失败即停、结构化包装提示和输出契约 | 启发了提示词路由与 fail-closed 规则；许可证以其仓库为准。 |
+| [Superpowers](https://github.com/obra/superpowers) | 计划检查点、分步执行、验证门和阻塞时停止 | 启发了节点推进和最终化前检查；该仓库标注为 MIT。 |
+| [AGENT.md specification](https://github.com/agentmd/agent.md) | 分层指令、作用域继承和可预测的项目上下文 | 启发了资源分层与恢复入口；许可证以其仓库为准。 |
+| [GitHub Copilot onboarding plan](https://docs.github.com/en/copilot/tutorials/customization-library/prompt-files/onboarding-plan) | Foundation → Exploration → Integration 的分阶段学习路径 | 启发了启动、探索、整合的提示词组织方式。 |
+
+本项目与上述项目没有隶属、赞助或背书关系。除明确注明的 MIT 项目外，第三方项目的版权和许可证均归其各自权利人所有；使用或再分发第三方代码、文本或资产时，应直接遵守对应仓库的 `LICENSE`、版权声明和贡献者要求。本仓库当前仅借鉴公开的工作流思想，未将上述项目的源代码、提示词原文或资产作为本 Skill 的组成部分。
 
 ## License
 
-MIT. See [`LICENSE`](LICENSE).
+本项目采用 [MIT License](LICENSE)。
+
+---
+
+## English summary
+
+`project-code-study` is a Chinese-first, evidence-bound learning skill for studying real software projects. It maps a verified runtime call chain into `RUN/NODE` units, teaches one node at a time, evaluates active recall, persists QA and progress through receipt-gated transactions, and generates final study documents only after a fresh readiness check.
+
+The skill is designed for long conversations where a model may lose context, overstate unverified claims, skip records, or confuse a conversational acknowledgement with a successful write. Its control plane therefore combines state-machine gates, strict validators, claim-verifier registries, continuity memory, and a single finalizer. It is not a generic code summarizer and does not treat copied source plus comments as a complete explanation.
+
+Start with [SKILL.md](SKILL.md), route user intent through [references/user-prompts.md](references/user-prompts.md), and run the local tests before publishing. The [Acknowledgments](#致谢与参考项目) section records the public projects and documents that influenced the design. No upstream code or prompt text is claimed as part of this repository, and each upstream project retains its own copyright and license.
+
+See [CHANGELOG.md](CHANGELOG.md) for releases and [LICENSE](LICENSE) for the license of this Skill.

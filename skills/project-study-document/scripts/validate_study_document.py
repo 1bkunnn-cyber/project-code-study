@@ -99,7 +99,7 @@ def label_value(block: str, label: str) -> str:
     return clean(match.group(1)) if match else ""
 
 
-def validate_units_12(text: str, errors: list[str]) -> dict[str, set[str]]:
+def validate_units_12(text: str, errors: list[str], repo_root: Path | None = None) -> dict[str, set[str]]:
     units = unit_matches(text)
     if not units:
         errors.append("schema 1.2 contains no UNIT relearning unit")
@@ -129,12 +129,29 @@ def validate_units_12(text: str, errors: list[str]) -> dict[str, set[str]]:
         source = label_value(block, "- 源码、配置、公式或论文位置：")
         if source and not re.search(r"(?:SRC-|[A-Za-z0-9_.-]+[/\\][A-Za-z0-9_.-]+|\.(?:py|js|ts|md|yaml|yml|json|toml)\b|page|页|公式)", source):
             errors.append(f"{unit_id} source location is not traceable")
+        if "..." in source or "<path>" in source.lower() or "TODO" in source:
+            errors.append(f"{unit_id} contains placeholder source location")
+        if repo_root and source:
+            for relative in re.findall(r"(?<![A-Za-z0-9_./-])([A-Za-z0-9_.-]+(?:[/\\][A-Za-z0-9_.-]+)+\.(?:py|js|ts|md|yaml|yml|json|toml))(?::\d+(?:-\d+)?)?", source):
+                if not (repo_root / relative).is_file():
+                    errors.append(f"{unit_id} source path does not exist: {relative}")
         for heading, minimum in UNIT_SECTIONS_12.items():
             content = section_content(block, heading)
             if not content:
                 errors.append(f"{unit_id} missing relearning section: {heading}")
             elif len(content) < minimum:
                 errors.append(f"{unit_id} relearning section too thin ({len(content)} < {minimum}): {heading}")
+        semantic_sections = {
+            "#### 关键源码执行顺序": ("顺序", "first", "second", "then", "先", "随后"),
+            "#### 输入、输出、Shape、公式与状态变化": ("输入", "输出", "shape", "状态", "input", "output", "state"),
+            "#### 设计原因、替代方案与取舍": ("取舍", "替代", "alternative", "trade-off", "direct"),
+            "#### 自测": ("自测", "重建", "解释", "验证", "reconstruct", "verify"),
+            "#### 参考答案": ("答案", "应", "先", "调用", "answer", "caller", "call"),
+        }
+        for heading, tokens in semantic_sections.items():
+            content = section_content(block, heading).lower()
+            if not any(token.lower() in content for token in tokens):
+                errors.append(f"{unit_id} missing semantic evidence in {heading}")
         covered = label_value(block, "- 覆盖 Step：")
         steps = {normalize_step(item) for item in re.split(r"[,，、;/]+", covered) if normalize_step(item)}
         if not steps:
@@ -155,13 +172,13 @@ def extract_ledger_steps(text: str) -> dict[str, str]:
     return result
 
 
-def validate_coverage(text: str, ledger_text: str, errors: list[str]) -> None:
+def validate_coverage(text: str, ledger_text: str, errors: list[str], repo_root: Path | None = None) -> None:
     tables = record_validator.tables_of(text)
     rows = record_validator.find_table(tables, {"Step / 微 Step", "状态", "本 Step 学到的知识", "掌握证据", "复习单元"})
     if rows is None:
         errors.append("missing Step knowledge coverage table")
         return
-    units = validate_units_12(text, errors)
+    units = validate_units_12(text, errors, repo_root=repo_root)
     unit_ids = set(units)
     doc_steps: dict[str, str] = {}
     mapped_by_unit = {unit_id: set() for unit_id in unit_ids}
@@ -252,7 +269,7 @@ def validate_stale_patterns(text: str, ledger_text: str, errors: list[str]) -> N
             errors.append(f"promoted content contains stale pattern from {row.get('ID')}: {pattern}")
 
 
-def validate(path: Path, *, allow_template: bool, ledger_path: Path | None, qa_path: Path | None, preflight: bool) -> list[str]:
+def validate(path: Path, *, allow_template: bool, ledger_path: Path | None, qa_path: Path | None, preflight: bool, repo_root: Path | None = None) -> list[str]:
     try:
         text = path.read_text(encoding="utf-8-sig")
     except OSError as exc:
@@ -328,7 +345,7 @@ def validate(path: Path, *, allow_template: bool, ledger_path: Path | None, qa_p
     except OSError as exc:
         return errors + [f"cannot read source bundle: {exc}"]
 
-    validate_coverage(text, ledger_text, errors)
+    validate_coverage(text, ledger_text, errors, repo_root=repo_root)
     validate_questions(text, qa_text, errors)
     validate_stale_patterns(text, ledger_text, errors)
     if status == "complete":
@@ -358,8 +375,9 @@ def main() -> int:
     parser.add_argument("--ledger", type=Path)
     parser.add_argument("--qa", type=Path)
     parser.add_argument("--preflight", action="store_true", help="accept pending validation_status before final commit")
+    parser.add_argument("--repo-root", type=Path, help="repository root for source path and symbol link checks")
     args = parser.parse_args()
-    errors = validate(args.document, allow_template=args.template, ledger_path=args.ledger, qa_path=args.qa, preflight=args.preflight)
+    errors = validate(args.document, allow_template=args.template, ledger_path=args.ledger, qa_path=args.qa, preflight=args.preflight, repo_root=args.repo_root)
     if errors:
         for error in errors:
             print(f"ERROR: {error}", file=sys.stderr)

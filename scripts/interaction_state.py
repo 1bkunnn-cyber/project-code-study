@@ -51,9 +51,64 @@ def transition(state: str, event: str) -> str:
         raise ValueError(f"event {event!r} is not allowed from {state}") from exc
 
 
-def can_advance(state: str, fresh_continue: bool = False) -> bool:
-    """Only a fresh continue event from the explicit pause state advances."""
-    return state == "AWAITING_QUESTIONS_OR_CONTINUE" and fresh_continue
+def advance_decision(
+    state: str,
+    *,
+    fresh_continue: bool = False,
+    open_questions: list[str] | None = None,
+    retest_due_questions: list[str] | None = None,
+    pending_user_response: bool = False,
+    persistence_status: str = "saved",
+    node_complete: bool = True,
+    strict_validation_passed: bool = True,
+) -> tuple[bool, str]:
+    """Evaluate every hard gate before a route transition.
+
+    ``fresh_continue`` is intentionally not sufficient by itself. The caller
+    must prove that the question queue, retest queue, records, current NODE,
+    and strict validator are all clear.
+    """
+    if state != "AWAITING_QUESTIONS_OR_CONTINUE":
+        return False, "interaction state is not awaiting a fresh continue"
+    if not fresh_continue:
+        return False, "fresh continue is required"
+    if open_questions:
+        return False, "open questions block advancement"
+    if retest_due_questions:
+        return False, "retest-due questions block advancement"
+    if pending_user_response:
+        return False, "pending user response must be persisted and closed"
+    if persistence_status != "saved":
+        return False, "machine persistence receipt is not saved"
+    if not node_complete:
+        return False, "current NODE is not semantically complete"
+    if not strict_validation_passed:
+        return False, "strict LOG/QA validation has not passed"
+    return True, "advance permitted"
+
+
+def can_advance(
+    state: str,
+    fresh_continue: bool = False,
+    *,
+    open_questions: list[str] | None = None,
+    retest_due_questions: list[str] | None = None,
+    pending_user_response: bool = False,
+    persistence_status: str = "saved",
+    node_complete: bool = True,
+    strict_validation_passed: bool = True,
+) -> bool:
+    """Return true only when every fail-closed advancement gate passes."""
+    return advance_decision(
+        state,
+        fresh_continue=fresh_continue,
+        open_questions=open_questions,
+        retest_due_questions=retest_due_questions,
+        pending_user_response=pending_user_response,
+        persistence_status=persistence_status,
+        node_complete=node_complete,
+        strict_validation_passed=strict_validation_passed,
+    )[0]
 
 
 def main() -> int:
