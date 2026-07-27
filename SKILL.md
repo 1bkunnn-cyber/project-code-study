@@ -62,20 +62,22 @@ Treat the following scripts as control-plane entry points, not examples:
 - `scripts/finalize_project_study.py` is the only formal-document finalizer. It must consume a fresh readiness manifest, assemble a same-directory temporary candidate, pass preflight and final validation, and atomically replace the formal target. It must leave the target byte-identical on any failure. Legacy records are migration blockers, not bypasses. Early artifacts use a separate `incomplete-draft` target.
 - `scripts/claim_verifier.py` selects a verifier by claim type: source, configuration, runtime, mathematical, paper, comparison, or learner verdict. Do not add project-specific exceptions.
 - `scripts/validate_protocol_memory.py` is the strict doctor for the optional `.project-study-memory/` index and detail files.
-- `scripts/sync_protocol_memory.py` is the receipt-gated promotion path for durable constraints, corrections, project decisions, and evidence pointers.
+- `scripts/sync_protocol_memory.py` is the receipt-gated promotion path for durable constraints, corrections, project decisions, and evidence pointers. Its `init` command requires an explicit `--user-consent` flag before creating a project memory directory.
 - `scripts/response_claim_guard.py` is the last response audit: positive persistence/readiness claims require a matching machine receipt.
 
 Never write or infer `saved`, `validated`, `complete`, or `readiness_status: ready` in prose or by direct Markdown editing. Report only fields present in a machine receipt or finalizer result.
 
 ## Long-context continuity memory
 
-At the start of every turn, before answering a question, advancing a NODE, correcting a claim, or finalizing, read the compact `.project-study-memory/MEMORY.md` index and open only relevant entries. Keep one durable fact per file. Store reusable workflow feedback, corrections with stale patterns, durable project constraints, and evidence pointers; do not store transcripts, current status dumps, secrets, or facts already present in source/git/LOG/QA. Run the memory doctor before relying on recalled content.
+At the start of every turn, before answering a question, advancing a NODE, correcting a claim, or finalizing, read the compact `.project-study-memory/MEMORY.md` index when memory is enabled and open only relevant entries. Keep one durable fact per file. Store reusable workflow feedback, corrections with stale patterns, durable project constraints, and evidence pointers; do not store transcripts, current status dumps, secrets, or facts already present in source/git/LOG/QA. Run the memory doctor before relying on recalled content.
 
 After a successful LOG/QA transaction, promote only durable information through `scripts/sync_protocol_memory.py`; it requires a fresh receipt and leaves the store unchanged on failure. Before compaction, handoff, or recovery, perform a continuity sync: deduplicate, update, archive stale entries, validate, and perform a cold-start check. Memory is advisory and never substitutes for authoritative LOG/QA, interaction state, or readiness.
 
 Before emitting any response that contains a positive persistence or readiness claim, run `scripts/response_claim_guard.py` against the exact response text and the relevant receipt. If the host does not execute this guard, label the response claim as unverified; the Skill cannot physically prevent a host from emitting unconstrained natural language without a host-level pre-response hook or runner.
 
 Use `references/user-prompts.md` as the user-facing router. Treat each prompt as an intent selector, not as a replacement for the state machine. The normal loop is `start/recover → preflight → route → one NODE → recall/question → transaction → waiting → fresh continue`; failures branch only to repair, retest, recovery, or finalization. Do not require the learner to repeat internal recordkeeping instructions.
+
+When the studied project has no `.project-study-memory/` directory, ask once whether the learner wants project-scoped continuity memory. On explicit approval, run `scripts/sync_protocol_memory.py init ... --user-consent`, validate the new store, and only then mark memory enabled. On decline, keep memory disabled and do not create the directory. On missing or ambiguous consent, stop at `memory-consent-pending`; never create the directory silently.
 
 ## Authoritative interaction state
 
@@ -103,6 +105,8 @@ Identify the outcome (`understand`, `reproduce`, `modify`, or `research-extend`)
 
 - `PROJECT_STUDY_LOG.md`: authoritative hot state, route, evidence, mastery, corrections, experiments, reviews, knowledge cards, transactions, and session summaries.
 - `PROJECT_STUDY_QA.md`: complete questions, follow-ups, answers, feedback, and reflections.
+
+When `.project-study-memory/` is absent, ask separately whether to enable project-scoped continuity memory. Explain that approval creates the directory under the studied project root; decline creates nothing. Do not begin memory-dependent recovery until the answer is explicit and the initialization validator passes.
 
 If writing is unavailable, keep an explicitly `unsaved` compact delta in chat. Never claim persistence without successful write, exact readback, and validation.
 

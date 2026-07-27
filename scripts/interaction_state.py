@@ -61,6 +61,7 @@ def advance_decision(
     persistence_status: str = "saved",
     node_complete: bool = True,
     strict_validation_passed: bool = True,
+    memory_status: str = "enabled",
 ) -> tuple[bool, str]:
     """Evaluate every hard gate before a route transition.
 
@@ -70,6 +71,10 @@ def advance_decision(
     """
     if state != "AWAITING_QUESTIONS_OR_CONTINUE":
         return False, "interaction state is not awaiting a fresh continue"
+    if memory_status == "pending":
+        return False, "memory consent is pending"
+    if memory_status not in {"enabled", "disabled"}:
+        return False, "memory status must be enabled or disabled"
     if not fresh_continue:
         return False, "fresh continue is required"
     if open_questions:
@@ -97,6 +102,7 @@ def can_advance(
     persistence_status: str = "saved",
     node_complete: bool = True,
     strict_validation_passed: bool = True,
+    memory_status: str = "enabled",
 ) -> bool:
     """Return true only when every fail-closed advancement gate passes."""
     return advance_decision(
@@ -108,6 +114,7 @@ def can_advance(
         persistence_status=persistence_status,
         node_complete=node_complete,
         strict_validation_passed=strict_validation_passed,
+        memory_status=memory_status,
     )[0]
 
 

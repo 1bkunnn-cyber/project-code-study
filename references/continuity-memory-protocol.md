@@ -14,6 +14,25 @@ learning ledger.
 - Promote an entry only from a fresh machine `saved` receipt. A chat agreement,
   a dispatched write, or a model statement is not a receipt.
 
+## Opt-in initialization
+
+The memory store is project-scoped and opt-in. When
+`<PROJECT_ROOT>/.project-study-memory/` does not exist, ask the learner once:
+
+> 是否启用当前项目的连续性记忆？启用后将在项目根目录创建
+> `.project-study-memory/`，用于保存可复用规则、纠正和恢复指针；拒绝则不创建。
+
+- Explicit approval calls `sync_protocol_memory.py init` with
+  `--user-consent`, then reads and validates the new `MEMORY.md` before using
+  it.
+- An explicit decline records `memory_status: disabled` in the conversation
+  state only; do not create the directory or claim that memory is enabled.
+- Missing, ambiguous, or unanswered consent leaves the workflow at
+  `memory-consent-pending`; do not silently create the directory or begin a
+  memory-dependent recovery.
+- If the directory already exists, do not recreate it. Run the memory doctor
+  and report a blocker if the existing store is invalid.
+
 ## What to keep
 
 Keep only information that reduces future error:

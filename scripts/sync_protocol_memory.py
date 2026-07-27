@@ -95,7 +95,11 @@ def atomic_replace(files: dict[Path, str]) -> None:
         raise
 
 
-def init_store(root: Path, template: Path) -> None:
+def init_store(root: Path, template: Path, *, user_consent: bool) -> None:
+    if not user_consent:
+        raise MemoryTransactionError(
+            "explicit user consent is required before creating the project memory store"
+        )
     if root.exists() and any(root.iterdir()):
         raise MemoryTransactionError("memory root exists and is not empty")
     root.mkdir(parents=True, exist_ok=True)
@@ -170,6 +174,11 @@ def main() -> int:
     init = sub.add_parser("init")
     init.add_argument("memory_root", type=Path)
     init.add_argument("--template", type=Path, required=True)
+    init.add_argument(
+        "--user-consent",
+        action="store_true",
+        help="confirm that the learner explicitly approved creating the memory store",
+    )
     up = sub.add_parser("upsert")
     up.add_argument("memory_root", type=Path)
     up.add_argument("--receipt", type=Path, required=True)
@@ -183,7 +192,7 @@ def main() -> int:
     args = parser.parse_args()
     try:
         if args.command == "init":
-            init_store(args.memory_root, args.template)
+            init_store(args.memory_root, args.template, user_consent=args.user_consent)
             result = {"memory_status": "initialized"}
         else:
             result = upsert(args)

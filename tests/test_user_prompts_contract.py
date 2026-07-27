@@ -18,7 +18,7 @@ class UserPromptContractTests(unittest.TestCase):
             "首次启动", "选择讲解方式", "恢复已有学习", "正常继续", "提出问题",
             "回答主动回忆", "深讲当前 NODE", "Shape", "论文—代码", "修复 QA/LOG",
             "纠正旧结论", "暂停、压缩上下文", "重建项目专属路线", "关闭问题阶段",
-            "最终化", "最小机器诊断", "宿主或工具异常",
+            "最终化", "最小机器诊断", "宿主或工具异常", "项目连续性记忆初始化",
         ]
         for heading in required:
             self.assertIn(heading, self.text)
@@ -34,6 +34,10 @@ class UserPromptContractTests(unittest.TestCase):
         ]
         for phrase in forbidden:
             self.assertNotIn(phrase, self.text)
+
+    def test_memory_initialization_requires_explicit_consent(self) -> None:
+        for token in ("--user-consent", "memory-consent-pending", "拒绝则不创建"):
+            self.assertIn(token, self.text)
 
     def test_each_numbered_prompt_has_a_code_block(self) -> None:
         headings = re.findall(r"^##\s+(\d+)\.\s+", self.text, flags=re.MULTILINE)

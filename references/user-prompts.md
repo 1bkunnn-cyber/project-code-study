@@ -9,6 +9,7 @@
 | 用户意图 | 使用模板 | Skill 应完成的闭环 |
 | --- | --- | --- |
 | 新项目 | 1 | 读取规则与证据 → 建立 RUN/NODE 路线 → 完成 Step 0 → 等待 |
+| 连续性记忆初始化 | 1A（Skill 自动询问） | 检查项目根目录 → 询问一次 → 用户同意后初始化 `.project-study-memory/`；拒绝则不创建 |
 | 选择学习方式 | 2 | 记录偏好 → 不改变当前 NODE → 按所选方式讲解 |
 | 恢复会话 | 3 | 记忆/LOG/QA/readiness 预检 → 修复或报告唯一下一动作 |
 | 正常继续 | 4 | 消费一次新 continue → 只教一个 NODE → 回忆题 → 等待 |
@@ -46,6 +47,23 @@
 深度：<快速建立地图 / 按调用链深入 / Shape 与数据流 / 论文—代码对照；可留空>
 本轮先完成启动预检、记录权限确认、证据边界和项目专属路线，只完成 Step 0，完成后等待。
 ```
+
+## 1A. 项目连续性记忆初始化：先询问，再创建
+
+这是 Skill 在首次识别项目根目录且 `.project-study-memory/` 不存在时自动执行的确认步骤，不要求用户额外粘贴提示词：
+
+```text
+是否启用当前项目的连续性记忆？
+启用后将在项目根目录创建 .project-study-memory/，用于保存可复用规则、纠正和恢复指针；拒绝则不创建。
+请回答：启用 / 不启用。
+```
+
+执行规则：
+
+- 用户明确回答“启用”后，调用 `scripts/sync_protocol_memory.py init <PROJECT_ROOT>/.project-study-memory --template assets/PROJECT_STUDY_MEMORY.template.md --user-consent`，再读取并严格校验 `MEMORY.md`；
+- 用户明确回答“不启用”后，记录 `memory_status: disabled`，不创建目录，不执行记忆同步；
+- 用户未回答、回答含糊或工具失败时，保持 `memory-consent-pending`，不得静默创建，也不得声称记忆已启用；
+- 目录已经存在时不重新创建，先运行 memory doctor；校验失败时报告 blocker 并修复。
 
 ## 2. 选择讲解方式：只改变呈现，不改变状态机
 

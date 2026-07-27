@@ -70,6 +70,15 @@ class AdversarialRegressionTests(unittest.TestCase):
     def test_T21_retest_due_blocks_every_continue(self) -> None:
         self.assertFalse(interaction_state.can_advance("AWAITING_QUESTIONS_OR_CONTINUE", True, retest_due_questions=["Q-001"]))
 
+    def test_T21b_memory_consent_pending_blocks_advance(self) -> None:
+        allowed, reason = interaction_state.advance_decision(
+            "AWAITING_QUESTIONS_OR_CONTINUE",
+            fresh_continue=True,
+            memory_status="pending",
+        )
+        self.assertFalse(allowed)
+        self.assertEqual(reason, "memory consent is pending")
+
     def test_T22_old_continue_token_cannot_cross_question(self) -> None:
         state = interaction_state.transition("AWAITING_QUESTIONS_OR_CONTINUE", "side-question")
         state = interaction_state.transition(state, "answer-saved")

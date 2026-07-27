@@ -42,6 +42,27 @@ class ContinuityMemoryTests(unittest.TestCase):
     def test_empty_store_is_valid(self) -> None:
         self.assertEqual(validate_store(self.memory), [])
 
+    def test_init_requires_explicit_user_consent(self) -> None:
+        target = self.root / "new-memory"
+        with self.assertRaises(sync_protocol_memory.MemoryTransactionError):
+            sync_protocol_memory.init_store(
+                target,
+                ROOT / "assets" / "PROJECT_STUDY_MEMORY.template.md",
+                user_consent=False,
+            )
+        self.assertFalse(target.exists())
+
+    def test_init_creates_store_after_explicit_user_consent(self) -> None:
+        target = self.root / "new-memory"
+        sync_protocol_memory.init_store(
+            target,
+            ROOT / "assets" / "PROJECT_STUDY_MEMORY.template.md",
+            user_consent=True,
+        )
+        self.assertTrue((target / "MEMORY.md").is_file())
+        self.assertTrue((target / "archive").is_dir())
+        self.assertEqual(validate_store(target), [])
+
     def test_orphan_and_missing_pointer_fail(self) -> None:
         (self.memory / "orphan.md").write_text("orphan", encoding="utf-8")
         (self.memory / "MEMORY.md").write_text((self.memory / "MEMORY.md").read_text(encoding="utf-8") + "- [Missing](missing.md) — Missing\n", encoding="utf-8")

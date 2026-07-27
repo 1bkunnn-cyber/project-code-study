@@ -1,5 +1,12 @@
 # Changelog
 
+## 5.4.0 — 2026-07-27
+
+- Made project continuity memory explicitly opt-in: ask once before creating `.project-study-memory/` under the studied project root.
+- Required `--user-consent` for memory-store initialization; decline, ambiguity, or missing consent cannot create the directory.
+- Added a machine advancement gate for pending memory consent, plus prompt and continuity-protocol guidance.
+- Added regression coverage proving consent-gated initialization and no-advance behavior while consent is pending.
+
 ## 5.3.0 — 2026-07-27
 
 - Rebuilt `references/user-prompts.md` as a closed-loop prompt router covering startup, mode selection, recovery, one-NODE teaching, active recall, retest, evidence correction, record repair, continuity sync, finalization, and host/tool diagnosis.
