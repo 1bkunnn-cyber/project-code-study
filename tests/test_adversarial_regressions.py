@@ -79,6 +79,44 @@ class AdversarialRegressionTests(unittest.TestCase):
         self.assertFalse(allowed)
         self.assertEqual(reason, "memory consent is pending")
 
+    def test_T21c_default_memory_status_is_fail_closed(self) -> None:
+        allowed, reason = interaction_state.advance_decision(
+            "AWAITING_QUESTIONS_OR_CONTINUE",
+            fresh_continue=True,
+        )
+        self.assertFalse(allowed)
+        self.assertEqual(reason, "memory consent is pending")
+
+    def test_T32_final_question_side_branch_returns_to_final_phase(self) -> None:
+        state = interaction_state.transition("FINAL_QUESTION_PHASE", "side-question")
+        self.assertEqual(state, "ANSWERING_FINAL_SIDE_QUESTION")
+        state = interaction_state.transition(state, "answer-saved")
+        self.assertEqual(state, "FINAL_QUESTION_PHASE")
+        with self.assertRaises(ValueError):
+            interaction_state.transition(state, "continue")
+
+    def test_T33_final_audit_failure_requires_repair(self) -> None:
+        state = interaction_state.transition("FINAL_AUDIT", "audit-fail")
+        self.assertEqual(state, "FINAL_AUDIT_REPAIR")
+        with self.assertRaises(ValueError):
+            interaction_state.transition(state, "continue")
+        self.assertEqual(interaction_state.transition(state, "repair-complete"), "FINAL_AUDIT")
+
+    def test_T34_recall_side_question_returns_to_recall_wait(self) -> None:
+        state = interaction_state.transition("AWAITING_RECALL", "side-question")
+        self.assertEqual(state, "ANSWERING_RECALL_SIDE_QUESTION")
+        self.assertEqual(interaction_state.transition(state, "answer-saved"), "AWAITING_RECALL")
+
+    def test_T35_pending_user_intents_block_continue(self) -> None:
+        allowed, reason = interaction_state.advance_decision(
+            "AWAITING_QUESTIONS_OR_CONTINUE",
+            fresh_continue=True,
+            memory_status="disabled",
+            pending_user_intents=["question", "continue"],
+        )
+        self.assertFalse(allowed)
+        self.assertEqual(reason, "unresolved user intents block advancement")
+
     def test_T22_old_continue_token_cannot_cross_question(self) -> None:
         state = interaction_state.transition("AWAITING_QUESTIONS_OR_CONTINUE", "side-question")
         state = interaction_state.transition(state, "answer-saved")

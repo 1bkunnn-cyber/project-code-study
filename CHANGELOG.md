@@ -1,5 +1,13 @@
 # Changelog
 
+## 5.5.0 — 2026-07-27
+
+- Closed the final-question side branch so it returns to `FINAL_QUESTION_PHASE` instead of ordinary NODE waiting.
+- Added `FINAL_AUDIT_REPAIR`; readiness failures can no longer be bypassed by `continue`.
+- Added recall-interruption states and an unresolved `pending_user_intents` advancement gate for mixed user messages.
+- Made missing `memory_status` fail closed as `pending` instead of defaulting to enabled.
+- Added adversarial regression coverage for finalization, recall interruption, mixed intents, and default memory consent.
+
 ## 5.4.0 — 2026-07-27
 
 - Made project continuity memory explicitly opt-in: ask once before creating `.project-study-memory/` under the studied project root.

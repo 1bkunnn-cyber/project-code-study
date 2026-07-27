@@ -1,6 +1,6 @@
 # Project Code Study
 
-[![Skill version](https://img.shields.io/badge/version-5.4.0-blue.svg)](CHANGELOG.md)
+[![Skill version](https://img.shields.io/badge/version-5.5.0-blue.svg)](CHANGELOG.md)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
 [简体中文](#简体中文) · [English](#english)

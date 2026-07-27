@@ -58,7 +58,7 @@ Read only what the current action needs, but read each selected resource complet
 Treat the following scripts as control-plane entry points, not examples:
 
 - `scripts/project_study_transaction.py` is the only allocator and LOG/QA commit path. Allocate `Q-`, `M-`, `C-`, and `TX-` IDs there; write structured sections; read back both files; run strict validation; emit a machine receipt only after all checks pass. A partial write is `unsaved-partial` and its only next action is record repair.
-- `scripts/interaction_state.py` is the only route-advance decision. Call `can_advance()` with open questions, `retest_due_questions`, pending response, receipt, semantic NODE completion, and strict-validation status. A fresh `继续` alone never advances.
+- `scripts/interaction_state.py` is the only route-advance decision. Call `can_advance()` with open questions, `retest_due_questions`, pending response, receipt, semantic NODE completion, strict-validation status, explicit `memory_status`, and unresolved user intents. A fresh `继续` alone never advances.
 - `scripts/finalize_project_study.py` is the only formal-document finalizer. It must consume a fresh readiness manifest, assemble a same-directory temporary candidate, pass preflight and final validation, and atomically replace the formal target. It must leave the target byte-identical on any failure. Legacy records are migration blockers, not bypasses. Early artifacts use a separate `incomplete-draft` target.
 - `scripts/claim_verifier.py` selects a verifier by claim type: source, configuration, runtime, mathematical, paper, comparison, or learner verdict. Do not add project-specific exceptions.
 - `scripts/validate_protocol_memory.py` is the strict doctor for the optional `.project-study-memory/` index and detail files.
@@ -87,15 +87,18 @@ Persist `interaction_state` in the ledger and follow this table. `scripts/intera
 | --- | --- | --- |
 | `TEACHING_CURRENT_NODE` | Teach one primary NODE only | `AWAITING_RECALL` or `AWAITING_QUESTIONS_OR_CONTINUE` |
 | `AWAITING_RECALL` | Wait for learner response | `ANSWERING_RECALL` |
+| `ANSWERING_RECALL_SIDE_QUESTION` | Answer an interruption without consuming the recall response | `AWAITING_RECALL` |
 | `ANSWERING_RECALL` | Give complete closure and persist it | `AWAITING_QUESTIONS_OR_CONTINUE`; an incorrect/partial verdict also records `retest-due` |
 | `ANSWERING_SIDE_QUESTION` | Answer and persist one or more Q IDs without moving the anchor | `AWAITING_QUESTIONS_OR_CONTINUE` |
 | `AWAITING_QUESTIONS_OR_CONTINUE` | Accept a new question or one fresh `继续` | question state or `TEACHING_CURRENT_NODE` |
 | `FINAL_QUESTION_PHASE` | Continue answering questions | remain here until explicit closure |
-| `FINAL_AUDIT` | Run readiness bundle validation | backfill state or `DOCUMENT_CONSENT` |
+| `ANSWERING_FINAL_SIDE_QUESTION` | Answer a final-phase question without reopening the main route | `FINAL_QUESTION_PHASE` |
+| `FINAL_AUDIT` | Run readiness bundle validation | `DOCUMENT_CONSENT` or `FINAL_AUDIT_REPAIR` |
+| `FINAL_AUDIT_REPAIR` | Repair every readiness blocker and rerun the audit | `FINAL_AUDIT` |
 | `DOCUMENT_CONSENT` | Ask once whether to generate | `READY_TO_GENERATE` only on explicit consent |
 | `READY_TO_GENERATE` | Hand off to companion Skill | companion workflow |
 
-At the start of every turn, preflight: current state, current scenario/NODE, pending user response, whether a fresh continue exists, required write delta, receipt validity, retest queue, and whether advancement is allowed. Consume the fresh continue immediately when used; never carry it across a question or correction. A user question first enters the answer-and-record path; it cannot be answered only in chat.
+At the start of every turn, preflight: current state, current scenario/NODE, pending user response, whether a fresh continue exists, required write delta, receipt validity, retest queue, explicit memory status, unresolved user-intent queue, and whether advancement is allowed. Consume the fresh continue immediately when used; never carry it across a question or correction. A user question first enters the answer-and-record path; it cannot be answered only in chat.
 
 ## Default workflow
 
@@ -142,7 +145,7 @@ A micro Step becomes `done` only after all semantic gates pass and a durable kno
 
 Create a new stable Q ID for every substantive question and follow-up. Preserve parent linkage and the unchanged continuation NODE. Save a standalone complete canonical answer; `详见 chat`, `同上`, `前文已解释`, and answer summaries that omit key reasoning are forbidden.
 
-After active recall, always provide: the learner answer as understood; correct parts; missing/incorrect parts without invented errors; complete reference answer; reason; evidence; alternate explanation; retest when needed; persistence receipt. Then enter `AWAITING_QUESTIONS_OR_CONTINUE`. An incorrect or partial answer sets `retest-due` and makes `can_advance()` false. Advancement requires a new user message that explicitly continues and a passed retest.
+If the learner asks a side question while a recall response is pending, enqueue it as an unresolved intent, answer and persist it, then return to `AWAITING_RECALL`; do not consume or discard the recall prompt. After active recall, always provide: the learner answer as understood; correct parts; missing/incorrect parts without invented errors; complete reference answer; reason; evidence; alternate explanation; retest when needed; persistence receipt. Then enter `AWAITING_QUESTIONS_OR_CONTINUE`. An incorrect or partial answer sets `retest-due` and makes `can_advance()` false. Advancement requires a new user message that explicitly continues, no unresolved user intents, and a passed retest.
 
 For a compound question, split independent intents before answering. Allocate one Q-ID per intent and keep every answer complete even when the chat displays the queue in batches. Do not advance until every member is closed.
 
@@ -168,7 +171,7 @@ Use a small number of comparisons from same task, same bottleneck, analogous ide
 
 Before synthesis, audit source/scenario/NODE/dependency coverage, questions, retests, corrections, runtime evidence, knowledge cards, stale claims, and user-response state. Missing core knowledge triggers backfill, never retroactive `done`.
 
-Run `scripts/validate_finalization_bundle.py` on the ledger and Q&A. Formal generation is blocked unless its manifest reports all of the following ready:
+Run `scripts/validate_finalization_bundle.py` on the ledger and Q&A. A failed audit enters `FINAL_AUDIT_REPAIR`; it cannot be represented as ordinary waiting and cannot consume `继续`. Formal generation is blocked unless its manifest reports all of the following ready:
 
 ```yaml
 route_final: true

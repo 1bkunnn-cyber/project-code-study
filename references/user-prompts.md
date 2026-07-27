@@ -14,6 +14,7 @@
 | 恢复会话 | 3 | 记忆/LOG/QA/readiness 预检 → 修复或报告唯一下一动作 |
 | 正常继续 | 4 | 消费一次新 continue → 只教一个 NODE → 回忆题 → 等待 |
 | 提问/复合问题 | 5 | 拆分 Q-ID → 独立回答与保存 → 全部关闭前不推进 |
+| 回忆题中插入问题/混合指令 | 5A | 排队每个意图 → 先处理当前优先级 → 未解析意图阻断 continue |
 | 回答回忆题 | 6 | 复述 → 逐项判定 → 规范答案/证据 → 必要时 retest → 等待 |
 | 深讲/Shape/论文映射 | 7–9 | 留在当前锚点，补齐对应输出契约并记录 |
 | 纠错/定位/记录异常 | 10–12 | 只修复证据或记录 → 回读/校验 → 不推进 |
@@ -107,6 +108,16 @@
 请先按独立意图拆分并为每个意图分配独立 Q-ID；每题在 QA 中保存完整、可独立阅读的规范答案，聊天中给出问题索引、结论、证据摘要和 QA 位置。可以分批展示，但全部问题关闭前不要推进主线。
 ```
 
+## 5A. 回忆题中插入问题或一条消息包含多个意图
+
+```text
+这条消息可能包含多个意图，请不要丢弃任何一项：
+<回忆题回答 / 新问题 / 继续 / 纠正 / 修改要求>
+请先建立 pending_user_intents 队列，逐项分配处理顺序和状态；保存并关闭当前意图后再处理下一项。没有全部处理完之前不要消费“继续”，不要推进 NODE。
+```
+
+如果当前正在等待回忆题，用户先提出支线问题时，先保存并回答支线问题，再回到 `AWAITING_RECALL` 等待原回忆题；不得把支线问题回答后直接变成普通 `AWAITING_QUESTIONS_OR_CONTINUE`。
+
 ## 6. 回答主动回忆或复测题：不要替我补全
 
 ```text
@@ -177,7 +188,7 @@
 ## 15. 关闭问题阶段
 
 ```text
-我当前没有更多问题。请检查所有 Q、retest、修正、事务、Step/NODE、场景覆盖、durable K card、证据边界和记忆同步状态。
+我当前没有更多问题。请检查所有 Q、retest、修正、事务、Step/NODE、场景覆盖、durable K card、证据边界、pending_user_intents 和记忆同步状态。
 只有全部通过才记录问题阶段关闭；否则列出 blocker，不要声称学习完成，也不要生成正式文档。
 ```
 
@@ -200,7 +211,7 @@
 ## 17. 最小机器诊断
 
 ```text
-请只报告机器状态，不教学、不修改记录、不补写推断：实际 Skill 路径、README 版本、LOG/QA schema 与 strict validation、memory doctor、current Step/RUN/NODE、interaction state、last successful TX、open/retest Q、route/scenario readiness、receipt 状态、是否允许推进及唯一原因。
+请只报告机器状态，不教学、不修改记录、不补写推断：实际 Skill 路径、README 版本、LOG/QA schema 与 strict validation、memory doctor、current Step/RUN/NODE、interaction state、last successful TX、open/retest Q、pending_user_intents、route/scenario readiness、receipt 状态、是否允许推进及唯一原因。
 ```
 
 ## 18. 宿主或工具异常

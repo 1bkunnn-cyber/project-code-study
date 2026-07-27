@@ -52,6 +52,8 @@ After the learner answers, always provide:
 
 Then set `interaction_state: AWAITING_QUESTIONS_OR_CONTINUE`, preserve the continuation NODE, and stop. The response must not teach the next micro Step.
 
+If a learner asks a side question while `interaction_state: AWAITING_RECALL`, do not discard the pending recall. Allocate the side question, set `ANSWERING_RECALL_SIDE_QUESTION`, persist the answer, and return to `AWAITING_RECALL`. The recall response remains pending until the learner answers it. If a message contains a recall answer plus another intent, place the additional intent in `pending_user_intents`; consume intents in order and block `continue` until the queue is empty.
+
 ## 5. One-use continuation rule
 
 A continue instruction is valid only when received after entering `AWAITING_QUESTIONS_OR_CONTINUE`. Consume it on transition to `TEACHING_CURRENT_NODE`. If a side question or recall answer intervenes, any earlier continue is expired. Answer completion restores the anchor and waits for a new user message.
@@ -77,7 +79,7 @@ Mark superseded promoted wording stale. Update hot summaries and affected K card
 
 ## 7. Multiple questions and feedback
 
-When multiple substantive questions arrive, allocate one ID per intent, answer in a bounded sequence, and preserve the same continuation NODE unless evidence legitimately changes the route. Teaching feedback receives an `FB-` ID and records concrete adjustment without advancing.
+When multiple substantive questions arrive, allocate one ID per intent, answer in a bounded sequence, and preserve the same continuation NODE unless evidence legitimately changes the route. Teaching feedback receives an `FB-` ID and records concrete adjustment without advancing. A mixed message that includes `继续`, a recall response, a question, a correction, or a mode change must be represented as an explicit pending-intent queue; never silently drop an intent or consume `继续` before earlier intents close.
 
 ## 8. Read strategy
 

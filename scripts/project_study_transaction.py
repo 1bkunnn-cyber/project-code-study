@@ -122,6 +122,7 @@ def update_authoritative_state(text: str, state: dict[str, str]) -> str:
         "继续节点 ID": state.get("continuation_node_id"),
         "交互状态": state.get("interaction_state"),
         "等待用户回应": state.get("pending_user_response"),
+        "待处理用户意图": state.get("pending_user_intents"),
         "最近 Q ID": state.get("last_question_id"),
         "最近事务 ID": state.get("last_transaction_id"),
     }.items():
@@ -214,7 +215,7 @@ def commit_question(ledger_path: Path, qa_path: Path, data: dict[str, str], *, r
         new_qa = append_table_row(new_qa, {"Q ID", "状态", "Parent Q", "Transaction ID"}, qa_row)
         new_log = append_table_row(old_log, {"Q ID", "状态", "Parent Q"}, f"| {qid} | {data.get('location', 'current')} | {data['title']} | {data.get('parent_id', 'none')} | {data['status']} | yes | none | {txid} |")
         now = datetime.now(timezone.utc).isoformat()
-        state = {"last_question_id": qid, "last_transaction_id": txid, "updated_at": now, "interaction_state": "AWAITING_QUESTIONS_OR_CONTINUE", "pending_user_response": "true"}
+        state = {"last_question_id": qid, "last_transaction_id": txid, "updated_at": now, "interaction_state": "AWAITING_QUESTIONS_OR_CONTINUE", "pending_user_response": "true", "pending_user_intents": data.get("pending_user_intents", "none")}
         if data.get("current_node_id"):
             state["current_node_id"] = data["current_node_id"]
         new_log = update_authoritative_state(new_log, state)

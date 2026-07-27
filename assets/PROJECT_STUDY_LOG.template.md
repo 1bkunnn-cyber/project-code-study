@@ -17,6 +17,7 @@ continuation_node_id: "NODE-pending"
 interaction_state: "TEACHING_CURRENT_NODE"
 pending_user_response: false
 active_side_question_ids: "none"
+pending_user_intents: "none"
 last_question_id: "none"
 last_transaction_id: "TX-0001"
 learner_closed_question_phase: false
@@ -64,7 +65,7 @@ PROJECT CODE STUDY LEDGER CONTRACT — schema 4.1
 | 证据等级 | `E0` / `E1` / `E2` / `E3` |
 | 置信度 | `high` / `medium` / `low` |
 | 问题 | `open` / `answered` / `retest-due` / `closed` / `deferred` / `stale` |
-| 交互状态 | `TEACHING_CURRENT_NODE` / `AWAITING_RECALL` / `ANSWERING_RECALL` / `ANSWERING_SIDE_QUESTION` / `AWAITING_QUESTIONS_OR_CONTINUE` / `FINAL_QUESTION_PHASE` / `FINAL_AUDIT` / `DOCUMENT_CONSENT` / `READY_TO_GENERATE` |
+| 交互状态 | `TEACHING_CURRENT_NODE` / `AWAITING_RECALL` / `ANSWERING_RECALL` / `ANSWERING_SIDE_QUESTION` / `ANSWERING_RECALL_SIDE_QUESTION` / `AWAITING_QUESTIONS_OR_CONTINUE` / `FINAL_QUESTION_PHASE` / `ANSWERING_FINAL_SIDE_QUESTION` / `FINAL_AUDIT` / `FINAL_AUDIT_REPAIR` / `DOCUMENT_CONSENT` / `READY_TO_GENERATE` |
 | 会话结果 | `advanced` / `reviewed` / `blocked` / `interrupted` / `finalized` |
 
 ---
@@ -85,6 +86,7 @@ PROJECT CODE STUDY LEDGER CONTRACT — schema 4.1
 | 等待用户回应 | `false` |
 | 已完成主链节点 | `无` |
 | 当前支线问题 | `none` |
+| 待处理用户意图 | `none` |
 | 精确继续位置 | `完成项目证据盘点` |
 | 当前阻塞 / 前置缺口 | `待确认` |
 | 到期复习 | `无` |

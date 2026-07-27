@@ -44,7 +44,7 @@ LOG_40_METADATA = COMMON_METADATA + [
 LOG_41_METADATA = COMMON_METADATA + [
     "language", "qa_path", "current_step", "current_micro_step", "current_scenario",
     "current_node_id", "continuation_node_id", "interaction_state",
-    "pending_user_response", "active_side_question_ids", "last_question_id",
+    "pending_user_response", "active_side_question_ids", "pending_user_intents", "last_question_id",
     "last_transaction_id", "learner_closed_question_phase",
     "learner_consented_to_generation", "study_mode",
 ]
@@ -78,8 +78,10 @@ NODE_STATES = {"discovered", "planned", "active", "traced", "verified", "blocked
 QUESTION_STATES = {"open", "answered", "retest-due", "closed", "deferred", "stale"}
 INTERACTION_STATES = {
     "TEACHING_CURRENT_NODE", "AWAITING_RECALL", "ANSWERING_RECALL",
-    "ANSWERING_SIDE_QUESTION", "AWAITING_QUESTIONS_OR_CONTINUE",
-    "FINAL_QUESTION_PHASE", "FINAL_AUDIT", "DOCUMENT_CONSENT", "READY_TO_GENERATE",
+    "ANSWERING_SIDE_QUESTION", "ANSWERING_RECALL_SIDE_QUESTION",
+    "AWAITING_QUESTIONS_OR_CONTINUE", "FINAL_QUESTION_PHASE",
+    "ANSWERING_FINAL_SIDE_QUESTION", "FINAL_AUDIT", "FINAL_AUDIT_REPAIR",
+    "DOCUMENT_CONSENT", "READY_TO_GENERATE",
 }
 FINAL_STEP_STATES = {"done", "skipped", "stale"}
 EMPTY = {"", "-", "—", "none", "n/a", "na", "无", "待确认", "待生成", "待学习"}
@@ -206,6 +208,7 @@ def validate_log_strict(text: str, fm: dict[str, str], tables: list[tuple[list[s
         "current_scenario": "当前场景", "current_node_id": "当前节点",
         "continuation_node_id": "继续节点 ID", "interaction_state": "交互状态",
         "pending_user_response": "等待用户回应", "active_side_question_ids": "当前支线问题",
+        "pending_user_intents": "待处理用户意图",
         "last_question_id": "最近 Q ID", "last_transaction_id": "最近事务 ID",
         "updated_at": "更新时间",
     }

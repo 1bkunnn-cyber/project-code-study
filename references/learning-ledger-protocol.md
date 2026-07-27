@@ -14,7 +14,7 @@ Templates:
 - `assets/PROJECT_STUDY_LOG.template.md`
 - `assets/PROJECT_STUDY_QA.template.md`
 
-The authoritative state fields are `current_scenario`, `current_step`, `current_micro_step`, `current_node_id`, `continuation_node_id`, `interaction_state`, `pending_user_response`, `active_side_question_ids`, `last_question_id`, `last_transaction_id`, and `updated_at`. Frontmatter and Section 1 must match exactly. Route tables, indexes, review queues, knowledge cards, and session rows are derived views; update them in the same transaction.
+The authoritative state fields are `current_scenario`, `current_step`, `current_micro_step`, `current_node_id`, `continuation_node_id`, `interaction_state`, `pending_user_response`, `active_side_question_ids`, `pending_user_intents`, `last_question_id`, `last_transaction_id`, and `updated_at`. Frontmatter and Section 1 must match exactly. Route tables, indexes, review queues, knowledge cards, and session rows are derived views; update them in the same transaction.
 
 ## 2. Creation
 
@@ -70,7 +70,7 @@ For ordinary continuation, read only authoritative state, the active route/NODE,
 
 Keep the hot snapshot readable in about 60 seconds. It must show current scenario, Step/micro Step, NODE, completed representative nodes, active side questions, blocker, exact continuation NODE, interaction state, pending response, and exactly one primary next action.
 
-Side questions and recall closure preserve `continuation_node_id`. After their answers are saved, set `interaction_state: AWAITING_QUESTIONS_OR_CONTINUE` and `pending_user_response: true`. Only a fresh continue event may enter `TEACHING_CURRENT_NODE`; consume it once.
+Side questions and recall closure preserve `continuation_node_id`. A side question that interrupts `AWAITING_RECALL` returns to `AWAITING_RECALL` after its answer is saved; a side question in `FINAL_QUESTION_PHASE` returns to `FINAL_QUESTION_PHASE`. After ordinary side-question or recall closure, set `interaction_state: AWAITING_QUESTIONS_OR_CONTINUE` and `pending_user_response: true`. Only a fresh continue event may enter `TEACHING_CURRENT_NODE`; consume it once. A `FINAL_AUDIT` failure enters `FINAL_AUDIT_REPAIR` and cannot be converted into ordinary waiting. Any unresolved user-intent queue blocks advancement.
 
 ## 7. Mastery and durable knowledge
 
