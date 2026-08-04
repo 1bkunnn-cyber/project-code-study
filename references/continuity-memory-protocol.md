@@ -1,5 +1,31 @@
 # Continuity Memory Protocol
 
+## Schema 6.0 lifecycle and compaction rule
+
+Long-term memory is curated state, not a chat archive. Run
+`memory_lifecycle.classify_memory_candidate()` for these durable triggers only:
+an explicit long-term teaching preference, a correction, durable feedback about
+output/document/route quality, and a Step-completion learning rule. A normal
+one-off question returns no candidate.
+
+The only legal lifecycle is:
+
+```text
+candidate → approved → saved → stale
+          ↘ rejected
+```
+
+`saved` requires a release TX-ID and receipt hash. `rejected` is terminal and
+retains only M-ID, status, content hash, timestamp, and rejection reason; remove
+the original content. Do not say “remembered” for a candidate or approval.
+
+Before compaction, call `create_compaction_handoff()` and persist the complete
+schema 6.0 envelope: Step, RUN, NODE, continuation NODE, completed NODEs, open
+questions, pending intents, retest queue, recent corrections, evidence IDs,
+memory candidate states, artifact hashes, and exactly one next action. On
+restore, any missing field or hash mismatch enters `REPAIR_REQUIRED`; do not
+guess state from prose.
+
 This is a compact protocol-memory layer for long `project-code-study` sessions.
 It addresses instruction forgetting and claim drift without becoming a second
 learning ledger.

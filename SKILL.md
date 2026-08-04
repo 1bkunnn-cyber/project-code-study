@@ -1,6 +1,7 @@
 ---
 name: project-code-study
-description: This skill should be used when a user asks to study a software or ML repository step by step, "按调用顺序读源码", "逐个类/函数学习", connect code with a paper, trace tensor shapes, reproduce or modify a project, preserve questions across sessions, or discover related methods and extension ideas.
+description: Use when a learner asks to study a software or ML repository step by step, trace a real runtime call chain, learn source code by RUN/NODE, connect code with papers, recover a compressed study session, or publish a standalone project-learning handbook.
+version: 6.0.0
 ---
 
 # Project Code Study
@@ -51,6 +52,11 @@ Read only what the current action needs, but read each selected resource complet
 - `references/teaching-output-contract.md`: source-NODE, active-recall, chat/QA, Shape, visual, and independent-UNIT contracts.
 - `references/continuity-memory-protocol.md`: bounded protocol memory for long-context recovery, deduplication, and response-claim auditing.
 - `references/prompt-workflow-patterns.md`: abstracted GitHub workflow and code-learning patterns used to maintain the prompt router.
+- `assets/NODE_TEACHING_CONTRACT.md`: short response contract loaded before every NODE.
+- `assets/PROJECT_STUDY_HANDOFF.template.json`: complete pre-compaction handoff envelope.
+- `assets/PROJECT_STUDY_MEMORY_CANDIDATES.template.json`: hash-checked lifecycle journal envelope.
+- `assets/PROJECT_STUDY_RELEASE_MANIFEST.template.json`: unified publication input and not-run boundary.
+- `assets/PROJECT_STUDY_COLD_START_REPORT.template.json`: fresh-session, document-only evaluation result.
 - `skills/project-study-document/SKILL.md`: final document companion, only after readiness and consent.
 
 ## Machine-controlled gates
@@ -58,22 +64,29 @@ Read only what the current action needs, but read each selected resource complet
 Treat the following scripts as control-plane entry points, not examples:
 
 - `scripts/project_study_transaction.py` is the only allocator and LOG/QA commit path. Allocate `Q-`, `M-`, `C-`, and `TX-` IDs there; write structured sections; read back both files; run strict validation; emit a machine receipt only after all checks pass. A partial write is `unsaved-partial` and its only next action is record repair.
+- `scripts/study_events.py` splits mixed messages into ordered input-bound intents, irreversibly consumes a fresh `continue`, and hash-binds handoff state.
 - `scripts/interaction_state.py` is the only route-advance decision. Call `can_advance()` with open questions, `retest_due_questions`, pending response, receipt, semantic NODE completion, strict-validation status, explicit `memory_status`, and unresolved user intents. A fresh `继续` alone never advances.
-- `scripts/finalize_project_study.py` is the only formal-document finalizer. It must consume a fresh readiness manifest, assemble a same-directory temporary candidate, pass preflight and final validation, and atomically replace the formal target. It must leave the target byte-identical on any failure. Legacy records are migration blockers, not bypasses. Early artifacts use a separate `incomplete-draft` target.
+- `scripts/validate_teaching_response.py` validates the exact state anchors and eight-part NODE teaching response before emission.
+- `scripts/memory_lifecycle.py` owns `candidate → approved → saved/rejected → stale` transitions and complete pre-compaction handoff recovery.
+- `scripts/finalize_project_study.py --publication` validates schema 2.0, a real cold-start report, and atomically stages the formal document. Its `release-pending` result is not a saved claim.
+- `scripts/release_transaction.py` is the sole publication commit marker. It binds QA, LOG, memory, document, source revision, readiness, validators, cold-start evidence, not-run boundaries, Step/NODE, and the exact response hash in one `COMMITTED` receipt.
 - `scripts/claim_verifier.py` selects a verifier by claim type: source, configuration, runtime, mathematical, paper, comparison, or learner verdict. Do not add project-specific exceptions.
 - `scripts/validate_protocol_memory.py` is the strict doctor for the optional `.project-study-memory/` index and detail files.
 - `scripts/sync_protocol_memory.py` is the receipt-gated promotion path for durable constraints, corrections, project decisions, and evidence pointers. Its `init` command requires an explicit `--user-consent` flag before creating a project memory directory.
-- `scripts/response_claim_guard.py` is the last response audit: positive persistence/readiness claims require a matching machine receipt.
+- `scripts/cold_start_test.py` verifies a fresh-model/no-chat report against the exact document hash and every completed Step.
+- `scripts/response_claim_guard.py` is the last response audit: positive persistence/readiness claims require the exact response hash in a matching `COMMITTED` schema 6.0 receipt.
 
-Never write or infer `saved`, `validated`, `complete`, or `readiness_status: ready` in prose or by direct Markdown editing. Report only fields present in a machine receipt or finalizer result.
+Never write or infer `saved`, `validated`, `complete`, or `readiness_status: ready` in prose or by direct Markdown editing. A finalizer result alone proves only `release-pending`. If the host did not execute the control scripts and exact-response guard, the positive claim is forbidden.
 
 ## Long-context continuity memory
 
 At the start of every turn, before answering a question, advancing a NODE, correcting a claim, or finalizing, read the compact `.project-study-memory/MEMORY.md` index when memory is enabled and open only relevant entries. Keep one durable fact per file. Store reusable workflow feedback, corrections with stale patterns, durable project constraints, and evidence pointers; do not store transcripts, current status dumps, secrets, or facts already present in source/git/LOG/QA. Run the memory doctor before relying on recalled content.
 
-After a successful LOG/QA transaction, promote only durable information through `scripts/sync_protocol_memory.py`; it requires a fresh receipt and leaves the store unchanged on failure. Before compaction, handoff, or recovery, perform a continuity sync: deduplicate, update, archive stale entries, validate, and perform a cold-start check. Memory is advisory and never substitutes for authoritative LOG/QA, interaction state, or readiness.
+Classify memory before promotion. A normal one-off question creates no candidate. Explicit long-term teaching preferences, learner corrections, durable output/document/route feedback, and a Step-completion learning rule create an `M-` candidate automatically; they do not automatically become saved memory. Approval and a bound release transaction are required before `saved`. Rejection retains only ID, status, content hash, and reason; it must not retain the rejected chat text.
 
-Before emitting any response that contains a positive persistence or readiness claim, run `scripts/response_claim_guard.py` against the exact response text and the relevant receipt. If the host does not execute this guard, label the response claim as unverified; the Skill cannot physically prevent a host from emitting unconstrained natural language without a host-level pre-response hook or runner.
+After a successful LOG/QA transaction, promote only approved durable information through `scripts/sync_protocol_memory.py`; it requires a fresh receipt and leaves the store unchanged on failure. Before compaction, write a schema 6.0 handoff containing the main-line anchor, completed NODEs, open questions, pending intents, retest queue, recent corrections, evidence IDs, artifact hashes, memory candidate states, and exactly one next action. Restore only when all hashes match; drift enters `REPAIR_REQUIRED`. Memory is advisory and never substitutes for authoritative LOG/QA, interaction state, or readiness.
+
+Before emitting any response that contains a positive persistence or readiness claim, run `scripts/response_claim_guard.py` against the exact response text and the unified release receipt. If the host cannot execute this guard, omit the positive claim and report the host hook as `not-run`; an advisory prompt is not enforcement.
 
 Use `references/user-prompts.md` as the user-facing router. Treat each prompt as an intent selector, not as a replacement for the state machine. The normal loop is `start/recover → preflight → route → one NODE → recall/question → transaction → waiting → fresh continue`; failures branch only to repair, retest, recovery, or finalization. Do not require the learner to repeat internal recordkeeping instructions.
 
@@ -97,6 +110,7 @@ Persist `interaction_state` in the ledger and follow this table. `scripts/intera
 | `FINAL_AUDIT_REPAIR` | Repair every readiness blocker and rerun the audit | `FINAL_AUDIT` |
 | `DOCUMENT_CONSENT` | Ask once whether to generate | `READY_TO_GENERATE` only on explicit consent |
 | `READY_TO_GENERATE` | Hand off to companion Skill | companion workflow |
+| `REPAIR_REQUIRED` | Stop teaching; reconcile state, hashes, handoff, and receipts | recorded prior state only after repair validation |
 
 At the start of every turn, preflight: current state, current scenario/NODE, pending user response, whether a fresh continue exists, required write delta, receipt validity, retest queue, explicit memory status, unresolved user-intent queue, and whether advancement is allowed. Consume the fresh continue immediately when used; never carry it across a question or correction. A user question first enters the answer-and-record path; it cannot be answered only in chat.
 
@@ -133,7 +147,7 @@ Create separate `RUN-` paths when train/infer/eval/export/deploy differ. Write t
 
 ### 4. Teach and verify one runtime NODE
 
-For each micro Step, name scenario, caller, current symbol, callee, and source location; explain useful parameters, syntax, input/output/Shape or state, logic, design reason, downstream effect, and local risks. Insert a prerequisite backfill if needed.
+Before each response, load `assets/NODE_TEACHING_CONTRACT.md`, then validate current Step, micro-Step, RUN, NODE, main-line anchor, pending intents, retest queue, and state hashes. For each micro Step, emit the problem, actual call chain, real source, I/O/Shape/state, rationale, common errors, self-test, and QA/receipt status. Long context is never a reason to collapse this contract into a summary. Insert a prerequisite backfill if needed.
 
 End teaching in a waiting state. Ask one or two recall/trace/predict questions and wait. After the learner answers, follow `question-protocol.md`, persist the complete closure, restate the exact continuation NODE, and stop. Do not include the next NODE's teaching in that response.
 
@@ -151,7 +165,15 @@ For a compound question, split independent intents before answering. Allocate on
 
 ### 6. Persist with an auditable transaction
 
-For every meaningful teaching, question, recall, correction, or route change:
+For every meaningful teaching, question, recall, correction, or route change, follow:
+
+```text
+USER INPUT → INTENT SPLIT → Q/M/C/TX allocation → TEACHING RESPONSE
+→ QA staging → LOG staging → MEMORY candidate/update → DOCUMENT candidate
+→ validators → cold-start → unified COMMITTED receipt
+```
+
+The intermediate QA/LOG and memory receipts prove only their own writes. They cannot authorize a final publication claim. For the local teaching transaction:
 
 1. construct one delta and allocate a monotonic `TX-` ID;
 2. write full Q/M/C records to Q&A first when applicable;
@@ -161,7 +183,7 @@ For every meaningful teaching, question, recall, correction, or route change:
 6. run `validate_learning_ledger.py --strict` with the companion record;
 7. return `saved` only when all checks pass.
 
-Partial success is `unsaved-partial`; list written and missing pieces and retain the compact delta. A successful receipt includes files, TX/Q/M/C IDs, current, next, interaction state, and validation result.
+Partial success is `unsaved-partial`; list written and missing pieces and retain the compact delta. IDs are unique across all scanned records. Formal publication additionally requires `release_transaction.py`; its receipt is the only proof that all artifact hashes belong to one release.
 
 ### 7. Compare and extend without derailing
 
@@ -171,7 +193,7 @@ Use a small number of comparisons from same task, same bottleneck, analogous ide
 
 Before synthesis, audit source/scenario/NODE/dependency coverage, questions, retests, corrections, runtime evidence, knowledge cards, stale claims, and user-response state. Missing core knowledge triggers backfill, never retroactive `done`.
 
-Run `scripts/validate_finalization_bundle.py` on the ledger and Q&A. A failed audit enters `FINAL_AUDIT_REPAIR`; it cannot be represented as ordinary waiting and cannot consume `继续`. Formal generation is blocked unless its manifest reports all of the following ready:
+Run `scripts/validate_finalization_bundle.py --publication` on the ledger and Q&A. This enables type-specific QA depth contracts; a structurally complete but shallow answer blocks publication. A failed audit enters `FINAL_AUDIT_REPAIR`; it cannot be represented as ordinary waiting and cannot consume `继续`. Formal generation is blocked unless its manifest reports all of the following ready:
 
 ```yaml
 route_final: true
@@ -201,7 +223,7 @@ After explicit closure, ask once:
 它会整理每个 Step 可重新学习的知识、真实调用链、重要用户提问、规范修正、相关方法、复现证据和后续方向。
 ```
 
-Do not generate automatically. If the learner requests an early draft, the finalizer may create only `status: incomplete-draft` under a separate target and must list every blocker. On consent after a passing readiness audit, call `scripts/finalize_project_study.py` and then read and follow `skills/project-study-document/SKILL.md`.
+Do not generate automatically. If the learner requests an early draft, the finalizer may create only `status: incomplete-draft` under a separate target and must list every blocker. On consent, build schema 2.0 chapters, run the exact-source validator, run a real fresh-model/no-chat cold-start test, call `finalize_project_study.py --publication`, then commit QA/LOG/memory/document through `release_transaction.py`. Any missing host capability remains `not-run` and blocks the corresponding claim.
 
 ## Response contract
 

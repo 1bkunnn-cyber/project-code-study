@@ -99,6 +99,63 @@ K_DETAIL_LABELS = [
     "Self-check", "Complete reference answer", "Next connection", "Mastery behavior evidence",
 ]
 
+QUESTION_TYPE_ALIASES = {
+    "runtime": "code",
+    "syntax": "code",
+    "paper": "concept",
+    "visual": "metric",
+    "comparison": "review",
+}
+QUESTION_DEPTH_MARKERS = {
+    "concept": {
+        "定义": ("定义",),
+        "项目语境": ("项目语境",),
+        "类比": ("类比",),
+        "反例": ("反例",),
+        "相邻概念区别": ("相邻概念区别", "与相邻概念"),
+        "自测": ("自测",),
+    },
+    "code": {
+        "源码位置": ("源码位置",),
+        "真实代码片段": ("真实代码片段",),
+        "逐行解释": ("逐行解释", "逐段解释"),
+        "输入": ("输入",),
+        "输出": ("输出",),
+        "调用者": ("调用者",),
+        "返回值": ("返回值",),
+        "最小例子": ("最小例子",),
+    },
+    "shape": {
+        "输入 Shape": ("输入 shape", "输入 Shape"),
+        "每层公式": ("每层公式",),
+        "通道来源": ("通道来源",),
+        "分支合并": ("分支合并",),
+        "输出验证": ("输出验证",),
+    },
+    "metric": {
+        "TP/FP/FN": ("tp/fp/fn", "TP/FP/FN"),
+        "公式": ("公式",),
+        "来源": ("来源",),
+        "阈值": ("阈值",),
+        "项目字段": ("项目字段",),
+        "评判标准": ("评判标准",),
+        "误区": ("误区",),
+    },
+    "review": {
+        "覆盖矩阵": ("覆盖矩阵",),
+        "遗漏内容": ("遗漏内容",),
+        "证据等级": ("证据等级",),
+        "下一步动作": ("下一步动作",),
+    },
+    "correction": {
+        "原结论": ("原结论",),
+        "纠正内容": ("纠正内容", "规范结论"),
+        "影响范围": ("影响范围",),
+        "传播检查": ("传播检查",),
+        "回归测试": ("回归测试",),
+    },
+}
+
 
 def clean(value: str | None) -> str:
     if value is None:
@@ -201,6 +258,30 @@ def label_value(block: str, label: str) -> str | None:
     return clean(match.group(1)) if match else None
 
 
+def validate_question_depth(question_type: str, body: str) -> list[str]:
+    """Validate the educational contract for one typed question answer."""
+    requested = clean(question_type).lower()
+    contract_type = QUESTION_TYPE_ALIASES.get(requested, requested)
+    markers = QUESTION_DEPTH_MARKERS.get(contract_type)
+    if markers is None:
+        return [f"{requested or 'unknown'} question type has no depth contract"]
+    lowered = body.lower()
+    errors = [
+        f"{requested} answer missing {label}"
+        for label, alternatives in markers.items()
+        if not any(alternative.lower() in lowered for alternative in alternatives)
+    ]
+    if contract_type == "code" and not re.search(r"```(?:[A-Za-z0-9_+-]+)?\s*\n.+?\n```", body, re.DOTALL):
+        errors.append(f"{requested} answer missing fenced source snippet")
+    if contract_type == "shape" and not re.search(r"\[[^\]\n]*\d+[^\]\n]*\]", body):
+        errors.append(f"{requested} answer missing concrete tensor Shape")
+    if contract_type == "metric" and not re.search(r"(?i)(precision|recall|iou|ap|map)\s*=", body):
+        errors.append(f"{requested} answer missing an explicit metric equation")
+    if contract_type == "review" and not re.search(r"(?m)^\|.+\|$", body):
+        errors.append(f"{requested} answer missing a coverage table")
+    return errors
+
+
 def validate_log_strict(text: str, fm: dict[str, str], tables: list[tuple[list[str], list[dict[str, str]]]], errors: list[str]) -> None:
     hot_rows = find_table(tables, {"字段", "当前值"}) or []
     hot = {clean(row.get("字段")): clean(row.get("当前值")) for row in hot_rows}
@@ -291,7 +372,14 @@ def validate_log_strict(text: str, fm: dict[str, str], tables: list[tuple[list[s
             errors.append("last transaction receipt is not saved")
 
 
-def validate_qa_strict(text: str, fm: dict[str, str], tables: list[tuple[list[str], list[dict[str, str]]]], errors: list[str]) -> None:
+def validate_qa_strict(
+    text: str,
+    fm: dict[str, str],
+    tables: list[tuple[list[str], list[dict[str, str]]]],
+    errors: list[str],
+    *,
+    publication: bool = False,
+) -> None:
     for pattern in HIDDEN_CHAT_PATTERNS:
         if pattern.lower() in text.lower():
             errors.append(f"Q&A contains forbidden hidden-context dependency: {pattern}")
@@ -300,6 +388,7 @@ def validate_qa_strict(text: str, fm: dict[str, str], tables: list[tuple[list[st
     if len(ids) != len(set(item.upper() for item in ids)):
         errors.append("duplicate Q ID in Q&A index")
     blocks = detail_blocks(text, "Q")
+    row_by_id = {clean(row.get("Q ID")).upper(): row for row in rows}
     detail_headings = [item.upper() for item in re.findall(r"(?m)^###\s+(Q-\d+)\b", text, re.I)]
     if len(detail_headings) != len(set(detail_headings)):
         errors.append("duplicate Q ID in Q&A detail blocks")
@@ -315,6 +404,12 @@ def validate_qa_strict(text: str, fm: dict[str, str], tables: list[tuple[list[st
         answer = label_value(blocks[qid], "完整参考答案") or ""
         if len(answer) < 20:
             errors.append(f"{qid} complete reference answer is too thin")
+        if publication:
+            question_type = clean(row_by_id[qid].get("类型")).lower()
+            errors.extend(
+                f"{qid} {error}"
+                for error in validate_question_depth(question_type, blocks[qid])
+            )
     detail_ids = set(blocks)
     if detail_ids != {item.upper() for item in ids}:
         errors.append("Q&A detail IDs and index IDs differ")
@@ -347,7 +442,13 @@ def validate_cross(log_text: str, log_fm: dict[str, str], qa_text: str, qa_fm: d
         errors.append("LOG/QA updated_at values differ")
 
 
-def validate_text(text: str, *, allow_template: bool = False, strict: bool = False) -> tuple[list[str], dict[str, str], str]:
+def validate_text(
+    text: str,
+    *,
+    allow_template: bool = False,
+    strict: bool = False,
+    publication: bool = False,
+) -> tuple[list[str], dict[str, str], str]:
     fm, errors = frontmatter_of(text)
     document_type = fm.get("document_type", "")
     schema = fm.get("schema_version", "")
@@ -383,7 +484,7 @@ def validate_text(text: str, *, allow_template: bool = False, strict: bool = Fal
         elif document_type == "project-code-study-ledger":
             validate_log_strict(text, fm, tables, errors)
         else:
-            validate_qa_strict(text, fm, tables, errors)
+            validate_qa_strict(text, fm, tables, errors, publication=publication)
     return errors, fm, label
 
 
@@ -392,6 +493,7 @@ def main() -> int:
     parser.add_argument("path", type=Path)
     parser.add_argument("--template", action="store_true", help="allow canonical placeholders")
     parser.add_argument("--strict", action="store_true", help="run semantic and cross-file checks")
+    parser.add_argument("--publication", action="store_true", help="enforce v6 typed teaching-depth contracts")
     parser.add_argument("--qa", type=Path, help="companion PROJECT_STUDY_QA.md for a ledger")
     parser.add_argument("--ledger", type=Path, help="companion PROJECT_STUDY_LOG.md for a Q&A record")
     args = parser.parse_args()
@@ -399,7 +501,12 @@ def main() -> int:
         print(f"ERROR: file not found: {args.path}", file=sys.stderr)
         return 2
     text = args.path.read_text(encoding="utf-8-sig")
-    errors, fm, label = validate_text(text, allow_template=args.template, strict=args.strict)
+    errors, fm, label = validate_text(
+        text,
+        allow_template=args.template,
+        strict=args.strict,
+        publication=args.publication,
+    )
     peer = args.qa or args.ledger
     if args.strict and not args.template:
         if peer is None:
@@ -408,7 +515,11 @@ def main() -> int:
             errors.append(f"companion file not found: {peer}")
         else:
             peer_text = peer.read_text(encoding="utf-8-sig")
-            peer_errors, peer_fm, _ = validate_text(peer_text, strict=True)
+            peer_errors, peer_fm, _ = validate_text(
+                peer_text,
+                strict=True,
+                publication=args.publication,
+            )
             errors.extend(f"companion: {error}" for error in peer_errors)
             if fm.get("document_type") == "project-code-study-ledger":
                 validate_cross(text, fm, peer_text, peer_fm, errors)

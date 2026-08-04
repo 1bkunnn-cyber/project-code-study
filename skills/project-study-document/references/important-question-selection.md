@@ -12,6 +12,7 @@ The final learning document should preserve questions that shaped understanding,
 - is followed up repeatedly because the first answer was insufficient;
 - is explicitly marked important by the learner;
 - materially changes mastery status or the later teaching route.
+- is explicitly required for the project handbook profile (for the audited YOLO route: Q-049, Q-063, Q-067, Q-068, and Q-070).
 
 ## Usually exclude from the main section
 
@@ -49,4 +50,5 @@ Before finalizing:
 4. verify every correction-triggering question is included or explicitly represented in the correction section;
 5. verify no included answer uses stale wording;
 6. verify the important-question section can be understood without the original chat.
-7. fail if any selected answer uses `详见 chat`, `同上`, a circular UNIT reference, or stale wording.
+7. fail if any selected answer uses `详见 chat`, `同上`, a circular chapter reference, or stale wording.
+8. require every selected Q-ID to appear at least once inside its teaching chapter and once in the important-question section.

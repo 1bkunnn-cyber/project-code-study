@@ -1,6 +1,6 @@
 # Final Study Document Generation Protocol
 
-Transform a ready learning bundle into one durable artifact. The process is fail-closed and uses a unique in-memory UNIT map, a temporary sibling file, two validation passes, and one atomic target replacement.
+Transform a ready learning bundle into one durable artifact. The process is fail-closed and uses a unique in-memory Step/chapter map, exact source excerpts, a temporary sibling file, two validation passes, a real cold-start report, and one unified release receipt.
 
 The parent `scripts/finalize_project_study.py` is the sole formal commit entry. This protocol describes the candidate it consumes; it does not authorize a model or companion Skill to write the formal target directly.
 
@@ -37,32 +37,31 @@ Derive abstractions from durable learning records, not repository popularity or 
 
 Order chapters by prerequisites, primary runtime order, inserted dependencies, alternate scenarios/shared differences, architecture reconstruction, and reproduction/comparison/extension.
 
-## 4. Build a unique Step and UNIT manifest
+## 4. Build a unique Step and chapter manifest
 
 Enumerate every required Step/micro Step once. Each coverage row records status, durable knowledge, RUN/NODE/K, evidence, Q/M/C, behavior evidence, UNIT IDs, and accepted skip impact.
 
 Build one in-memory mapping before rendering:
 
 ```text
-UNIT ID -> unique title -> unique explicit anchor -> covered Step IDs -> complete UNIT content
+CHAPTER ID -> unique title -> unique explicit anchor -> one completed Step -> complete textbook content
 ```
 
 Gates before rendering:
 
 - Step coverage IDs are unique;
-- UNIT IDs, headings, and anchors are unique;
-- every done Step maps to >=1 UNIT;
-- every UNIT maps to >=1 done Step;
+- CHAPTER IDs, headings, and anchors are unique;
+- every done Step maps to one standalone chapter;
 - skipped Steps are not presented as learned;
 - completed/mapped/skipped/unmapped counts reconcile and unmapped is zero.
 
-Do not create a second UNIT for material already mapped; revise the existing map.
+Do not create a second chapter for an already mapped Step; revise the existing map.
 
-## 5. Independent UNIT contract
+## 5. Standalone chapter contract
 
-Each UNIT contains covered Steps/prerequisites, objective and RUN/NODE position, full mechanism in source execution order, exact source/config/formula/paper locations, I/O/Shape/state changes, rationale/alternatives/trade-offs/failure modes, important Q and canonical M/C, evidence status/unverified boundary, self-check/full answer, and next connection.
+Each chapter implements the complete 20-item contract in the companion Skill. A source excerpt is accepted only when its relative path, start/end line, and fenced contents match the locked repository. Important QA is taught in the chapter body and also remains traceable in the Q section.
 
-A route row, takeaway, pseudocode fragment, or cross-reference is not a relearning unit. `详见 chat`, `同上`, `前文已解释`, circular `详见对应 UNIT`, and unexplained `不涉及` are forbidden. A genuinely inapplicable field explains why and gives the applicable evidence/skill instead.
+A route row, takeaway, pseudocode fragment, or cross-reference is not a textbook chapter. `详见 chat`, `同上`, `前文已解释`, circular chapter references, and unexplained `不涉及` are forbidden. A genuinely inapplicable field explains why and gives the applicable evidence/skill instead.
 
 ## 6. Synthesis rules
 
@@ -76,19 +75,20 @@ For visuals, prefer the smallest useful linear chain or table; use Mermaid for m
 
 1. Confirm output path and overwrite choice.
 2. Create a temporary sibling file in the same directory.
-3. Instantiate schema 1.2 once from the unique Step/UNIT map.
+3. Instantiate schema 2.0 once from the unique Step/chapter map.
 4. Set real ISO generation time, immutable revision (or explicit `uncommitted:<hash>`), source LOG/QA paths, source TX, readiness receipt, and source limitations.
 5. Set `status: complete`, `validation_status: pending` for preflight.
 6. Run:
 
 ```powershell
-python skills/project-study-document/scripts/validate_study_document.py <temp> --ledger PROJECT_STUDY_LOG.md --qa PROJECT_STUDY_QA.md --preflight
+python skills/project-study-document/scripts/validate_study_document.py <temp> --ledger PROJECT_STUDY_LOG.md --qa PROJECT_STUDY_QA.md --repo-root <PROJECT_ROOT> --publication --preflight
 ```
 
 7. On any error, do not touch the target. Rebuild the affected UNIT map/section and reassemble; never use unconstrained global replacement or tail append.
 8. After zero preflight errors, change only `validation_status` to `validated`.
-9. Run final validation without `--preflight`.
-10. Read back frontmatter, TOC, counts, all UNIT headings/anchors, important questions, corrections, evidence index, and next action.
-11. Return the validated candidate to the parent `scripts/finalize_project_study.py` for atomic target replacement. If authorized, add one truthful ledger artifact transaction and revalidate the bundle.
+9. Run a real fresh-model/no-chat cold-start against the exact validated candidate and save its per-Step JSON report.
+10. Run final validation without `--preflight` and with `--publication --cold-start-report <REPORT>`.
+11. Read back frontmatter, TOC, counts, all CHAPTER headings/anchors, important questions, corrections, evidence index, and next action.
+12. Stage the target through `finalize_project_study.py --publication`, then create the only success marker through `release_transaction.py`. The finalizer's `release-pending` result cannot authorize a saved claim.
 
 Code fences must balance and all content must remain within intended heading boundaries. The final receipt records path, revision, TX/readiness IDs, coverage counts, final validation, cold-start evidence, and limitations.

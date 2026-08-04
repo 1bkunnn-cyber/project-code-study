@@ -1,0 +1,32 @@
+{
+  "schema_version": "6.0",
+  "handoff_kind": "pre-compaction",
+  "status": "ready",
+  "created_at": "<UTC ISO-8601>",
+  "state": {
+    "current_step": "<Step>",
+    "current_run": "<RUN-ID>",
+    "current_node": "<NODE-ID>",
+    "continuation_node": "<NODE-ID>",
+    "completed_nodes": [],
+    "open_questions": [],
+    "pending_user_intents": [],
+    "retest_due_questions": [],
+    "recent_corrections": [],
+    "evidence_ids": [],
+    "unique_next_action": "<exactly one action>"
+  },
+  "artifact_hashes": {
+    "PROJECT_STUDY_LOG.md": "<sha256>",
+    "PROJECT_STUDY_QA.md": "<sha256>",
+    ".project-study-memory/MEMORY.md": "<sha256>"
+  },
+  "memory_candidates": [
+    {
+      "candidate_id": "M-001",
+      "status": "candidate",
+      "kind": "feedback",
+      "content_hash": "<sha256>"
+    }
+  ]
+}

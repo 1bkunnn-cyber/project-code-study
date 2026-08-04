@@ -25,6 +25,7 @@ STATES = {
     "FINAL_AUDIT_REPAIR",
     "DOCUMENT_CONSENT",
     "READY_TO_GENERATE",
+    "REPAIR_REQUIRED",
 }
 
 TRANSITIONS = {
@@ -52,6 +53,13 @@ def transition(state: str, event: str) -> str:
     """Return the next state or raise when an event would bypass a gate."""
     if state not in STATES:
         raise ValueError(f"unknown state: {state}")
+    if event == "state-mismatch" and state != "REPAIR_REQUIRED":
+        return "REPAIR_REQUIRED"
+    if state == "REPAIR_REQUIRED" and event.startswith("repair-complete:"):
+        target = event.split(":", 1)[1]
+        if target not in STATES or target == "REPAIR_REQUIRED":
+            raise ValueError(f"invalid repair target: {target}")
+        return target
     try:
         return TRANSITIONS[(state, event)]
     except KeyError as exc:

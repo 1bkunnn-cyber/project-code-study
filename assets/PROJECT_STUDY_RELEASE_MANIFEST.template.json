@@ -1,0 +1,28 @@
+{
+  "tx_id": "TX-0001",
+  "doc_tx_id": "DOC-TX-0001",
+  "artifact_paths": {
+    "qa": "<absolute PROJECT_STUDY_QA.md path>",
+    "log": "<absolute PROJECT_STUDY_LOG.md path>",
+    "memory": "<absolute .project-study-memory path or MEMORY.md path>",
+    "document": "<absolute PROJECT_STUDY_DOCUMENT.md path>"
+  },
+  "source_revision": "git:<immutable revision>",
+  "readiness_manifest": {
+    "ready": true
+  },
+  "validator_results": {
+    "qa_log": "pass",
+    "memory": "pass",
+    "document": "pass"
+  },
+  "cold_start_result": {
+    "status": "pass",
+    "report_id": "<report ID>",
+    "report_hash": "<sha256>"
+  },
+  "not_run": [],
+  "current_step": "<Step>",
+  "current_node": "<NODE-ID>",
+  "previous_receipt_hash": null
+}

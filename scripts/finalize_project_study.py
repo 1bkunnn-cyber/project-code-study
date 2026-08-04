@@ -9,8 +9,10 @@ then atomically replaces the formal target. A failed gate never touches it.
 from __future__ import annotations
 
 import argparse
+import hashlib
 import os
 import re
+import sys
 import tempfile
 from datetime import datetime, timezone
 from pathlib import Path
@@ -32,26 +34,59 @@ def _candidate_text(candidate: Path, *, status: str, readiness_status: str, vali
     text = candidate.read_text(encoding="utf-8-sig")
     for key, value in (("status", status), ("readiness_status", readiness_status), ("validation_status", validation_status)):
         text = _set_frontmatter(text, key, value)
-    if status == "complete":
+    generated = re.search(r"(?m)^generated_at:\s*[\"']?([^\"'\n]+)", text)
+    if status == "complete" and (
+        generated is None
+        or not re.fullmatch(
+            r"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(?::\d{2})?(?:Z|[+-]\d{2}:\d{2})",
+            generated.group(1).strip(),
+        )
+    ):
         text = _set_frontmatter(text, "generated_at", datetime.now(timezone.utc).isoformat(timespec="seconds"))
     return text
 
 
-def _run_document_validator(path: Path, ledger: Path, qa: Path, *, preflight: bool, repo_root: Path | None = None) -> list[str]:
+def _run_document_validator(
+    path: Path,
+    ledger: Path,
+    qa: Path,
+    *,
+    preflight: bool,
+    repo_root: Path | None = None,
+    publication: bool = False,
+    cold_start_report: Path | None = None,
+) -> list[str]:
     import subprocess
-    args = ["python", str(DOC_VALIDATOR), str(path), "--ledger", str(ledger), "--qa", str(qa)]
+    args = [sys.executable, str(DOC_VALIDATOR), str(path), "--ledger", str(ledger), "--qa", str(qa)]
     if preflight:
         args.append("--preflight")
     if repo_root and repo_root.is_dir():
         args.extend(["--repo-root", str(repo_root)])
+    if publication:
+        args.append("--publication")
+    if cold_start_report is not None:
+        args.extend(["--cold-start-report", str(cold_start_report)])
     result = subprocess.run(args, capture_output=True, text=True)
     if result.returncode:
         return [line.removeprefix("ERROR: ").strip() for line in result.stderr.splitlines() if line.strip()]
     return []
 
 
-def finalize(ledger: Path, qa: Path, candidate: Path, target: Path, *, draft: bool = False) -> dict[str, object]:
-    manifest = validate_finalization_bundle.evaluate_bundle(ledger, qa)
+def finalize(
+    ledger: Path,
+    qa: Path,
+    candidate: Path,
+    target: Path,
+    *,
+    draft: bool = False,
+    publication: bool = False,
+    cold_start_report: Path | None = None,
+) -> dict[str, object]:
+    manifest = validate_finalization_bundle.evaluate_bundle(
+        ledger,
+        qa,
+        publication=publication,
+    )
     if draft:
         if target.name == "PROJECT_STUDY_DOCUMENT.md":
             return {"status": "blocked", "reason": "incomplete-draft cannot target the formal document"}
@@ -72,12 +107,27 @@ def finalize(ledger: Path, qa: Path, candidate: Path, target: Path, *, draft: bo
     with tempfile.TemporaryDirectory(prefix="project-study-finalize-", dir=target.parent) as tmp:
         temp = Path(tmp) / target.name
         temp.write_text(pending, encoding="utf-8", newline="\n")
-        errors = _run_document_validator(temp, ledger, qa, preflight=True, repo_root=repo_root)
+        errors = _run_document_validator(
+            temp,
+            ledger,
+            qa,
+            preflight=True,
+            repo_root=repo_root,
+            publication=publication,
+        )
         if errors:
             return {"status": "blocked", "reason": "preflight-failed", "errors": errors, "target_unchanged": True}
         validated = _set_frontmatter(pending, "validation_status", "validated")
         temp.write_text(validated, encoding="utf-8", newline="\n")
-        errors = _run_document_validator(temp, ledger, qa, preflight=False, repo_root=repo_root)
+        errors = _run_document_validator(
+            temp,
+            ledger,
+            qa,
+            preflight=False,
+            repo_root=repo_root,
+            publication=publication,
+            cold_start_report=cold_start_report,
+        )
         if errors:
             return {"status": "blocked", "reason": "final-validation-failed", "errors": errors, "target_unchanged": True}
         backup = target.with_name(f".{target.name}.finalizer-backup")
@@ -92,6 +142,15 @@ def finalize(ledger: Path, qa: Path, candidate: Path, target: Path, *, draft: bo
                 os.replace(backup, target)
             raise
         backup.unlink(missing_ok=True)
+    if publication:
+        return {
+            "status": "release-pending",
+            "target": str(target),
+            "document_hash": hashlib.sha256(target.read_bytes()).hexdigest(),
+            "readiness": manifest,
+            "validation_status": "validated",
+            "next_action": "prepare and commit unified schema 6.0 release receipt",
+        }
     return {"status": "saved", "target": str(target), "readiness": manifest, "validation_status": "validated"}
 
 
@@ -102,10 +161,20 @@ def main() -> int:
     parser.add_argument("--candidate", type=Path, required=True)
     parser.add_argument("--target", type=Path, required=True)
     parser.add_argument("--draft", action="store_true")
+    parser.add_argument("--publication", action="store_true")
+    parser.add_argument("--cold-start-report", type=Path)
     args = parser.parse_args()
-    result = finalize(args.ledger, args.qa, args.candidate, args.target, draft=args.draft)
+    result = finalize(
+        args.ledger,
+        args.qa,
+        args.candidate,
+        args.target,
+        draft=args.draft,
+        publication=args.publication,
+        cold_start_report=args.cold_start_report,
+    )
     print(result)
-    return 0 if result.get("status") in {"saved", "incomplete-draft"} else 1
+    return 0 if result.get("status") in {"saved", "incomplete-draft", "release-pending"} else 1
 
 
 if __name__ == "__main__":

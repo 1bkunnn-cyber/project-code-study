@@ -1,6 +1,6 @@
 # Project Code Study
 
-[![Skill version](https://img.shields.io/badge/version-5.5.0-blue.svg)](CHANGELOG.md)
+[![Skill version](https://img.shields.io/badge/version-6.0.0-blue.svg)](CHANGELOG.md)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
 [简体中文](#简体中文) · [English](#english)
@@ -47,7 +47,8 @@ flowchart TD
     N --> O{ready}
     O -- 否 --> P[修复缺口]
     P --> N
-    O -- 是 --> Q[唯一 finalizer 原子生成正式文档]
+    O -- 是 --> Q[schema 2.0 教材 + 真实冷启动]
+    Q --> R[统一 WAL + COMMITTED release receipt]
 ```
 
 关键规则：
@@ -60,8 +61,31 @@ flowchart TD
 | 持久化 | `Q/M/C/TX` 由 allocator 分配；QA 写入、精确回读、LOG 更新、跨文件对账和 strict validation 组成事务。 |
 | 状态 | 保存后停在 `AWAITING_QUESTIONS_OR_CONTINUE`；旧 `continue`、未保存问题和 `retest-due` 都不能推进主线。 |
 | 失败处理 | 没有机器 receipt 不能声称 `saved`；部分失败返回 `unsaved-partial` 并 fail-closed。 |
-| 最终化 | 正式文档只能由唯一 finalizer 根据 fresh readiness manifest 生成；`ready=false` 时目标文件保持不变。 |
-| 记忆 | 连续性记忆使用受控的文件化事实、索引、去重、更新和归档协议；恢复以 manifest 和 receipt 为准。 |
+| 最终化 | 正式文档必须是逐 Step 教材章节；finalizer 只产生 `release-pending`，统一 release receipt 才能证明保存。 |
+| 记忆 | 普通问题不入长期记忆；偏好、纠正、质量反馈和 Step 规则只生成 candidate，经批准和事务绑定后才能 saved。 |
+
+### v6 机制与职责边界
+
+| 产物/控制面 | 唯一职责 | 不能替代 |
+| --- | --- | --- |
+| `PROJECT_STUDY_QA.md` | 保存分类型、可独立阅读的完整问答；publication 模式执行 concept/code/shape/metric/review/correction 深度合同 | LOG 状态、memory、正式教材 |
+| `PROJECT_STUDY_LOG.md` | 当前 Step/RUN/NODE、主线锚点、retest、pending intents、证据与事务状态 | 完整教学答案 |
+| `.project-study-memory/` | 只保存获批的 durable 偏好、纠正、项目规则和证据指针 | QA/LOG、聊天转录、源代码事实 |
+| `PROJECT_STUDY_DOCUMENT.md` | 每个完成 Step 的独立教材章节、真实源码、练习和答案 | 原聊天或索引式摘要 |
+| `release_transaction.py` | 用一份 WAL/receipt 绑定四类产物、revision、readiness、validator、cold-start 和 exact response | 宿主未执行的 hook |
+
+memory 状态固定为 `candidate → approved → saved → stale`，另有终态
+`rejected`。自动候选触发条件是：明确长期教学偏好、用户纠正、输出/文档/
+路线质量反馈、Step 完成后的 durable learning rule。拒绝后删除原内容，只留
+M-ID、hash、状态和原因。压缩前 handoff 必须包含主线锚点、完成 NODE、开放
+问题、pending intents、retest、最近 correction、证据、artifact hash 和唯一
+下一行动；hash 不一致时进入 `REPAIR_REQUIRED`。
+
+正式教材使用 schema 2.0。每章覆盖问题、前置知识、真实调用链、上下游、
+RUN/NODE/micro-Step、精确路径和行号、源码片段、逐行解释、变量/状态、
+I/O/Shape、公式、设计理由、替代取舍、错误表现、前后 NODE、项目例子、
+重要 QA、练习/答案、证据边界和完成标准。Step 4.x、6、10 另有专项强制
+profile。旧 schema 1.2 可继续只读审计，但不能通过 v6 publication。
 
 ### 输出与控制面
 
@@ -73,7 +97,7 @@ flowchart TD
 | `PROJECT_STUDY_LOG.md` | 已完成节点、问题状态、纠正、复测和事务回执。 |
 | `PROJECT_STUDY_QA.md` | 完整、可独立阅读的规范问答。 |
 | `.project-study-memory/MEMORY.md` | 可恢复的连续性记忆索引与当前恢复指针。 |
-| `PROJECT_STUDY_FINAL.md` | 通过 readiness 后由 finalizer 生成的正式学习文档。 |
+| `PROJECT_STUDY_DOCUMENT.md` | 通过 readiness、教材 validator、真实冷启动和统一 release 后的正式学习手册。 |
 
 推荐从以下入口理解实现：
 
@@ -127,16 +151,20 @@ Codex 用户级：      ~/.codex/skills/project-code-study
 
 ```powershell
 python -m unittest discover -s tests -p "test_*.py" -v
-python scripts/validate_learning_ledger.py <PROJECT_STUDY_LOG.md> --strict --qa <PROJECT_STUDY_QA.md>
-python scripts/validate_finalization_bundle.py <READINESS_MANIFEST.json> --target <PROJECT_STUDY_FINAL.md>
+python scripts/validate_learning_ledger.py <PROJECT_STUDY_LOG.md> --strict --publication --qa <PROJECT_STUDY_QA.md>
+python scripts/validate_finalization_bundle.py --ledger <PROJECT_STUDY_LOG.md> --qa <PROJECT_STUDY_QA.md> --publication
 python scripts/validate_protocol_memory.py <MEMORY_ROOT>
+python scripts/cold_start_test.py --report <REPORT.json> --document <PROJECT_STUDY_DOCUMENT.md> --step <STEP>
+python skills/project-study-document/scripts/validate_study_document.py <PROJECT_STUDY_DOCUMENT.md> --ledger <LOG> --qa <QA> --repo-root <PROJECT_ROOT> --publication --cold-start-report <REPORT.json>
+python scripts/release_transaction.py prepare --manifest <RELEASE_MANIFEST.json> --wal <RELEASE.wal.json> --response-file <RESPONSE.md>
+python scripts/release_transaction.py commit --wal <RELEASE.wal.json> --receipt <RELEASE.receipt.json>
 python scripts/response_claim_guard.py <RESPONSE.md> --receipt <RECEIPT.json>
 git diff --check
 ```
 
 验证重点不是“validator 能报告错误”，而是验证错误后不存在成功旁路：正式目标文件不被创建或覆盖，没有 receipt 不能产生 `saved`，重复 ID、相邻 QA 污染、无效链接、占位路径、不完整 UNIT 和旧状态穿透都会被拒绝。
 
-当前测试包含静态/本地回归测试；真实宿主行为、不同模型行为和跨会话持久化环境必须在对应宿主中另行验证，不能把代理测试结果当作真实宿主已通过。
+当前脚本能强制本地文件、状态、hash 和 receipt 约束，但不能凭 Skill 文本给宿主安装 pre-response 或真实 compact hook。真实宿主、不同模型、真实上下文压缩必须分别测试；未执行项写 `not-run`，静态 validator 通过不能替代宿主通过。
 
 ### 目录结构
 
@@ -165,6 +193,13 @@ project-code-study/
 
 本 Skill 借鉴了下列公开项目或文档中的通用思想，并进行了独立抽象和实现：
 
+完整的仓库链接、核心实现方式、许可证、审计日活跃程度、适用性分类和明确
+拒绝项见 [GitHub 调研与致谢](GITHUB_RESEARCH_AND_ACKNOWLEDGEMENTS.md)。
+特别感谢 Engramory、Mem0、Letta、Zep Graphiti、LangGraph、OpenHands、
+SWE-agent、Aider、AutoGen、CrewAI、learn-codebase、PocketFlow Tutorial
+Codebase Knowledge、RepoAgent、CodeTour、DeepWiki-Open、MathTutorBench 和
+EducationQ 的维护者与研究者公开相关思想。
+
 | 项目/文档 | 借鉴的通用思想 | 说明 |
 | --- | --- | --- |
 | [Engramory](https://github.com/tinqiao-oss/engramory) | 文件化连续性记忆、受控索引、单事实记录、去重/更新/归档 | 启发了本 Skill 的 memory 协议；未复制其源代码。该仓库 README 标注为 MIT。 |
@@ -186,6 +221,15 @@ project-code-study/
 
 `project-code-study` is a Chinese-first, evidence-bound Agent Skill for studying real software projects. It turns a verified runtime call chain into a route of `RUN/NODE` units, teaches one node at a time, evaluates active recall, and persists questions, progress, evidence, and study documents for independent review.
 
+Version 6 adds typed durable-memory candidates, hash-bound compaction handoffs,
+type-specific QA depth contracts, schema 2.0 per-Step textbook chapters with
+exact source excerpts, real fresh-model cold-start reports, and one WAL-backed
+release receipt binding QA, LOG, memory, document, validators, source revision,
+not-run boundaries, and the exact response. See the
+[research and acknowledgements table](GITHUB_RESEARCH_AND_ACKNOWLEDGEMENTS.md)
+for upstream ideas, licenses, activity, adoption decisions, and explicit
+non-adoptions.
+
 ### What problem it solves
 
 Long code-learning conversations can drift away from the real source, turn guesses into facts, lose learner answers, corrupt adjacent QA entries, or confuse a conversational acknowledgement with a successful write. This Skill addresses those failure modes with an executable teaching protocol, persistence transactions, claim verification, continuity memory, and finalization gates.
@@ -205,7 +249,10 @@ Verified source/runtime evidence
   -> wait in AWAITING_QUESTIONS_OR_CONTINUE
   -> advance only after a new continue
   -> build a fresh readiness manifest
-  -> generate the formal document through the single finalizer
+  -> build schema 2.0 per-Step textbook chapters
+  -> run a real fresh-model/document-only cold-start
+  -> stage through the finalizer
+  -> commit one hash-bound release receipt
 ```
 
 ### Core guarantees
@@ -217,9 +264,9 @@ Verified source/runtime evidence
 | Questions | Enter the answer-and-record flow after a learner question; split compound intents into independent `Q-ID`s; retest incorrect or partial answers. |
 | Persistence | Allocate `Q/M/C/TX` IDs uniquely; combine QA write, exact readback, LOG update, reconciliation, and strict validation into a transaction. |
 | State | Stop at `AWAITING_QUESTIONS_OR_CONTINUE`; unsaved questions, stale continue tokens, and `retest-due` states cannot advance the main route. |
-| Failure | Do not claim `saved` without a machine receipt; return `unsaved-partial` and fail closed on partial failure. |
-| Finalization | Generate the formal document only through the finalizer after a fresh readiness manifest; preserve the target when `ready=false`. |
-| Memory | Use controlled file-based facts, an index, deduplication, update, and archive rules for continuity across long or interrupted sessions. |
+| Failure | Do not claim `saved` without a COMMITTED release receipt bound to the exact response; return `unsaved-partial` or `release-pending`. |
+| Finalization | Require schema 2.0 chapters, exact source excerpts, real cold-start, and one release receipt; preserve the target when `ready=false`. |
+| Memory | Create candidates only for durable preferences, corrections, quality feedback, and Step rules; approve/reject explicitly and restore from hash-bound handoffs. |
 
 ### Outputs and control plane
 
@@ -231,7 +278,7 @@ The normal loop produces two layers of output. Chat provides the conclusion, key
 | `PROJECT_STUDY_LOG.md` | Completed nodes, question states, corrections, retests, and transaction receipts. |
 | `PROJECT_STUDY_QA.md` | Complete, independently readable canonical answers. |
 | `.project-study-memory/MEMORY.md` | Recoverable continuity-memory index and resume pointers. |
-| `PROJECT_STUDY_FINAL.md` | Formal study document generated by the finalizer after readiness passes. |
+| `PROJECT_STUDY_DOCUMENT.md` | Formal per-Step handbook released after readiness, schema 2.0 validation, real cold-start, and one committed receipt. |
 
 Start with [SKILL.md](SKILL.md). Route user intent through [references/user-prompts.md](references/user-prompts.md); use [prompt-workflow-patterns.md](references/prompt-workflow-patterns.md) for abstract prompt patterns; consult the protocol references and [scripts/](scripts/) for the executable control plane.
 
@@ -247,7 +294,7 @@ Codex user scope:       ~/.codex/skills/project-code-study
 Project scope:          <project>/<host-skill-directory>/project-code-study
 ```
 
-Keep the `skills/project-study-document` companion directory. It turns validated study records into standalone UNITs and cannot bypass the main Skill's transaction or readiness gates.
+Keep the `skills/project-study-document` companion directory. It turns validated study records into standalone per-Step textbook chapters and cannot bypass the main Skill's transaction, cold-start, or release gates.
 
 When continuity memory is first enabled for a project, the Skill asks for explicit consent before creating `<PROJECT_ROOT>/.project-study-memory/`. A decline or missing answer creates no memory directory. The initialization command requires `--user-consent`.
 
@@ -275,14 +322,19 @@ Run the following before publishing:
 
 ```powershell
 python -m unittest discover -s tests -p "test_*.py" -v
-python scripts/validate_learning_ledger.py <PROJECT_STUDY_LOG.md> --strict --qa <PROJECT_STUDY_QA.md>
-python scripts/validate_finalization_bundle.py <READINESS_MANIFEST.json> --target <PROJECT_STUDY_FINAL.md>
+python scripts/validate_skill_structure.py
+python scripts/validate_learning_ledger.py <PROJECT_STUDY_LOG.md> --strict --publication --qa <PROJECT_STUDY_QA.md>
+python scripts/validate_finalization_bundle.py --ledger <PROJECT_STUDY_LOG.md> --qa <PROJECT_STUDY_QA.md> --publication
 python scripts/validate_protocol_memory.py <MEMORY_ROOT>
+python scripts/cold_start_test.py --report <REPORT.json> --document <PROJECT_STUDY_DOCUMENT.md> --step <STEP>
+python skills/project-study-document/scripts/validate_study_document.py <DOCUMENT> --ledger <LOG> --qa <QA> --repo-root <PROJECT_ROOT> --publication --cold-start-report <REPORT.json>
+python scripts/release_transaction.py prepare --manifest <MANIFEST.json> --wal <WAL.json> --response-file <RESPONSE.md>
+python scripts/release_transaction.py commit --wal <WAL.json> --receipt <RECEIPT.json>
 python scripts/response_claim_guard.py <RESPONSE.md> --receipt <RECEIPT.json>
 git diff --check
 ```
 
-Validation must also prove that no success bypass exists after a failure: the formal target remains unchanged, `saved` requires a machine receipt, duplicate IDs and boundary pollution are rejected, invalid links and placeholder paths fail, incomplete UNITs cannot validate, and stale state cannot advance the route.
+Validation must also prove that no success bypass exists after a failure: the formal target remains unchanged, `saved` requires one committed release receipt, duplicate IDs and boundary pollution are rejected, invalid source excerpts fail, shallow chapters cannot validate, and stale state cannot advance the route.
 
 The repository contains local/static regression tests. Real host behavior, cross-model behavior, and cross-session persistence must be tested in the target host separately and must not be reported as passing based only on a static proxy.
 

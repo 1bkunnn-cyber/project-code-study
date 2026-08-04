@@ -1,5 +1,24 @@
 # Transaction and Evidence Protocol
 
+## Unified release transaction (schema 6.0)
+
+QA/LOG, memory, and document finalization may produce intermediate receipts,
+but those receipts do not prove that the artifacts belong to one publication.
+Formal release follows:
+
+```text
+USER INPUT → INTENT SPLIT → Q/M/C/TX allocation → TEACHING RESPONSE
+→ QA → LOG → MEMORY candidate/update → DOCUMENT candidate
+→ validators → real cold-start → PREPARED WAL → COMMITTED receipt
+```
+
+`scripts/release_transaction.py` computes and rechecks the SHA-256 of QA, LOG,
+memory, and document. The PREPARED journal also binds source revision,
+readiness manifest, validator results, cold-start result, not-run capabilities,
+current Step/NODE, DOC-TX/TX, timestamp, and exact response hash. A changed
+artifact aborts the WAL. Only a COMMITTED receipt authorizes final positive
+claims; recovery is idempotent and a mismatching receipt is rejected.
+
 This protocol turns the learning workflow into a fail-closed control plane. The Markdown records remain human-readable views; a machine transaction is the authority for successful persistence and advancement.
 
 ## Transaction lifecycle

@@ -23,11 +23,20 @@ def truth(value: str | None) -> bool:
     return ledger_validator.norm(value) in {"true", "yes", "1"}
 
 
-def evaluate_bundle(ledger_path: Path, qa_path: Path) -> dict[str, object]:
+def evaluate_bundle(
+    ledger_path: Path,
+    qa_path: Path,
+    *,
+    publication: bool = False,
+) -> dict[str, object]:
     log_text = ledger_path.read_text(encoding="utf-8-sig")
     qa_text = qa_path.read_text(encoding="utf-8-sig")
     log_errors, log_fm, _ = ledger_validator.validate_text(log_text, strict=True)
-    qa_errors, qa_fm, _ = ledger_validator.validate_text(qa_text, strict=True)
+    qa_errors, qa_fm, _ = ledger_validator.validate_text(
+        qa_text,
+        strict=True,
+        publication=publication,
+    )
     cross_errors: list[str] = []
     ledger_validator.validate_cross(log_text, log_fm, qa_text, qa_fm, cross_errors)
 
@@ -78,6 +87,9 @@ def evaluate_bundle(ledger_path: Path, qa_path: Path) -> dict[str, object]:
         "learner_closed_question_phase": truth(log_fm.get("learner_closed_question_phase")),
         "learner_consented_to_generation": truth(log_fm.get("learner_consented_to_generation")),
         "record_validation_errors": record_errors,
+        "qa_depth_contract": "pass" if publication and not qa_errors else (
+            "not-run" if not publication else "fail"
+        ),
     }
     manifest["ready"] = (
         bool(manifest["route_final"])
@@ -114,13 +126,18 @@ def main() -> int:
     parser.add_argument("--ledger", type=Path, required=True)
     parser.add_argument("--qa", type=Path, required=True)
     parser.add_argument("--json", action="store_true")
+    parser.add_argument("--publication", action="store_true")
     args = parser.parse_args()
     for path in (args.ledger, args.qa):
         if not path.is_file():
             print(f"ERROR: file not found: {path}", file=sys.stderr)
             return 2
     try:
-        manifest = evaluate_bundle(args.ledger, args.qa)
+        manifest = evaluate_bundle(
+            args.ledger,
+            args.qa,
+            publication=args.publication,
+        )
     except OSError as exc:
         print(f"ERROR: {exc}", file=sys.stderr)
         return 2

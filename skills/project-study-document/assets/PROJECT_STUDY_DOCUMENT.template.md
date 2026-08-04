@@ -1,6 +1,6 @@
 ---
 document_type: project-study-document
-schema_version: "1.2"
+schema_version: "2.0"
 status: "pending-readiness"
 project_name: "{{PROJECT_NAME}}"
 project_path: "{{PROJECT_PATH_OR_URL}}"
@@ -18,6 +18,8 @@ source_artifacts:
   - "{{SOURCE_ARTIFACT}}"
 validation_status: "pending"
 cold_start_status: "not-run"
+release_transaction_id: "{{RELEASE_TRANSACTION_ID}}"
+required_question_ids: "{{REQUIRED_QUESTION_IDS}}"
 ---
 
 # {{PROJECT_NAME}} 项目学习文档
@@ -31,7 +33,7 @@ cold_start_status: "not-run"
 - [3. 项目、任务与问题定义](#3-项目任务与问题定义)
 - [4. 动态学习路线、知识覆盖与掌握情况](#4-动态学习路线知识覆盖与掌握情况)
 - [5. 运行场景与真实调用链](#5-运行场景与真实调用链)
-- [6. 可重新学习的核心知识单元](#6-可重新学习的核心知识单元)
+- [6. 逐 Step 教材章节](#6-逐-step-教材章节)
 - [7. 数据、Shape 与状态流](#7-数据shape-与状态流)
 - [8. 目标函数、训练、推理与评估](#8-目标函数训练推理与评估)
 - [9. 论文—代码映射与设计解释](#9-论文代码映射与设计解释)
@@ -83,66 +85,98 @@ cold_start_status: "not-run"
 | 已明确跳过 | {{SKIPPED_STEP_COUNT}} |
 | 未映射 Step | {{UNMAPPED_STEPS_OR_NONE}} |
 
-> 完整文档的“未映射 Step”必须为 `无`。每个已完成 Step 都必须在下表保留一行，并映射到至少一个 `UNIT-` 复习单元。
+> 完整文档的“未映射 Step”必须为 `无`。每个已完成 Step 都必须在下表保留一行，并映射到一个可独立阅读的 `CHAPTER-` 教材章节。
 
 ### 4.2 Step 知识覆盖索引
 
-| Step / 微 Step | 状态 | 本 Step 学到的知识 | RUN / NODE / K | 掌握证据 | 重要 Q / 修正 | 复习单元 |
+| Step / 微 Step | 状态 | 本 Step 学到的知识 | RUN / NODE / K | 掌握证据 | 重要 Q / 修正 | 教材章节 |
 | --- | --- | --- | --- | --- | --- | --- |
-| {{STEP}} | {{STEP_STATUS}} | {{STEP_KNOWLEDGE}} | {{RUN_NODE_K}} | {{MASTERY_EVIDENCE}} | {{RELATED_Q_M_C}} | [UNIT-{{UNIT_ID}}](#unit-{{UNIT_ID}}) |
+| {{STEP}} | {{STEP_STATUS}} | {{STEP_KNOWLEDGE}} | {{RUN_NODE_K}} | {{MASTERY_EVIDENCE}} | {{RELATED_Q_M_C}} | [CHAPTER-{{CHAPTER_ID}}](#chapter-{{CHAPTER_ID}}) |
 
 ## 5. 运行场景与真实调用链
 
 {{RUNTIME_CALL_GRAPHS}}
 
-## 6. 可重新学习的核心知识单元
+## 6. 逐 Step 教材章节
 
-<!-- 按真实调用顺序与概念依赖排列 UNIT，而不是照抄聊天时间线。每个已完成 Step 必须映射到至少一个 UNIT。 -->
+<!-- 每个完成 Step 恰好对应一个可脱离聊天阅读的 CHAPTER。多个 micro-Step 可在同一章展开，但不能把多个完成 Step 压成摘要。 -->
 
-<a id="unit-{{UNIT_ID}}"></a>
+<a id="chapter-{{CHAPTER_ID}}"></a>
 
-### UNIT-{{UNIT_ID}} — {{UNIT_TITLE}}
+### CHAPTER-{{CHAPTER_ID}} — {{CHAPTER_TITLE}}
 
-- 覆盖 Step：{{COVERED_STEPS}}
+- 覆盖 Step：{{COVERED_STEP}}
+- 本 Step 要解决的问题：{{STEP_PROBLEM}}
 - 前置知识：{{PREREQUISITES}}
-- 本单元解决的问题：{{UNIT_PROBLEM}}
-- 学习目标：{{UNIT_LEARNING_OBJECTIVE}}
-- 运行位置与上游 / 下游：{{RUNTIME_POSITION_AND_CALL_RELATION}}
-- 源码、配置、公式或论文位置：{{UNIT_SOURCE_LOCATIONS}}
-- 证据状态：{{UNIT_EVIDENCE_AND_STATUS}}
-- 未验证边界：{{UNIT_UNVERIFIED_BOUNDARY}}
+- 真实调用链位置：{{RUNTIME_POSITION}}
+- 上游输入与下游输出：{{UPSTREAM_INPUT_DOWNSTREAM_OUTPUT}}
+- 相关 RUN / NODE / micro-Step：{{RUN_NODE_MICRO_STEP}}
+- 源码锚点：{{SOURCE_PATH_START_END}}
+- 本章学习完成标准：{{CHAPTER_COMPLETION_STANDARD}}
 
-#### 核心讲解
+#### 本章教材讲解
 
-{{UNIT_COMPLETE_EXPLANATION}}
+{{CHAPTER_STANDALONE_TEACHING}}
 
-#### 关键源码执行顺序
+#### 调用链与前后 NODE
 
-{{UNIT_SOURCE_EXECUTION_ORDER}}
+{{CALL_CHAIN_AND_NODE_CONNECTION}}
 
-#### 输入、输出、Shape、公式与状态变化
+#### 关键源码片段
 
-{{UNIT_IO_SHAPE_MATH_STATE}}
+- 源码摘录：{{RELATIVE_SOURCE_PATH}}:{{START_LINE}}-{{END_LINE}}
 
-#### 设计原因、替代方案与取舍
+```{{LANGUAGE}}
+{{EXACT_SOURCE_EXCERPT}}
+```
 
-{{UNIT_RATIONALE_ALTERNATIVES_TRADEOFFS}}
+#### 逐段或逐行解释
 
-#### 重要提问、误区与规范修正
+{{LINE_BY_LINE_EXPLANATION}}
 
-{{UNIT_QUESTIONS_MISCONCEPTIONS_CORRECTIONS}}
+#### 变量、参数与状态
 
-#### 自测
+{{VARIABLE_PARAMETER_STATE_MEANING}}
 
-{{UNIT_SELF_CHECK}}
+#### 输入、输出、Shape 与状态变化
+
+{{IO_SHAPE_STATE_TRANSITIONS}}
+
+#### 数学公式与参数计算
+
+{{FORMULAS_AND_PARAMETER_CALCULATIONS}}
+
+#### 为什么这样设计、替代实现与取舍
+
+{{RATIONALE_ALTERNATIVES_TRADEOFFS}}
+
+#### 常见错误和错误表现
+
+{{COMMON_ERRORS_AND_SYMPTOMS}}
+
+#### 当前项目具体例子
+
+{{PROJECT_SPECIFIC_EXAMPLE}}
+
+#### 重要 QA 问题和完整答案
+
+{{IMPORTANT_QA_WITH_COMPLETE_ANSWER}}
+
+#### 回忆题与练习题
+
+{{RECALL_AND_EXERCISES}}
 
 #### 参考答案
 
-{{UNIT_SELF_CHECK_ANSWER}}
+{{REFERENCE_ANSWERS}}
 
-#### 与下一知识单元的连接
+#### 已确认、可推断、待验证的证据边界
 
-{{UNIT_NEXT_CONNECTION}}
+{{CONFIRMED_INFERRED_UNVERIFIED}}
+
+#### 与前后 NODE 的连接
+
+{{PREVIOUS_AND_NEXT_NODE_CONNECTION}}
 
 ## 7. 数据、Shape 与状态流
 

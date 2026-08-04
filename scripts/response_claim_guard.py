@@ -9,8 +9,15 @@ import re
 import sys
 from pathlib import Path
 
+import release_transaction
 
-PERSISTENCE_PATTERNS = [r"(?i)(?:已|已经|成功)?保存(?:成功|完成|好了)", r"(?i)\bsaved\b", r"(?i)(?:已|已经|成功)?校验(?:通过|完成)", r"(?i)\bvalidated\b"]
+
+PERSISTENCE_PATTERNS = [
+    r"(?i)(?:已|已经|成功)?保存(?:成功|完成|好了|并|且|[。.!！\s]|$)",
+    r"(?i)\bsaved\b",
+    r"(?i)(?:已|已经|成功)?(?:校验|验证)(?:通过|完成|成功|[。.!！\s]|$)",
+    r"(?i)\bvalidated\b",
+]
 FINAL_PATTERNS = [r"(?i)(?:正式)?文档(?:已|已经)?(?:生成|完成)", r"(?i)readiness_status\s*:\s*ready"]
 NEGATED_LINE = re.compile(r"(?i)(?:不能|不得|不要|未|尚未|without|not|unsaved).{0,20}(?:保存|saved|校验|validated|生成|ready)")
 
@@ -30,6 +37,23 @@ def validate(text: str, receipt: Path | None) -> list[str]:
         payload = json.loads(receipt.read_text(encoding="utf-8"))
     except (OSError, ValueError):
         return ["machine receipt is unreadable"]
+    if payload.get("schema_version") == "6.0":
+        raw_paths = payload.get("artifact_paths")
+        if not isinstance(raw_paths, dict):
+            return ["unified release receipt has no artifact paths"]
+        artifacts = {
+            name: Path(path)
+            for name, path in raw_paths.items()
+            if isinstance(path, str)
+        }
+        errors = release_transaction.validate_release_receipt(
+            receipt,
+            artifacts,
+            response_text=text,
+        )
+        if errors:
+            return ["unified release receipt does not prove the exact response: " + "; ".join(errors)]
+        return []
     persistence_ok = persistence_claim and payload.get("persistence_status") == "saved" and payload.get("validator") == "pass"
     memory_ok = persistence_claim and payload.get("memory_status") == "saved" and payload.get("validator") == "pass"
     final_ok = payload.get("finalizer_status") == "validated" or payload.get("readiness_status") == "ready"

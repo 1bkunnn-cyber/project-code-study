@@ -6,15 +6,15 @@ The document is accepted only when every blocking gate passes.
 
 - a fresh finalization manifest reports `ready: true`;
 - explicit question closure and generation consent are recorded;
-- canonical schema 1.2 frontmatter contains project identity, real ISO generation time, immutable repository revision, source LOG/QA, source/readiness transaction IDs, language, goal, and status;
+- canonical schema 2.0 frontmatter contains project identity, real ISO generation time, immutable repository revision, source LOG/QA, source/readiness/release transaction IDs, selected Q IDs, language, goal, and status;
 - unavailable evidence is disclosed;
 - `complete/validated` appears only after final zero-error validation.
 
 ## 2. Coverage and uniqueness
 
 - each required Step/micro Step has exactly one coverage row;
-- every done Step maps to >=1 UNIT and every UNIT maps back to >=1 done Step;
-- UNIT IDs, headings, and explicit anchors are unique;
+- every done Step maps to one standalone textbook chapter;
+- CHAPTER IDs, headings, and explicit anchors are unique;
 - completed/mapped/skipped/unmapped counts reconcile; unmapped is zero;
 - skipped Steps state reason/impact/acceptance and are not mastered;
 - required RUN scenarios, core NODEs, dependencies, and scenario-specific/shared components are covered;
@@ -22,11 +22,11 @@ The document is accepted only when every blocking gate passes.
 
 ## 3. Independent relearning
 
-With no chat, every UNIT teaches objective, prerequisites, actual RUN/NODE position, upstream/downstream, source execution order, I/O/Shape/formula/config/state, rationale/alternatives/trade-offs/failures, important questions/corrections, evidence boundary, self-check/full answer, and next connection.
+With no chat, every chapter satisfies the 20-item contract, contains an exact source excerpt whose lines match the locked revision, and teaches important QA in full rather than pointing to an index.
 
 Step 5/6/9/10 and administrative Steps must preserve durable architecture, reproduction, audit, or synthesis knowledge rather than one-line conclusions. They must not invent technical mechanisms.
 
-Forbidden fillers include `详见 chat`, `同上`, `前文已解释`, `见之前回答`, circular `详见对应 UNIT`, and generic `不涉及此方面`. A truly inapplicable dimension must explain why and what evidence or durable skill replaces it.
+Forbidden fillers include `详见 chat`, `同上`, `前文已解释`, `见之前回答`, circular chapter references, and generic `不涉及此方面`. A truly inapplicable dimension must explain why and what evidence or durable skill replaces it.
 
 ## 4. Evidence and correction
 
@@ -59,8 +59,8 @@ Forbidden fillers include `详见 chat`, `同上`, `前文已解释`, `见之前
 - preflight passed with `validation_status: pending`;
 - final validation passed after changing only that field to `validated`;
 - high-risk sections and final target were read back;
-- receipt reports path, revision, TX/readiness IDs, coverage, validators, cold-start evidence, and limitations.
+- one COMMITTED schema 6.0 receipt binds QA/LOG/memory/document hashes, revision, TX/DOC-TX, readiness, all validators, cold-start evidence, not-run boundaries, current Step/NODE, timestamp, and exact response hash.
 
 ## 8. Cold-start acceptance
 
-For each UNIT, a no-chat reader must recover objective/runtime position, call order, I/O/Shape/state, important Q, canonical correction, self-check answer, next NODE, and unverified boundary. Static semantic checks are only a proxy. If a real fresh-session/cross-model run is not performed, record it as `not-run`, never `pass`.
+For each completed Step, a fresh model with no chat must recover objective/runtime position, call order, source explanation, I/O/Shape/state, important Q, exercise answer, and unverified boundary. The report is bound to the exact document SHA-256. Static semantic checks are only a proxy. If a real fresh-host run is not performed, record it as `not-run`, never `pass`.

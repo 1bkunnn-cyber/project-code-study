@@ -1,0 +1,22 @@
+{
+  "schema_version": "1.0",
+  "mode": "fresh-model-no-chat",
+  "fresh_session": true,
+  "input_scope": "document-only",
+  "document_hash": "<sha256>",
+  "model": "<host and model identifier>",
+  "steps": {
+    "<Step>": {
+      "objective": "<what the Step solves>",
+      "runtime_position": "<RUN/NODE position>",
+      "call_chain": "<ordered caller to callee chain>",
+      "source_explanation": "<source-grounded explanation>",
+      "io_shape_state": "<input/output/Shape/state explanation>",
+      "important_qa": "<important Q and answer>",
+      "exercise_answer": "<answer derived from the handbook>",
+      "evidence_boundary": "<confirmed/inferred/not-run boundary>",
+      "result": "pass"
+    }
+  },
+  "overall_status": "pass"
+}

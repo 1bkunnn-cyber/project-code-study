@@ -14,9 +14,10 @@ if str(ROOT / "scripts") not in sys.path:
     sys.path.insert(0, str(ROOT / "scripts"))
 import validate_finalization_bundle  # noqa: E402
 import validate_learning_ledger as record_validator  # noqa: E402
+import cold_start_test  # noqa: E402
 
 
-SUPPORTED_SCHEMAS = {"1.0", "1.1", "1.2"}
+SUPPORTED_SCHEMAS = {"1.0", "1.1", "1.2", "2.0"}
 COMMON_HEADINGS = [
     "## 1. 文档身份与证据范围", "## 2. 学习成果摘要",
     "## 3. 项目、任务与问题定义", "## 5. 运行场景与真实调用链",
@@ -30,6 +31,7 @@ SCHEMA_HEADINGS = {
     "1.0": ["## 4. 动态学习路线与掌握情况", "## 6. 核心抽象与源码节点"],
     "1.1": ["## 4. 动态学习路线、知识覆盖与掌握情况", "## 6. 可重新学习的核心知识单元"],
     "1.2": ["## 4. 动态学习路线、知识覆盖与掌握情况", "## 6. 可重新学习的核心知识单元"],
+    "2.0": ["## 4. 动态学习路线、知识覆盖与掌握情况", "## 6. 逐 Step 教材章节"],
 }
 DONE = {"done", "complete", "completed", "verified", "已完成"}
 SKIPPED = {"skipped", "stale", "跳过", "已跳过"}
@@ -51,6 +53,157 @@ UNIT_SECTIONS_12 = {
     "#### 参考答案": 30,
     "#### 与下一知识单元的连接": 15,
 }
+
+CHAPTER_LABELS_20 = [
+    "- 覆盖 Step：",
+    "- 本 Step 要解决的问题：",
+    "- 前置知识：",
+    "- 真实调用链位置：",
+    "- 上游输入与下游输出：",
+    "- 相关 RUN / NODE / micro-Step：",
+    "- 源码锚点：",
+    "- 本章学习完成标准：",
+]
+CHAPTER_SECTIONS_20 = {
+    "#### 本章教材讲解": 160,
+    "#### 调用链与前后 NODE": 60,
+    "#### 关键源码片段": 40,
+    "#### 逐段或逐行解释": 80,
+    "#### 变量、参数与状态": 60,
+    "#### 输入、输出、Shape 与状态变化": 80,
+    "#### 数学公式与参数计算": 60,
+    "#### 为什么这样设计、替代实现与取舍": 80,
+    "#### 常见错误和错误表现": 60,
+    "#### 当前项目具体例子": 70,
+    "#### 重要 QA 问题和完整答案": 80,
+    "#### 回忆题与练习题": 45,
+    "#### 参考答案": 70,
+    "#### 已确认、可推断、待验证的证据边界": 50,
+    "#### 与前后 NODE 的连接": 45,
+}
+
+
+def _source_excerpt_matches(block: str, repo_root: Path) -> list[str]:
+    errors: list[str] = []
+    pattern = re.compile(
+        r"(?ms)^-\s*源码摘录：\s*(.+?):(\d+)-(\d+)\s*$"
+        r"\s*```[^\n]*\n(.*?)^```\s*$"
+    )
+    excerpts = list(pattern.finditer(block))
+    if not excerpts:
+        return ["chapter contains no '<relative path>:start-end' fenced source excerpt"]
+    for match in excerpts:
+        relative, raw_start, raw_end, excerpt = match.groups()
+        path = (repo_root / relative.strip().replace("\\", "/")).resolve()
+        try:
+            path.relative_to(repo_root.resolve())
+        except ValueError:
+            errors.append(f"source excerpt escapes repository: {relative}")
+            continue
+        if not path.is_file():
+            errors.append(f"source excerpt path does not exist: {relative}")
+            continue
+        start, end = int(raw_start), int(raw_end)
+        lines = path.read_text(encoding="utf-8-sig").splitlines()
+        if start < 1 or end < start or end > len(lines):
+            errors.append(f"source excerpt line range is invalid: {relative}:{start}-{end}")
+            continue
+        expected = "\n".join(lines[start - 1:end]).strip()
+        if excerpt.strip() != expected:
+            errors.append(
+                f"source excerpt does not match source lines: {relative}:{start}-{end}"
+            )
+    return errors
+
+
+def validate_chapter_contract(
+    step_id: str,
+    block: str,
+    *,
+    repo_root: Path | None = None,
+) -> list[str]:
+    """Validate one standalone textbook chapter against the 20-part contract."""
+    errors: list[str] = []
+    if not re.search(r"(?m)^###\s+CHAPTER-[A-Za-z0-9_.-]+\s+—\s+\S+", block):
+        errors.append(f"Step {step_id} has no unique CHAPTER heading")
+    for label in CHAPTER_LABELS_20:
+        value = label_value(block, label)
+        if not value or is_empty(value):
+            errors.append(f"Step {step_id} missing chapter metadata: {label}")
+    covered = {
+        normalize_step(item)
+        for item in re.split(r"[,，、;/]+", label_value(block, "- 覆盖 Step："))
+        if normalize_step(item)
+    }
+    if normalize_step(step_id) not in covered:
+        errors.append(f"Step {step_id} chapter does not declare its covered Step")
+    for heading, minimum in CHAPTER_SECTIONS_20.items():
+        content = section_content(block, heading)
+        if not content:
+            errors.append(f"Step {step_id} missing handbook section: {heading}")
+        elif len(content) < minimum:
+            errors.append(
+                f"Step {step_id} handbook section too thin "
+                f"({len(content)} < {minimum}): {heading}"
+            )
+    qa = section_content(block, "#### 重要 QA 问题和完整答案")
+    if qa and not re.search(r"\bQ-\d+\b", qa):
+        errors.append(f"Step {step_id} important QA section has no Q-ID")
+    boundary = section_content(block, "#### 已确认、可推断、待验证的证据边界")
+    for level in ("已确认", "可推断", "待验证"):
+        if boundary and level not in boundary:
+            errors.append(f"Step {step_id} evidence boundary omits {level}")
+    shape = section_content(block, "#### 输入、输出、Shape 与状态变化")
+    if shape and not re.search(r"\[[0-9,\s×x]+\]", shape):
+        errors.append(f"Step {step_id} has no concrete Shape example")
+    if repo_root is not None:
+        errors.extend(_source_excerpt_matches(block, repo_root))
+    elif not re.search(r"(?m)^-\s*源码摘录：\s*.+:\d+-\d+\s*$", block):
+        errors.append(f"Step {step_id} has no exact source line range")
+    return errors
+
+
+def validate_special_step_contracts(text: str, completed_steps: set[str]) -> list[str]:
+    """Enforce project-critical teaching depth that generic length cannot prove."""
+    errors: list[str] = []
+    normalized = {normalize_step(step) for step in completed_steps}
+    if any(step == "4" or step.startswith("4.") for step in normalized):
+        required = [
+            "_do_train()",
+            "model(batch)",
+            "DetectionModel.forward()",
+            "v8DetectionLoss",
+            "梯度累积",
+            "AMP",
+            "EMA",
+            "optimizer",
+            "epoch",
+            "验证",
+            "保存",
+            "[8,3,640,640]",
+            "Conv",
+            "C2f",
+            "SPPF",
+            "Upsample",
+            "Concat",
+            "Detect",
+            "parse_model()",
+        ]
+        compact = re.sub(r"\s+", "", text)
+        missing = [token for token in required if re.sub(r"\s+", "", token) not in compact]
+        if missing:
+            errors.append("Step 4.x handbook missing: " + ", ".join(missing))
+    if "6" in normalized or any(step.startswith("6.") for step in normalized):
+        required = ["TP", "FP", "FN", "IoU", "AP", "mAP", "results.csv", "可视化", "评估源码"]
+        missing = [token for token in required if token not in text]
+        if missing:
+            errors.append("Step 6 handbook missing: " + ", ".join(missing))
+    if "10" in normalized or any(step.startswith("10.") for step in normalized):
+        required = ["缝合", "SE", "baseline", "消融", "创新验证"]
+        missing = [token for token in required if token.lower() not in text.lower()]
+        if missing:
+            errors.append("Step 10 handbook missing: " + ", ".join(missing))
+    return errors
 
 
 def parse_frontmatter(text: str) -> dict[str, str]:
@@ -82,6 +235,21 @@ def unit_matches(text: str) -> list[tuple[str, str, str]]:
         return []
     body = section.group(1)
     matches = list(re.finditer(r"(?m)^###\s+(UNIT-[A-Za-z0-9_.-]+)\s+—\s+(.+)$", body))
+    result: list[tuple[str, str, str]] = []
+    for index, match in enumerate(matches):
+        end = matches[index + 1].start() if index + 1 < len(matches) else len(body)
+        result.append((match.group(1), clean(match.group(2)), body[match.start():end]))
+    return result
+
+
+def chapter_matches(text: str) -> list[tuple[str, str, str]]:
+    section = re.search(r"(?ms)^## 6\. 逐 Step 教材章节\s*$\n(.*?)(?=^## 7\.)", text)
+    if not section:
+        return []
+    body = section.group(1)
+    matches = list(
+        re.finditer(r"(?m)^###\s+(CHAPTER-[A-Za-z0-9_.-]+)\s+—\s+(.+)$", body)
+    )
     result: list[tuple[str, str, str]] = []
     for index, match in enumerate(matches):
         end = matches[index + 1].start() if index + 1 < len(matches) else len(body)
@@ -170,6 +338,109 @@ def extract_ledger_steps(text: str) -> dict[str, str]:
         if step and status in DONE | SKIPPED:
             result[step] = status
     return result
+
+
+def validate_handbook_20(
+    text: str,
+    ledger_text: str,
+    errors: list[str],
+    *,
+    repo_root: Path | None,
+) -> set[str]:
+    chapters = chapter_matches(text)
+    if not chapters:
+        errors.append("schema 2.0 contains no standalone Step handbook chapter")
+        return set()
+    ids = [chapter_id for chapter_id, _, _ in chapters]
+    if len(ids) != len(set(ids)):
+        errors.append("duplicate CHAPTER ID detected")
+    anchors = re.findall(r'(?m)^<a id="(chapter-[A-Za-z0-9_.-]+)"></a>\s*$', text)
+    expected_anchors = {
+        f"chapter-{chapter_id.removeprefix('CHAPTER-')}"
+        for chapter_id in ids
+    }
+    if len(anchors) != len(set(anchors)) or set(anchors) != expected_anchors:
+        errors.append("CHAPTER anchors must be unique and match CHAPTER IDs")
+
+    covered_by_chapter: set[str] = set()
+    for chapter_id, _, block in chapters:
+        declared = {
+            normalize_step(item)
+            for item in re.split(
+                r"[,，、;/]+",
+                label_value(block, "- 覆盖 Step："),
+            )
+            if normalize_step(item)
+        }
+        if not declared:
+            errors.append(f"{chapter_id} declares no Step")
+        elif len(declared) != 1:
+            errors.append(f"{chapter_id} must map to exactly one completed Step")
+        for step in declared:
+            errors.extend(
+                validate_chapter_contract(step, block, repo_root=repo_root)
+            )
+        duplicates = covered_by_chapter & declared
+        if duplicates:
+            errors.append(
+                "completed Steps appear in multiple chapters: "
+                + ", ".join(sorted(duplicates))
+            )
+        covered_by_chapter.update(declared)
+
+    ledger_steps = extract_ledger_steps(ledger_text)
+    done_steps = {
+        step
+        for step, status in ledger_steps.items()
+        if status in DONE
+    }
+    missing = done_steps - covered_by_chapter
+    extra = covered_by_chapter - done_steps
+    if missing:
+        errors.append(
+            "completed ledger Steps missing standalone chapters: "
+            + ", ".join(sorted(missing))
+        )
+    if extra:
+        errors.append(
+            "chapters promote Steps not completed in ledger: "
+            + ", ".join(sorted(extra))
+        )
+    errors.extend(validate_special_step_contracts(text, done_steps))
+    return done_steps
+
+
+def validate_required_question_ids(
+    text: str,
+    qa_text: str,
+    raw_ids: str,
+    errors: list[str],
+) -> None:
+    required = set(re.findall(r"\bQ-\d+\b", raw_ids))
+    qa_ids = set(re.findall(r"\bQ-\d+\b", qa_text))
+    chapter_section = re.search(
+        r"(?ms)^## 6\. 逐 Step 教材章节\s*$\n(.*?)(?=^## 7\.)",
+        text,
+    )
+    question_section = re.search(
+        r"(?ms)^## 10\. 用户重要提问\s*$\n(.*?)(?=^## 11\.)",
+        text,
+    )
+    for qid in sorted(required):
+        if qid not in qa_ids:
+            errors.append(f"required question is absent from source QA: {qid}")
+        if chapter_section is None or not re.search(
+            rf"\b{re.escape(qid)}\b",
+            chapter_section.group(1),
+        ):
+            errors.append(f"required question is not taught inside a chapter: {qid}")
+        if question_section is None or not re.search(
+            rf"(?m)^###\s+{re.escape(qid)}\b",
+            question_section.group(1),
+        ):
+            errors.append(
+                f"required question is missing from the important-question section: {qid}"
+            )
 
 
 def validate_coverage(text: str, ledger_text: str, errors: list[str], repo_root: Path | None = None) -> None:
@@ -269,7 +540,17 @@ def validate_stale_patterns(text: str, ledger_text: str, errors: list[str]) -> N
             errors.append(f"promoted content contains stale pattern from {row.get('ID')}: {pattern}")
 
 
-def validate(path: Path, *, allow_template: bool, ledger_path: Path | None, qa_path: Path | None, preflight: bool, repo_root: Path | None = None) -> list[str]:
+def validate(
+    path: Path,
+    *,
+    allow_template: bool,
+    ledger_path: Path | None,
+    qa_path: Path | None,
+    preflight: bool,
+    repo_root: Path | None = None,
+    publication: bool = False,
+    cold_start_report: Path | None = None,
+) -> list[str]:
     try:
         text = path.read_text(encoding="utf-8-sig")
     except OSError as exc:
@@ -284,6 +565,8 @@ def validate(path: Path, *, allow_template: bool, ledger_path: Path | None, qa_p
     schema = fm.get("schema_version", "")
     if schema not in SUPPORTED_SCHEMAS:
         return errors + [f"unsupported schema_version: {schema!r}"]
+    if publication and schema != "2.0":
+        errors.append("formal publication requires handbook schema 2.0")
     for heading in COMMON_HEADINGS + SCHEMA_HEADINGS[schema]:
         if heading not in text:
             errors.append(f"missing heading: {heading}")
@@ -304,7 +587,7 @@ def validate(path: Path, *, allow_template: bool, ledger_path: Path | None, qa_p
                 errors.append("duplicate UNIT ID/heading detected")
             if len(unit_titles) != len(set(unit_titles)):
                 errors.append("duplicate UNIT title detected")
-    if schema != "1.2" or allow_template:
+    if schema not in {"1.2", "2.0"} or allow_template:
         return errors
 
     required_fm = [
@@ -313,6 +596,8 @@ def validate(path: Path, *, allow_template: bool, ledger_path: Path | None, qa_p
         "learning_goal", "audience", "language", "generated_at", "source_ledger",
         "source_qa", "validation_status", "cold_start_status",
     ]
+    if schema == "2.0":
+        required_fm.extend(["release_transaction_id", "required_question_ids"])
     for key in required_fm:
         if key not in fm or is_empty(fm.get(key)):
             errors.append(f"missing or empty frontmatter field: {key}")
@@ -337,7 +622,7 @@ def validate(path: Path, *, allow_template: bool, ledger_path: Path | None, qa_p
         errors.append(f"artifact status must be complete or incomplete-draft, got {status!r}")
 
     if ledger_path is None or qa_path is None:
-        errors.append("schema 1.2 validation requires --ledger and --qa")
+        errors.append(f"schema {schema} validation requires --ledger and --qa")
         return errors
     try:
         ledger_text = ledger_path.read_text(encoding="utf-8-sig")
@@ -345,11 +630,34 @@ def validate(path: Path, *, allow_template: bool, ledger_path: Path | None, qa_p
     except OSError as exc:
         return errors + [f"cannot read source bundle: {exc}"]
 
-    validate_coverage(text, ledger_text, errors, repo_root=repo_root)
+    if schema == "1.2":
+        validate_coverage(text, ledger_text, errors, repo_root=repo_root)
+        completed_steps = {
+            step
+            for step, state in extract_ledger_steps(ledger_text).items()
+            if state in DONE
+        }
+    else:
+        completed_steps = validate_handbook_20(
+            text,
+            ledger_text,
+            errors,
+            repo_root=repo_root,
+        )
+        validate_required_question_ids(
+            text,
+            qa_text,
+            fm.get("required_question_ids", ""),
+            errors,
+        )
     validate_questions(text, qa_text, errors)
     validate_stale_patterns(text, ledger_text, errors)
     if status == "complete":
-        manifest = validate_finalization_bundle.evaluate_bundle(ledger_path, qa_path)
+        manifest = validate_finalization_bundle.evaluate_bundle(
+            ledger_path,
+            qa_path,
+            publication=publication,
+        )
         if not manifest.get("ready"):
             positive_flags = {
                 "route_final", "scenario_coverage_complete",
@@ -365,6 +673,21 @@ def validate(path: Path, *, allow_template: bool, ledger_path: Path | None, qa_p
             errors.append("finalization bundle is not ready: " + repr(blockers))
         if norm(fm.get("readiness_status")) not in {"ready", "pass", "true"}:
             errors.append("complete document readiness_status is not ready/pass")
+    if publication and not preflight:
+        if norm(fm.get("cold_start_status")) != "pass":
+            errors.append("formal publication requires cold_start_status: pass")
+        if cold_start_report is None:
+            errors.append("formal publication requires --cold-start-report")
+        elif not cold_start_report.is_file():
+            errors.append(f"cold-start report not found: {cold_start_report}")
+        else:
+            errors.extend(
+                cold_start_test.evaluate_report(
+                    cold_start_report,
+                    path,
+                    required_steps=completed_steps,
+                )
+            )
     return errors
 
 
@@ -376,8 +699,19 @@ def main() -> int:
     parser.add_argument("--qa", type=Path)
     parser.add_argument("--preflight", action="store_true", help="accept pending validation_status before final commit")
     parser.add_argument("--repo-root", type=Path, help="repository root for source path and symbol link checks")
+    parser.add_argument("--publication", action="store_true", help="require schema 2.0 and a real cold-start report")
+    parser.add_argument("--cold-start-report", type=Path)
     args = parser.parse_args()
-    errors = validate(args.document, allow_template=args.template, ledger_path=args.ledger, qa_path=args.qa, preflight=args.preflight, repo_root=args.repo_root)
+    errors = validate(
+        args.document,
+        allow_template=args.template,
+        ledger_path=args.ledger,
+        qa_path=args.qa,
+        preflight=args.preflight,
+        repo_root=args.repo_root,
+        publication=args.publication,
+        cold_start_report=args.cold_start_report,
+    )
     if errors:
         for error in errors:
             print(f"ERROR: {error}", file=sys.stderr)

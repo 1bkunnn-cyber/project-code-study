@@ -1,5 +1,17 @@
 # Teaching Output Contract
 
+## Mandatory short contract before every NODE
+
+Load `assets/NODE_TEACHING_CONTRACT.md`, reconcile Step, micro-Step, RUN, NODE,
+main-line anchor, pending intents, retest, and handoff hashes, then validate the
+draft with `scripts/validate_teaching_response.py`. Every NODE response contains
+the problem, real call chain, fenced real code, concrete I/O/Shape/state,
+rationale, common errors, self-test, and honest QA/receipt state.
+
+A recall answer starts with evaluation and then gives the complete explanation.
+A side question preserves the original recall prompt. Long context never permits
+summary-only output. State drift enters `REPAIR_REQUIRED`.
+
 Use semantic fields rather than response length as the quality gate.
 
 ## Source NODE contract

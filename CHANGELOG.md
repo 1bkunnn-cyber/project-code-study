@@ -1,5 +1,25 @@
 # Changelog
 
+## 6.0.0 — 2026-08-04
+
+- Added immutable input events, ordered mixed-intent splitting, single-use
+  continue consumption, hash-bound compaction handoffs, and
+  `REPAIR_REQUIRED`.
+- Replaced the uniform QA length floor in publication mode with type-specific
+  concept/code/shape/metric/review/correction teaching contracts.
+- Added durable-memory candidate classification and the
+  candidate/approved/saved/rejected/stale lifecycle, including rejection
+  redaction and release-bound saves.
+- Added a unified PREPARED/COMMITTED WAL release receipt binding QA, LOG,
+  memory, the handbook, revision, readiness, validators, cold-start evidence,
+  not-run boundaries, Step/NODE, and exact response hash.
+- Upgraded the final document to schema 2.0 standalone Step chapters with exact
+  source-line excerpts, specialist Step 4/6/10 profiles, selected-Q absorption,
+  exercises/answers, and real fresh-model cold-start reports.
+- Added the short NODE teaching response validator and new adversarial tests.
+- Added a dated GitHub research and acknowledgements table with licenses,
+  activity, adoption decisions, and explicit non-adoptions.
+
 ## 5.5.0 — 2026-07-27
 
 - Closed the final-question side branch so it returns to `FINAL_QUESTION_PHASE` instead of ordinary NODE waiting.
