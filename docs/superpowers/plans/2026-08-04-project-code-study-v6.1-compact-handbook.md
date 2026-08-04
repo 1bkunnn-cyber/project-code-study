@@ -99,4 +99,4 @@ not-run boundaries are recorded in `IMPLEMENTATION_AND_TEST_REPORT_6.1.0.md`.
 - [x] Run template validation and focused schema 2.1 publication/cold-start tests.
 - [x] Run the read-only sample dual audit and verify no sample hash or file changed.
 - [x] Review `git diff --check`, scoped diff and secret/private-path exposure.
-- [ ] Create a Conventional Commit and push the current feature branch to `origin`.
+- [x] Create a Conventional Commit and push the current feature branch to `origin`.
