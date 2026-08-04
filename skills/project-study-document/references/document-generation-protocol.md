@@ -1,6 +1,6 @@
 # Final Study Document Generation Protocol
 
-Transform a ready learning bundle into one durable artifact. The process is fail-closed and uses a unique in-memory Step/chapter map, exact source excerpts, a temporary sibling file, two validation passes, a real cold-start report, and one unified release receipt.
+Transform a ready learning bundle into one durable, searchable artifact. The process is fail-closed and uses a unique in-memory Step/manual-entry map, selected exact source excerpts, a temporary sibling file, two validation passes, a real retrieval/explanation/application cold-start report, and one unified release receipt.
 
 The parent `scripts/finalize_project_study.py` is the sole formal commit entry. This protocol describes the candidate it consumes; it does not authorize a model or companion Skill to write the formal target directly.
 
@@ -37,31 +37,33 @@ Derive abstractions from durable learning records, not repository popularity or 
 
 Order chapters by prerequisites, primary runtime order, inserted dependencies, alternate scenarios/shared differences, architecture reconstruction, and reproduction/comparison/extension.
 
-## 4. Build a unique Step and chapter manifest
+## 4. Build a unique Step and manual-entry manifest
 
 Enumerate every required Step/micro Step once. Each coverage row records status, durable knowledge, RUN/NODE/K, evidence, Q/M/C, behavior evidence, UNIT IDs, and accepted skip impact.
 
 Build one in-memory mapping before rendering:
 
 ```text
-CHAPTER ID -> unique title -> unique explicit anchor -> one completed Step -> complete textbook content
+CHAPTER ID -> unique title -> unique explicit anchor -> one completed Step -> compact learning closure
 ```
 
 Gates before rendering:
 
 - Step coverage IDs are unique;
 - CHAPTER IDs, headings, and anchors are unique;
-- every done Step maps to one standalone chapter;
+- every done Step maps to one standalone manual entry;
 - skipped Steps are not presented as learned;
 - completed/mapped/skipped/unmapped counts reconcile and unmapped is zero.
 
 Do not create a second chapter for an already mapped Step; revise the existing map.
 
-## 5. Standalone chapter contract
+## 5. Compact Step manual contract
 
-Each chapter implements the complete 20-item contract in the companion Skill. A source excerpt is accepted only when its relative path, start/end line, and fenced contents match the locked repository. Important QA is taught in the chapter body and also remains traceable in the Q section.
+Each entry implements the companion Skill's eight-slot recipe and assigns one reading profile. A source excerpt is accepted only when its relative path, start/end line, fenced contents, excerpt count, total lines, and source-file coverage pass the locked-repository checks. Important QA is taught completely once in the most relevant entry and remains traceable through the compact Q index.
 
-A route row, takeaway, pseudocode fragment, or cross-reference is not a textbook chapter. `详见 chat`, `同上`, `前文已解释`, circular chapter references, and unexplained `不涉及` are forbidden. A genuinely inapplicable field explains why and gives the applicable evidence/skill instead.
+A route row, takeaway, pseudocode fragment, or cross-reference is not a Step manual entry. A document-local `DEEP-DIVE-*` may hold one shared mechanism, but the referring Step first states its local answer, call boundary, and evidence. `详见 chat`, `同上`, `前文已解释`, circular references, and unexplained `不涉及` are forbidden. A genuinely inapplicable field explains why and gives the applicable evidence/skill instead.
+
+Reject exact non-code paragraphs of at least 80 normalized characters repeated across entries. Reject complete-function or complete-file copying that exceeds the profile/source-coverage budget. If content exceeds the specialist budget, split a real micro-Step or extract one shared deep dive; do not expand the limit.
 
 ## 6. Synthesis rules
 
@@ -75,7 +77,7 @@ For visuals, prefer the smallest useful linear chain or table; use Mermaid for m
 
 1. Confirm output path and overwrite choice.
 2. Create a temporary sibling file in the same directory.
-3. Instantiate schema 2.0 once from the unique Step/chapter map.
+3. Instantiate schema 2.1 once from the unique Step/manual-entry map.
 4. Set real ISO generation time, immutable revision (or explicit `uncommitted:<hash>`), source LOG/QA paths, source TX, readiness receipt, and source limitations.
 5. Set `status: complete`, `validation_status: pending` for preflight.
 6. Run:
@@ -86,7 +88,7 @@ python skills/project-study-document/scripts/validate_study_document.py <temp> -
 
 7. On any error, do not touch the target. Rebuild the affected UNIT map/section and reassemble; never use unconstrained global replacement or tail append.
 8. After zero preflight errors, change only `validation_status` to `validated`.
-9. Run a real fresh-model/no-chat cold-start against the exact validated candidate and save its per-Step JSON report.
+9. Run a real fresh-model/no-chat cold-start against the exact validated candidate and save its per-Step lookup, explanation, and application JSON report.
 10. Run final validation without `--preflight` and with `--publication --cold-start-report <REPORT>`.
 11. Read back frontmatter, TOC, counts, all CHAPTER headings/anchors, important questions, corrections, evidence index, and next action.
 12. Stage the target through `finalize_project_study.py --publication`, then create the only success marker through `release_transaction.py`. The finalizer's `release-pending` result cannot authorize a saved claim.

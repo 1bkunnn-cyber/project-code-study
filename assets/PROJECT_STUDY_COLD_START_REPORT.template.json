@@ -1,5 +1,5 @@
 {
-  "schema_version": "1.0",
+  "schema_version": "1.1",
   "mode": "fresh-model-no-chat",
   "fresh_session": true,
   "input_scope": "document-only",
@@ -15,6 +15,10 @@
       "important_qa": "<important Q and answer>",
       "exercise_answer": "<answer derived from the handbook>",
       "evidence_boundary": "<confirmed/inferred/not-run boundary>",
+      "lookup_path": "<quick index -> CHAPTER anchor or Q/symbol lookup path>",
+      "retrieval_result": "pass",
+      "explanation_result": "pass",
+      "application_result": "pass",
       "result": "pass"
     }
   },

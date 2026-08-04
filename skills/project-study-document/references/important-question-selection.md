@@ -23,19 +23,17 @@ The final learning document should preserve questions that shaped understanding,
 
 Do not classify Transformer, matcher, criterion, data-container, mask, objective, post-processing, or evaluation-mechanism questions as routine merely because they originated from a local line of code. Excluded questions are not deleted; preserve a compact Q-ID index and exclusion reason.
 
-## Required presentation for each included question
+The complete canonical answer appears once in the most relevant Step entry. The
+top-level question section is a lookup table (`Q-ID / Step / 主题 / 一句话结论 /
+正文锚点`), not a second copy of the answer. If a question affects multiple
+Steps, choose one canonical entry and add short cross-links from the others.
+
+## Required presentation inside the canonical Step entry
 
 ```markdown
-### Q-xxx — <question title>
-
-- 学习位置：<Step / RUN / NODE>
-- 用户问题：<preserve the user's intent; quote briefly when useful>
-- 为什么重要：<learning impact>
-- 规范答案：<complete canonical answer>
-- 证据：<SRC / paper / runtime references>
-- 改变了什么理解：<prior belief → corrected belief, or no change>
-- 关联修正：<M-/C- IDs or none>
-- 当前状态：<confirmed / inferred / unresolved>
+Q-xxx 问：<preserve the user's intent briefly>.
+规范答案：<complete but concise canonical answer>.
+证据与影响：<SRC/paper/runtime; prior belief → canonical belief; M-/C- IDs>.
 ```
 
 Do not praise the question generically. Explain its concrete effect on the mental model.
@@ -51,4 +49,5 @@ Before finalizing:
 5. verify no included answer uses stale wording;
 6. verify the important-question section can be understood without the original chat.
 7. fail if any selected answer uses `详见 chat`, `同上`, a circular chapter reference, or stale wording.
-8. require every selected Q-ID to appear at least once inside its teaching chapter and once in the important-question section.
+8. require every selected Q-ID to appear exactly in one canonical Step answer and at least once in the important-question lookup table.
+9. reject a top-level question section that duplicates the complete Step answer instead of linking to it.

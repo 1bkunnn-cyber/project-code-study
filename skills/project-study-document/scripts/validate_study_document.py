@@ -17,7 +17,7 @@ import validate_learning_ledger as record_validator  # noqa: E402
 import cold_start_test  # noqa: E402
 
 
-SUPPORTED_SCHEMAS = {"1.0", "1.1", "1.2", "2.0"}
+SUPPORTED_SCHEMAS = {"1.0", "1.1", "1.2", "2.0", "2.1"}
 COMMON_HEADINGS = [
     "## 1. 文档身份与证据范围", "## 2. 学习成果摘要",
     "## 3. 项目、任务与问题定义", "## 5. 运行场景与真实调用链",
@@ -32,6 +32,12 @@ SCHEMA_HEADINGS = {
     "1.1": ["## 4. 动态学习路线、知识覆盖与掌握情况", "## 6. 可重新学习的核心知识单元"],
     "1.2": ["## 4. 动态学习路线、知识覆盖与掌握情况", "## 6. 可重新学习的核心知识单元"],
     "2.0": ["## 4. 动态学习路线、知识覆盖与掌握情况", "## 6. 逐 Step 教材章节"],
+    "2.1": [
+        "## 0. 如何查阅这份手册",
+        "## 快速检索索引",
+        "## 4. 动态学习路线、知识覆盖与掌握情况",
+        "## 6. 逐 Step 手册",
+    ],
 }
 DONE = {"done", "complete", "completed", "verified", "已完成"}
 SKIPPED = {"skipped", "stale", "跳过", "已跳过"}
@@ -82,14 +88,41 @@ CHAPTER_SECTIONS_20 = {
     "#### 与前后 NODE 的连接": 45,
 }
 
+COMPACT_STEP_LABELS = [
+    "- 覆盖 Step：",
+    "- 阅读层级：",
+    "- 预计复习时间：",
+    "- 检索关键词：",
+    "- 本 Step 要解决的问题：",
+    "- 真实调用链位置：",
+    "- 相关 RUN / NODE / micro-Step：",
+    "- 源码锚点：",
+    "- 学习完成标准：",
+]
+COMPACT_STEP_SECTIONS = {
+    "#### 30 秒定位": 70,
+    "#### 调用链与数据边界": 90,
+    "#### 精选源码证据": 80,
+    "#### 核心机制": 100,
+    "#### 设计取舍与故障定位": 80,
+    "#### 项目例子与重要 QA": 80,
+    "#### 自测与参考答案": 80,
+    "#### 证据边界与下一跳": 80,
+}
+READING_PROFILES = {
+    "compact": {"min_prose": 450, "max_prose": 1200, "max_excerpts": 1, "max_lines": 24},
+    "standard": {"min_prose": 800, "max_prose": 2200, "max_excerpts": 2, "max_lines": 60},
+    "specialist": {"min_prose": 1400, "max_prose": 3600, "max_excerpts": 4, "max_lines": 120},
+}
+SOURCE_EXCERPT_PATTERN = re.compile(
+    r"(?ms)^-\s*源码摘录：\s*(.+?):(\d+)-(\d+)\s*$"
+    r"\s*```[^\n]*\n(.*?)^```\s*$"
+)
+
 
 def _source_excerpt_matches(block: str, repo_root: Path) -> list[str]:
     errors: list[str] = []
-    pattern = re.compile(
-        r"(?ms)^-\s*源码摘录：\s*(.+?):(\d+)-(\d+)\s*$"
-        r"\s*```[^\n]*\n(.*?)^```\s*$"
-    )
-    excerpts = list(pattern.finditer(block))
+    excerpts = list(SOURCE_EXCERPT_PATTERN.finditer(block))
     if not excerpts:
         return ["chapter contains no '<relative path>:start-end' fenced source excerpt"]
     for match in excerpts:
@@ -113,6 +146,213 @@ def _source_excerpt_matches(block: str, repo_root: Path) -> list[str]:
             errors.append(
                 f"source excerpt does not match source lines: {relative}:{start}-{end}"
             )
+    return errors
+
+
+def _prose_length(block: str) -> int:
+    without_code = re.sub(r"(?ms)```.*?```", "", block)
+    without_structure = re.sub(
+        r"(?m)^(?:#{1,6}\s+|-\s+[^：\n]+：|<a\s+id=.*$).*$",
+        "",
+        without_code,
+    )
+    return len(re.sub(r"\s+", "", without_structure))
+
+
+def validate_excerpt_budget(block: str, profile: str, repo_root: Path) -> list[str]:
+    """Limit exact excerpts to the smallest source evidence needed for one Step."""
+    errors: list[str] = []
+    limits = READING_PROFILES.get(profile)
+    if limits is None:
+        return [f"unknown reading profile: {profile!r}"]
+    matches = list(SOURCE_EXCERPT_PATTERN.finditer(block))
+    if len(matches) > limits["max_excerpts"]:
+        errors.append(
+            f"{profile} profile source excerpt count exceeds budget "
+            f"({len(matches)} > {limits['max_excerpts']})"
+        )
+    total_lines = 0
+    covered_by_file: dict[Path, set[int]] = {}
+    for match in matches:
+        relative, raw_start, raw_end, _ = match.groups()
+        start, end = int(raw_start), int(raw_end)
+        excerpt_lines = end - start + 1
+        total_lines += excerpt_lines
+        if excerpt_lines > 45:
+            errors.append(
+                f"single source excerpt exceeds 45 lines: "
+                f"{relative.strip()}:{start}-{end}"
+            )
+        path = (repo_root / relative.strip().replace("\\", "/")).resolve()
+        try:
+            path.relative_to(repo_root.resolve())
+        except ValueError:
+            continue
+        if not path.is_file():
+            continue
+        file_lines = path.read_text(encoding="utf-8-sig").splitlines()
+        covered_by_file.setdefault(path, set()).update(range(start, end + 1))
+        if len(file_lines) < 20 and excerpt_lines > 12:
+            errors.append(
+                f"small-file source excerpt exceeds 12 lines: "
+                f"{relative.strip()}:{start}-{end}"
+            )
+    if total_lines > limits["max_lines"]:
+        errors.append(
+            f"{profile} profile source line budget exceeded "
+            f"({total_lines} > {limits['max_lines']})"
+        )
+    for path, covered in covered_by_file.items():
+        file_line_count = len(path.read_text(encoding="utf-8-sig").splitlines())
+        if file_line_count >= 20 and len(covered) / file_line_count > 0.35:
+            relative = path.relative_to(repo_root.resolve()).as_posix()
+            errors.append(
+                f"source coverage is too high for a handbook excerpt: "
+                f"{relative} ({len(covered)}/{file_line_count} > 35%)"
+            )
+    return errors
+
+
+def validate_compact_step_contract(
+    step_id: str,
+    block: str,
+    *,
+    repo_root: Path | None = None,
+) -> list[str]:
+    """Validate one schema 2.1 progressive-disclosure Step manual entry."""
+    errors: list[str] = []
+    if not re.search(r"(?m)^###\s+CHAPTER-[A-Za-z0-9_.-]+\s+—\s+\S+", block):
+        errors.append(f"Step {step_id} has no unique CHAPTER heading")
+    for label in COMPACT_STEP_LABELS:
+        value = label_value(block, label)
+        if not value or is_empty(value):
+            errors.append(f"Step {step_id} missing compact handbook metadata: {label}")
+    profile = norm(label_value(block, "- 阅读层级："))
+    if profile not in READING_PROFILES:
+        errors.append(f"Step {step_id} has invalid reading profile: {profile!r}")
+    covered = {
+        normalize_step(item)
+        for item in re.split(
+            r"[,，、;/]+",
+            label_value(block, "- 覆盖 Step："),
+        )
+        if normalize_step(item)
+    }
+    if normalize_step(step_id) not in covered:
+        errors.append(f"Step {step_id} compact entry does not declare its covered Step")
+    for heading, minimum in COMPACT_STEP_SECTIONS.items():
+        content = section_content(block, heading)
+        if not content:
+            errors.append(f"Step {step_id} missing compact handbook section: {heading}")
+        elif len(re.sub(r"\s+", "", content)) < minimum:
+            errors.append(
+                f"Step {step_id} compact handbook section too thin: {heading}"
+            )
+    prose_length = _prose_length(block)
+    if profile in READING_PROFILES:
+        limits = READING_PROFILES[profile]
+        if not limits["min_prose"] <= prose_length <= limits["max_prose"]:
+            errors.append(
+                f"Step {step_id} prose budget violation for {profile} "
+                f"({prose_length} not in "
+                f"{limits['min_prose']}-{limits['max_prose']})"
+            )
+    qa = section_content(block, "#### 项目例子与重要 QA")
+    if qa and not re.search(r"\bQ-\d+\b", qa):
+        errors.append(f"Step {step_id} important QA has no Q-ID")
+    boundary = section_content(block, "#### 证据边界与下一跳")
+    for level in ("已确认", "可推断", "待验证"):
+        if boundary and level not in boundary:
+            errors.append(f"Step {step_id} evidence boundary omits {level}")
+    data = section_content(block, "#### 调用链与数据边界")
+    if data and not re.search(r"\[[0-9,\s×x]+\]", data):
+        errors.append(f"Step {step_id} has no concrete Shape example")
+    if repo_root is not None:
+        errors.extend(_source_excerpt_matches(block, repo_root))
+        if profile in READING_PROFILES:
+            errors.extend(validate_excerpt_budget(block, profile, repo_root))
+    return errors
+
+
+def validate_chapter_duplication(
+    chapters: list[tuple[str, str, str]],
+) -> list[str]:
+    """Reject long prose copied verbatim between Step entries."""
+    owners: dict[str, str] = {}
+    errors: list[str] = []
+    for chapter_id, _, block in chapters:
+        prose = re.sub(r"(?ms)```.*?```", "", block)
+        for paragraph in re.split(r"\n\s*\n", prose):
+            normalized = re.sub(r"\s+", "", paragraph).strip()
+            if len(normalized) < 80 or normalized.startswith(("#", "-", "<a")):
+                continue
+            previous = owners.get(normalized)
+            if previous and previous != chapter_id:
+                errors.append(
+                    f"repeated handbook paragraph across {previous} and {chapter_id}"
+                )
+            else:
+                owners[normalized] = chapter_id
+    return sorted(set(errors))
+
+
+def validate_specialist_reading_profile(step_id: str, block: str) -> list[str]:
+    specialist = (
+        step_id == "4"
+        or step_id.startswith("4.")
+        or step_id == "6"
+        or step_id.startswith("6.")
+        or step_id == "10"
+        or step_id.startswith("10.")
+    )
+    if specialist and norm(label_value(block, "- 阅读层级：")) != "specialist":
+        return [f"Step {step_id} requires the specialist reading profile"]
+    return []
+
+
+def validate_lookup_index(
+    text: str,
+    *,
+    completed_steps: set[str],
+    required_qids: set[str],
+) -> list[str]:
+    """Require one navigable lookup row per completed Step and required Q-ID."""
+    errors: list[str] = []
+    rows = record_validator.find_table(
+        record_validator.tables_of(text),
+        {"Step", "关键词", "源码 / 符号", "重要 Q", "手册条目"},
+    )
+    if rows is None:
+        return ["schema 2.1 is missing the quick lookup index table"]
+    chapter_anchors = set(
+        re.findall(
+            r'(?m)^<a id="(chapter-[A-Za-z0-9_.-]+)"></a>\s*$',
+            text,
+        )
+    )
+    indexed_steps: set[str] = set()
+    indexed_qids: set[str] = set()
+    for row in rows:
+        step = normalize_step(row.get("Step", ""))
+        if step:
+            indexed_steps.add(step)
+        for field in ("关键词", "源码 / 符号", "手册条目"):
+            if is_empty(row.get(field)):
+                errors.append(f"lookup index Step {step or '?'} has empty {field}")
+        entry_targets = re.findall(
+            r"\]\(#(chapter-[A-Za-z0-9_.-]+)\)",
+            row.get("手册条目", ""),
+        )
+        if len(entry_targets) != 1 or entry_targets[0] not in chapter_anchors:
+            errors.append(
+                f"lookup index Step {step or '?'} has no resolvable "
+                "manual-entry anchor"
+            )
+        indexed_qids.update(re.findall(r"\bQ-\d+\b", row.get("重要 Q", "")))
+    for step in sorted(completed_steps - indexed_steps):
+        errors.append(f"lookup index is missing completed Step {step}")
+    for qid in sorted(required_qids - indexed_qids):
+        errors.append(f"lookup index is missing required question {qid}")
     return errors
 
 
@@ -243,7 +483,10 @@ def unit_matches(text: str) -> list[tuple[str, str, str]]:
 
 
 def chapter_matches(text: str) -> list[tuple[str, str, str]]:
-    section = re.search(r"(?ms)^## 6\. 逐 Step 教材章节\s*$\n(.*?)(?=^## 7\.)", text)
+    section = re.search(
+        r"(?ms)^## 6\. 逐 Step (?:教材章节|手册)\s*$\n(.*?)(?=^## 7\.)",
+        text,
+    )
     if not section:
         return []
     body = section.group(1)
@@ -255,6 +498,24 @@ def chapter_matches(text: str) -> list[tuple[str, str, str]]:
         end = matches[index + 1].start() if index + 1 < len(matches) else len(body)
         result.append((match.group(1), clean(match.group(2)), body[match.start():end]))
     return result
+
+
+def validate_deep_dive_links(text: str) -> list[str]:
+    """Keep progressive-disclosure links inside the hash-bound document."""
+    targets = set(
+        re.findall(r"\]\(#(deep-dive-[A-Za-z0-9_.-]+)\)", text, re.IGNORECASE)
+    )
+    anchors = set(
+        re.findall(
+            r'(?m)^<a id="(deep-dive-[A-Za-z0-9_.-]+)"></a>\s*$',
+            text,
+            re.IGNORECASE,
+        )
+    )
+    return [
+        f"document-local deep-dive link has no matching anchor: {target}"
+        for target in sorted(targets - anchors)
+    ]
 
 
 def section_content(block: str, heading: str) -> str:
@@ -410,6 +671,86 @@ def validate_handbook_20(
     return done_steps
 
 
+def validate_handbook_21(
+    text: str,
+    ledger_text: str,
+    errors: list[str],
+    *,
+    repo_root: Path | None,
+) -> set[str]:
+    chapters = chapter_matches(text)
+    if not chapters:
+        errors.append("schema 2.1 contains no compact Step manual entry")
+        return set()
+    ids = [chapter_id for chapter_id, _, _ in chapters]
+    if len(ids) != len(set(ids)):
+        errors.append("duplicate CHAPTER ID detected")
+    anchors = re.findall(
+        r'(?m)^<a id="(chapter-[A-Za-z0-9_.-]+)"></a>\s*$',
+        text,
+    )
+    expected_anchors = {
+        f"chapter-{chapter_id.removeprefix('CHAPTER-')}"
+        for chapter_id in ids
+    }
+    if len(anchors) != len(set(anchors)) or set(anchors) != expected_anchors:
+        errors.append("CHAPTER anchors must be unique and match CHAPTER IDs")
+
+    covered_by_chapter: set[str] = set()
+    for chapter_id, _, block in chapters:
+        declared = {
+            normalize_step(item)
+            for item in re.split(
+                r"[,，、;/]+",
+                label_value(block, "- 覆盖 Step："),
+            )
+            if normalize_step(item)
+        }
+        if len(declared) != 1:
+            errors.append(
+                f"{chapter_id} must map to exactly one completed Step"
+            )
+        for step in declared:
+            errors.extend(
+                validate_compact_step_contract(
+                    step,
+                    block,
+                    repo_root=repo_root,
+                )
+            )
+            errors.extend(validate_specialist_reading_profile(step, block))
+        duplicates = covered_by_chapter & declared
+        if duplicates:
+            errors.append(
+                "completed Steps appear in multiple chapters: "
+                + ", ".join(sorted(duplicates))
+            )
+        covered_by_chapter.update(declared)
+
+    errors.extend(validate_chapter_duplication(chapters))
+    errors.extend(validate_deep_dive_links(text))
+    ledger_steps = extract_ledger_steps(ledger_text)
+    done_steps = {
+        step
+        for step, status in ledger_steps.items()
+        if status in DONE
+    }
+    missing = done_steps - covered_by_chapter
+    extra = covered_by_chapter - done_steps
+    if missing:
+        errors.append(
+            "completed ledger Steps missing compact manual entries: "
+            + ", ".join(sorted(missing))
+        )
+    if extra:
+        errors.append(
+            "manual entries promote Steps not completed in ledger: "
+            + ", ".join(sorted(extra))
+        )
+    errors.extend(validate_special_step_contracts(text, done_steps))
+    return done_steps
+
+
 def validate_required_question_ids(
     text: str,
     qa_text: str,
@@ -419,7 +760,7 @@ def validate_required_question_ids(
     required = set(re.findall(r"\bQ-\d+\b", raw_ids))
     qa_ids = set(re.findall(r"\bQ-\d+\b", qa_text))
     chapter_section = re.search(
-        r"(?ms)^## 6\. 逐 Step 教材章节\s*$\n(.*?)(?=^## 7\.)",
+        r"(?ms)^## 6\. 逐 Step (?:教材章节|手册)\s*$\n(.*?)(?=^## 7\.)",
         text,
     )
     question_section = re.search(
@@ -435,7 +776,7 @@ def validate_required_question_ids(
         ):
             errors.append(f"required question is not taught inside a chapter: {qid}")
         if question_section is None or not re.search(
-            rf"(?m)^###\s+{re.escape(qid)}\b",
+            rf"\b{re.escape(qid)}\b",
             question_section.group(1),
         ):
             errors.append(
@@ -515,7 +856,15 @@ def validate_questions(text: str, qa_text: str, errors: list[str]) -> None:
     qa_tables = record_validator.tables_of(qa_text)
     rows = record_validator.find_table(qa_tables, {"Q ID", "状态", "Parent Q", "Transaction ID"}) or []
     qa_ids = set(record_validator.ids_in(rows, "Q ID", "Q"))
-    included = set(re.findall(r"(?m)^###\s+(Q-\d+)\b", text))
+    question_section = re.search(
+        r"(?ms)^## 10\. 用户重要提问\s*$\n(.*?)(?=^## 11\.)",
+        text,
+    )
+    included = (
+        set(re.findall(r"\bQ-\d+\b", question_section.group(1)))
+        if question_section
+        else set()
+    )
     if qa_ids and not included:
         errors.append("important-question section contains no Q-ID entry")
     correction_qs = {clean(row.get("Q ID")) for row in rows if norm(row.get("修正 ID")) not in {"", "none", "无", "-"}}
@@ -565,8 +914,8 @@ def validate(
     schema = fm.get("schema_version", "")
     if schema not in SUPPORTED_SCHEMAS:
         return errors + [f"unsupported schema_version: {schema!r}"]
-    if publication and schema != "2.0":
-        errors.append("formal publication requires handbook schema 2.0")
+    if publication and schema != "2.1":
+        errors.append("formal publication requires compact handbook schema 2.1")
     for heading in COMMON_HEADINGS + SCHEMA_HEADINGS[schema]:
         if heading not in text:
             errors.append(f"missing heading: {heading}")
@@ -587,7 +936,7 @@ def validate(
                 errors.append("duplicate UNIT ID/heading detected")
             if len(unit_titles) != len(set(unit_titles)):
                 errors.append("duplicate UNIT title detected")
-    if schema not in {"1.2", "2.0"} or allow_template:
+    if schema not in {"1.2", "2.0", "2.1"} or allow_template:
         return errors
 
     required_fm = [
@@ -596,8 +945,10 @@ def validate(
         "learning_goal", "audience", "language", "generated_at", "source_ledger",
         "source_qa", "validation_status", "cold_start_status",
     ]
-    if schema == "2.0":
+    if schema in {"2.0", "2.1"}:
         required_fm.extend(["release_transaction_id", "required_question_ids"])
+    if schema == "2.1":
+        required_fm.extend(["handbook_mode", "default_reading_profile"])
     for key in required_fm:
         if key not in fm or is_empty(fm.get(key)):
             errors.append(f"missing or empty frontmatter field: {key}")
@@ -637,7 +988,7 @@ def validate(
             for step, state in extract_ledger_steps(ledger_text).items()
             if state in DONE
         }
-    else:
+    elif schema == "2.0":
         completed_steps = validate_handbook_20(
             text,
             ledger_text,
@@ -650,6 +1001,35 @@ def validate(
             fm.get("required_question_ids", ""),
             errors,
         )
+    else:
+        completed_steps = validate_handbook_21(
+            text,
+            ledger_text,
+            errors,
+            repo_root=repo_root,
+        )
+        required_qids = set(
+            re.findall(r"\bQ-\d+\b", fm.get("required_question_ids", ""))
+        )
+        errors.extend(
+            validate_lookup_index(
+                text,
+                completed_steps=completed_steps,
+                required_qids=required_qids,
+            )
+        )
+        validate_required_question_ids(
+            text,
+            qa_text,
+            fm.get("required_question_ids", ""),
+            errors,
+        )
+        if norm(fm.get("handbook_mode")) != "layered-step-manual":
+            errors.append(
+                "schema 2.1 handbook_mode must be layered-step-manual"
+            )
+        if norm(fm.get("default_reading_profile")) not in READING_PROFILES:
+            errors.append("schema 2.1 default_reading_profile is invalid")
     validate_questions(text, qa_text, errors)
     validate_stale_patterns(text, ledger_text, errors)
     if status == "complete":
@@ -686,6 +1066,7 @@ def validate(
                     cold_start_report,
                     path,
                     required_steps=completed_steps,
+                    handbook_schema=schema if schema == "2.1" else None,
                 )
             )
     return errors
@@ -699,7 +1080,11 @@ def main() -> int:
     parser.add_argument("--qa", type=Path)
     parser.add_argument("--preflight", action="store_true", help="accept pending validation_status before final commit")
     parser.add_argument("--repo-root", type=Path, help="repository root for source path and symbol link checks")
-    parser.add_argument("--publication", action="store_true", help="require schema 2.0 and a real cold-start report")
+    parser.add_argument(
+        "--publication",
+        action="store_true",
+        help="require compact handbook schema 2.1 and a real cold-start report",
+    )
     parser.add_argument("--cold-start-report", type=Path)
     args = parser.parse_args()
     errors = validate(

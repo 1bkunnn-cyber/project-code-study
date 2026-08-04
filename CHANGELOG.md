@@ -1,5 +1,23 @@
 # Changelog
 
+## 6.1.0 — 2026-08-04
+
+- Reframed the formal artifact from a long per-Step textbook to a searchable,
+  layered Step manual while preserving independent no-chat relearning.
+- Added schema 2.1 eight-slot entries, quick Step/keyword/source/Q-ID lookup,
+  and document-local `DEEP-DIVE-*` sections for shared mechanisms.
+- Added `compact`, `standard`, and `specialist` prose/source budgets, exact
+  source-file coverage limits, and cross-Step long-paragraph duplication gates.
+- Changed important-Q handling so the complete canonical answer appears once
+  in the relevant Step and the top-level Q section is a compact lookup index.
+- Upgraded cold-start reports to prove retrieval, explanation, and application,
+  not just per-Step field presence.
+- Added and thanked Diátaxis, Material for MkDocs, mdBook, Rust by Example,
+  Log4brains, and Docusaurus to the GitHub research/adoption record; no upstream
+  code or protocol text was copied.
+- Kept schema 2.0 readable for migration while requiring 2.1 for new formal
+  publication.
+
 ## 6.0.0 — 2026-08-04
 
 - Added immutable input events, ordered mixed-intent splitting, single-use

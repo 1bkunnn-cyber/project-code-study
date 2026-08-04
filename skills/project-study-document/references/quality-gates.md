@@ -6,14 +6,14 @@ The document is accepted only when every blocking gate passes.
 
 - a fresh finalization manifest reports `ready: true`;
 - explicit question closure and generation consent are recorded;
-- canonical schema 2.0 frontmatter contains project identity, real ISO generation time, immutable repository revision, source LOG/QA, source/readiness/release transaction IDs, selected Q IDs, language, goal, and status;
+- canonical schema 2.1 frontmatter contains project identity, `handbook_mode: layered-step-manual`, reading profile, real ISO generation time, immutable repository revision, source LOG/QA, source/readiness/release transaction IDs, selected Q IDs, language, goal, and status;
 - unavailable evidence is disclosed;
 - `complete/validated` appears only after final zero-error validation.
 
 ## 2. Coverage and uniqueness
 
 - each required Step/micro Step has exactly one coverage row;
-- every done Step maps to one standalone textbook chapter;
+- every done Step maps to one standalone compact manual entry;
 - CHAPTER IDs, headings, and explicit anchors are unique;
 - completed/mapped/skipped/unmapped counts reconcile; unmapped is zero;
 - skipped Steps state reason/impact/acceptance and are not mastered;
@@ -22,7 +22,9 @@ The document is accepted only when every blocking gate passes.
 
 ## 3. Independent relearning
 
-With no chat, every chapter satisfies the 20-item contract, contains an exact source excerpt whose lines match the locked revision, and teaches important QA in full rather than pointing to an index.
+With no chat, every entry satisfies the eight-slot contract (which retains the 20 semantic learning requirements), contains selected exact source evidence whose lines match the locked revision, and teaches important QA in full once rather than pointing only to an index.
+
+Each entry passes its `compact`, `standard`, or `specialist` prose and excerpt budget. No excerpt exceeds 45 lines; no long source file exceeds 35% quoted coverage; no long paragraph is copied across entries. Shared `DEEP-DIVE-*` content is document-local and cannot replace the referring Step's core answer.
 
 Step 5/6/9/10 and administrative Steps must preserve durable architecture, reproduction, audit, or synthesis knowledge rather than one-line conclusions. They must not invent technical mechanisms.
 
@@ -46,7 +48,7 @@ Forbidden fillers include `详见 chat`, `同上`, `前文已解释`, `见之前
 
 ## 6. Structure and navigation
 
-- TOC targets exist once;
+- TOC, quick-index, Step, Q-ID, source/symbol and deep-dive targets exist once;
 - code fences are balanced;
 - content is within expected UNIT/section boundaries;
 - visuals are materially useful, readable in Markdown, and label RUN/NODE IDs;
@@ -63,4 +65,4 @@ Forbidden fillers include `详见 chat`, `同上`, `前文已解释`, `见之前
 
 ## 8. Cold-start acceptance
 
-For each completed Step, a fresh model with no chat must recover objective/runtime position, call order, source explanation, I/O/Shape/state, important Q, exercise answer, and unverified boundary. The report is bound to the exact document SHA-256. Static semantic checks are only a proxy. If a real fresh-host run is not performed, record it as `not-run`, never `pass`.
+For each completed Step, a fresh model with no chat must first locate the correct entry from a Step/Q-ID/symbol/error prompt, then recover objective/runtime position, call order, selected source explanation, I/O/Shape/state, important Q, exercise answer, and unverified boundary, and complete one application item. The report is bound to the exact document SHA-256. Static semantic checks are only a proxy. If a real fresh-host run is not performed, record it as `not-run`, never `pass`.

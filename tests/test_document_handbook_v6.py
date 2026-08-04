@@ -208,7 +208,7 @@ class DocumentHandbookV6Tests(unittest.TestCase):
             )
         )
 
-    def test_complete_schema_2_document_passes_publication_end_to_end(self) -> None:
+    def test_complete_schema_2_document_remains_readable_for_migration(self) -> None:
         ledger, qa = make_bundle(self.root)
         qa_text = qa.read_text(encoding="utf-8")
         depth = """源码位置：src/model.py:1-2。
@@ -322,7 +322,7 @@ RUN-main 从 entry 进入 NODE-001。
                 qa_path=qa,
                 preflight=False,
                 repo_root=self.root,
-                publication=True,
+                publication=False,
                 cold_start_report=report_path,
             ),
             [],

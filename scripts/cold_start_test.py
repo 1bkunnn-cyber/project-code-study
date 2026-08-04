@@ -42,6 +42,7 @@ def evaluate_report(
     document_path: Path,
     *,
     required_steps: set[str],
+    handbook_schema: str | None = None,
 ) -> list[str]:
     """Check isolation metadata, document binding, and per-Step teaching recovery."""
     try:
@@ -49,8 +50,9 @@ def evaluate_report(
     except (OSError, ValueError) as exc:
         return [f"cold-start report is unreadable: {exc}"]
     errors: list[str] = []
-    if report.get("schema_version") != "1.0":
-        errors.append("cold-start report schema must be 1.0")
+    expected_schema = "1.1" if handbook_schema == "2.1" else "1.0"
+    if report.get("schema_version") != expected_schema:
+        errors.append(f"cold-start report schema must be {expected_schema}")
     if report.get("mode") != "fresh-model-no-chat":
         errors.append("cold-start mode must prove a fresh model with no chat")
     if report.get("fresh_session") is not True:
@@ -90,6 +92,21 @@ def evaluate_report(
                 )
         if result.get("result") != "pass":
             errors.append(f"cold-start Step {step} did not pass")
+        if handbook_schema == "2.1":
+            retrieval_fields = {
+                "lookup_path": None,
+                "retrieval_result": "pass",
+                "explanation_result": "pass",
+                "application_result": "pass",
+            }
+            for field, expected in retrieval_fields.items():
+                value = result.get(field)
+                if expected is None and not str(value or "").strip():
+                    errors.append(f"cold-start Step {step} missing field: {field}")
+                elif expected is not None and value != expected:
+                    errors.append(
+                        f"cold-start Step {step} {field} must be {expected!r}"
+                    )
     if report.get("overall_status") != "pass":
         errors.append("cold-start overall_status is not pass")
     return errors
@@ -100,11 +117,17 @@ def main() -> int:
     parser.add_argument("--report", type=Path, required=True)
     parser.add_argument("--document", type=Path, required=True)
     parser.add_argument("--step", action="append", dest="steps", required=True)
+    parser.add_argument(
+        "--handbook-schema",
+        choices=("2.0", "2.1"),
+        help="require schema-specific cold-start report fields",
+    )
     args = parser.parse_args()
     errors = evaluate_report(
         args.report,
         args.document,
         required_steps=set(args.steps),
+        handbook_schema=args.handbook_schema,
     )
     if errors:
         for error in errors:

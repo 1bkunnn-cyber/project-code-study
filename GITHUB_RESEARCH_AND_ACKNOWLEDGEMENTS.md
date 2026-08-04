@@ -24,6 +24,12 @@
 | [PocketFlow Tutorial Codebase Knowledge](https://github.com/The-Pocket/PocketFlow-Tutorial-Codebase-Knowledge) | 从核心抽象、关系与调用流生成初学者教程 | MIT | 中；未归档 | **可直接借鉴文档思想**：教材按调用依赖组织；生成器/runtime 不引入。 |
 | [RepoAgent](https://github.com/OpenBMB/RepoAgent) | AST/调用关系、仓库级文档、增量更新 | Apache-2.0 | 低；未归档 | **只借鉴 source-grounded/incremental 思想**；AST 全量生成超出通用 Skill 边界。 |
 | [CodeTour](https://github.com/microsoft/codetour) | 文件/行号锚点组成可重放源码路线 | MIT | 中；未归档 | **可直接借鉴机制思想**：路径+精确行段+snippet 校验；不复制 tour schema。 |
+| [Diátaxis](https://github.com/evildmp/diataxis-documentation-framework) | 将 tutorial、how-to、reference、explanation 按用户需求分离；先给最小解释，再按需进入深入材料 | README 标注 CC-BY-SA 4.0；GitHub API 为 NOASSERTION | 高；未归档 | **可直接借鉴信息架构思想**：Step 本地闭环、检索索引和共享 deep dive 分层；不复制其文档文本。 |
+| [Material for MkDocs](https://github.com/squidfunk/mkdocs-material) | Markdown 文档的搜索、目录、breadcrumbs、源码归属和多设备导航 | MIT | 高；未归档；2026 年进入 maintenance mode | **只借鉴导航思想**：在单 Markdown 中加入关键词/源码/Q-ID 索引；不引入站点 runtime。 |
+| [mdBook](https://github.com/rust-lang/mdBook) | Markdown 章节树、搜索和前后导航 | MPL-2.0 | 高；未归档 | **只借鉴导航思想**：Step 锚点和 previous/next；不复制实现。 |
+| [Rust by Example](https://github.com/rust-lang/rust-by-example) | 用小而完整、可应用的例子学习技术概念 | Apache-2.0 OR MIT | 高；未归档 | **可直接借鉴教学粒度**：每 Step 一个项目最小例子；不复制其示例。 |
+| [Log4brains](https://github.com/thomvaill/log4brains) | 轻量 docs-as-code、可搜索元数据、时间线和 `<details>` 渐进披露 | Apache-2.0 | 低；未归档；最后 push 2024-12-17 | **只借鉴轻量知识组织**：内容预算、去重和可选深读；不引入 ADR 工具链。 |
+| [Docusaurus](https://github.com/facebook/docusaurus) | sidebar、版本化、文档站检索和多页面路由 | MIT | 高；未归档 | **当前不适合引入**：多文件站点和 Node runtime 会扩大 hash/receipt/部署边界；仅参考导航概念。 |
 | [DeepWiki-Open](https://github.com/AsyncFuncAI/deepwiki-open) | 仓库知识库、结构导航、关系图 | MIT | 高；未归档 | **只借鉴可导航知识结构**；云检索和自动 wiki 不能证明教学深度。 |
 | [MathTutorBench](https://github.com/eth-lre/mathtutorbench) | 教学能力任务、teacher-grounded scoring、错误定位与 scaffolding | 未检测到 | 高；未归档 | **只借鉴 rubric/evaluation 思想**；无明确许可证，不复制代码或数据。 |
 | [EducationQ](https://arxiv.org/abs/2504.14928) | 教育型对话质量维度与评估 | 论文，以出版条款为准 | 论文 | **只借鉴评估维度**；不导入数据或量表原文。 |
@@ -39,7 +45,11 @@
 4. CodeTour/Aider/RepoAgent 的 revision/path/call relation 思想，重做为锁定
    revision、精确行段和源码片段一致性校验。
 5. learn-codebase、PocketFlow 教程和 MathTutorBench 的教学思想，重做为
-   NODE 短合同、分类型 QA 深度合同、逐 Step 教材章节和冷启动练习。
+   NODE 短合同、分类型 QA 深度合同、逐 Step 学习闭环和冷启动练习。
+6. CodeTour、Diátaxis、Material for MkDocs、mdBook、Rust by Example 和
+   Log4brains 的导航/渐进披露思想，重做为 schema 2.1 快速索引、8 槽位
+   Step 条目、阅读/源码预算、跨 Step 去重、共享 deep dive，以及
+   “定位→解释→应用”的冷启动测试。
 
 ## 明确拒绝
 
@@ -47,6 +57,8 @@
 - 不保存完整聊天，不把一次性问题自动写入长期 memory。
 - 不让多 Agent runtime 成为权威状态机。
 - 不把自动生成的 wiki、摘要、repository map 当作源码证据或学习完成证明。
+- 不引入 Docusaurus/MkDocs/mdBook 站点运行时；正式产物仍是一个可离线、
+  可 hash、可由统一 receipt 绑定的 Markdown。
 - 不采用会削弱证据等级、用户 consent、fail-closed、research 副本隔离或
   隐私边界的外部方案。
 

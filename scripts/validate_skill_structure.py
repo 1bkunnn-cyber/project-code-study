@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Static structure and parse audit for project-code-study v6."""
+"""Static structure and parse audit for project-code-study v6.1."""
 
 from __future__ import annotations
 
@@ -34,6 +34,7 @@ REQUIRED_PATHS = [
     Path("tests/test_memory_lifecycle_v6.py"),
     Path("tests/test_release_transaction_v6.py"),
     Path("tests/test_document_handbook_v6.py"),
+    Path("tests/test_compact_handbook_v61.py"),
 ]
 
 
@@ -50,8 +51,8 @@ def validate_structure(root: Path) -> list[str]:
     if errors:
         return errors
     skill = (root / "SKILL.md").read_text(encoding="utf-8")
-    if not re.search(r"(?m)^version:\s*6\.0\.0\s*$", skill):
-        errors.append("SKILL.md version must be 6.0.0")
+    if not re.search(r"(?m)^version:\s*6\.1\.0\s*$", skill):
+        errors.append("SKILL.md version must be 6.1.0")
     description = re.search(r"(?m)^description:\s*(.+)$", skill)
     if not description or not description.group(1).startswith("Use when"):
         errors.append("SKILL.md description must start with 'Use when'")
@@ -62,11 +63,15 @@ def validate_structure(root: Path) -> list[str]:
         / "assets"
         / "PROJECT_STUDY_DOCUMENT.template.md"
     ).read_text(encoding="utf-8")
-    if 'schema_version: "2.0"' not in template or "## 6. 逐 Step 教材章节" not in template:
-        errors.append("document template must use handbook schema 2.0")
+    if (
+        'schema_version: "2.1"' not in template
+        or 'handbook_mode: "layered-step-manual"' not in template
+        or "## 6. 逐 Step 手册" not in template
+    ):
+        errors.append("document template must use compact handbook schema 2.1")
     readme = (root / "README.md").read_text(encoding="utf-8")
-    if "version-6.0.0" not in readme:
-        errors.append("README version badge is not 6.0.0")
+    if "version-6.1.0" not in readme:
+        errors.append("README version badge is not 6.1.0")
     if "GITHUB_RESEARCH_AND_ACKNOWLEDGEMENTS.md" not in readme:
         errors.append("README does not link the research acknowledgements")
     for path in sorted((root / "scripts").glob("*.py")):

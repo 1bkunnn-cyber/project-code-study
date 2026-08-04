@@ -1,6 +1,6 @@
 ---
 document_type: project-study-document
-schema_version: "2.0"
+schema_version: "2.1"
 status: "pending-readiness"
 project_name: "{{PROJECT_NAME}}"
 project_path: "{{PROJECT_PATH_OR_URL}}"
@@ -20,20 +20,25 @@ validation_status: "pending"
 cold_start_status: "not-run"
 release_transaction_id: "{{RELEASE_TRANSACTION_ID}}"
 required_question_ids: "{{REQUIRED_QUESTION_IDS}}"
+handbook_mode: "layered-step-manual"
+default_reading_profile: "{{DEFAULT_READING_PROFILE}}"
 ---
 
-# {{PROJECT_NAME}} 项目学习文档
+# {{PROJECT_NAME}} 项目学习手册
 
 > 本文档由已完成的学习记录、用户问答与项目证据综合生成，不是聊天转录。结论状态分为：`已确认`、`可推断`、`背景知识`、`待验证`。
+> “完整”表示每个 Step 的学习闭环和证据闭环完整，不表示复制完整聊天、完整源码或全部 QA。
 
 ## 目录
 
+- [0. 如何查阅这份手册](#0-如何查阅这份手册)
+- [快速检索索引](#快速检索索引)
 - [1. 文档身份与证据范围](#1-文档身份与证据范围)
 - [2. 学习成果摘要](#2-学习成果摘要)
 - [3. 项目、任务与问题定义](#3-项目任务与问题定义)
 - [4. 动态学习路线、知识覆盖与掌握情况](#4-动态学习路线知识覆盖与掌握情况)
 - [5. 运行场景与真实调用链](#5-运行场景与真实调用链)
-- [6. 逐 Step 教材章节](#6-逐-step-教材章节)
+- [6. 逐 Step 手册](#6-逐-step-手册)
 - [7. 数据、Shape 与状态流](#7-数据shape-与状态流)
 - [8. 目标函数、训练、推理与评估](#8-目标函数训练推理与评估)
 - [9. 论文—代码映射与设计解释](#9-论文代码映射与设计解释)
@@ -44,6 +49,19 @@ required_question_ids: "{{REQUIRED_QUESTION_IDS}}"
 - [14. 复现、验证与修改指南](#14-复现验证与修改指南)
 - [15. 后续行动](#15-后续行动)
 - [16. 证据与产物索引](#16-证据与产物索引)
+
+## 0. 如何查阅这份手册
+
+1. 已知 Step：从“快速检索索引”进入对应 `CHAPTER-`。
+2. 已知符号、源码、Shape、错误表现或 Q-ID：使用索引关键词定位。
+3. 只需复习：先读 `30 秒定位`、`调用链与数据边界` 和 `证据边界与下一跳`。
+4. 需要深入：再读本 Step 的精选源码、核心机制，或文档内唯一 `DEEP-DIVE-*`。
+
+## 快速检索索引
+
+| Step | 关键词 | 源码 / 符号 | 重要 Q | 手册条目 |
+| --- | --- | --- | --- | --- |
+| {{STEP}} | {{SEARCH_KEYWORDS}} | {{SOURCE_OR_SYMBOL}} | {{IMPORTANT_Q_IDS}} | [CHAPTER-{{CHAPTER_ID}}](#chapter-{{CHAPTER_ID}}) |
 
 ## 1. 文档身份与证据范围
 
@@ -85,11 +103,11 @@ required_question_ids: "{{REQUIRED_QUESTION_IDS}}"
 | 已明确跳过 | {{SKIPPED_STEP_COUNT}} |
 | 未映射 Step | {{UNMAPPED_STEPS_OR_NONE}} |
 
-> 完整文档的“未映射 Step”必须为 `无`。每个已完成 Step 都必须在下表保留一行，并映射到一个可独立阅读的 `CHAPTER-` 教材章节。
+> 完整文档的“未映射 Step”必须为 `无`。每个已完成 Step 都必须在下表保留一行，并映射到一个可独立查阅的 `CHAPTER-` 手册条目。
 
 ### 4.2 Step 知识覆盖索引
 
-| Step / 微 Step | 状态 | 本 Step 学到的知识 | RUN / NODE / K | 掌握证据 | 重要 Q / 修正 | 教材章节 |
+| Step / 微 Step | 状态 | 本 Step 学到的知识 | RUN / NODE / K | 掌握证据 | 重要 Q / 修正 | 手册条目 |
 | --- | --- | --- | --- | --- | --- | --- |
 | {{STEP}} | {{STEP_STATUS}} | {{STEP_KNOWLEDGE}} | {{RUN_NODE_K}} | {{MASTERY_EVIDENCE}} | {{RELATED_Q_M_C}} | [CHAPTER-{{CHAPTER_ID}}](#chapter-{{CHAPTER_ID}}) |
 
@@ -97,32 +115,38 @@ required_question_ids: "{{REQUIRED_QUESTION_IDS}}"
 
 {{RUNTIME_CALL_GRAPHS}}
 
-## 6. 逐 Step 教材章节
+## 6. 逐 Step 手册
 
-<!-- 每个完成 Step 恰好对应一个可脱离聊天阅读的 CHAPTER。多个 micro-Step 可在同一章展开，但不能把多个完成 Step 压成摘要。 -->
+<!--
+每个完成 Step 恰好对应一个可脱离聊天查阅的 CHAPTER。
+阅读层级必须是 compact / standard / specialist。
+正文预算分别为 450–1200 / 800–2200 / 1400–3600 个非代码字符。
+单个源码摘录最多 45 行；不得用完整函数、完整文件或重复 QA 填充篇幅。
+-->
 
 <a id="chapter-{{CHAPTER_ID}}"></a>
 
 ### CHAPTER-{{CHAPTER_ID}} — {{CHAPTER_TITLE}}
 
 - 覆盖 Step：{{COVERED_STEP}}
+- 阅读层级：{{READING_PROFILE}}
+- 预计复习时间：{{ESTIMATED_REVIEW_TIME}}
+- 检索关键词：{{SEARCH_KEYWORDS}}
 - 本 Step 要解决的问题：{{STEP_PROBLEM}}
-- 前置知识：{{PREREQUISITES}}
 - 真实调用链位置：{{RUNTIME_POSITION}}
-- 上游输入与下游输出：{{UPSTREAM_INPUT_DOWNSTREAM_OUTPUT}}
 - 相关 RUN / NODE / micro-Step：{{RUN_NODE_MICRO_STEP}}
 - 源码锚点：{{SOURCE_PATH_START_END}}
-- 本章学习完成标准：{{CHAPTER_COMPLETION_STANDARD}}
+- 学习完成标准：{{CHAPTER_COMPLETION_STANDARD}}
 
-#### 本章教材讲解
+#### 30 秒定位
 
-{{CHAPTER_STANDALONE_TEACHING}}
+{{STEP_PROBLEM_PREREQUISITES_RUNTIME_POSITION_UPSTREAM_DOWNSTREAM_AND_STANDARD}}
 
-#### 调用链与前后 NODE
+#### 调用链与数据边界
 
-{{CALL_CHAIN_AND_NODE_CONNECTION}}
+{{CALL_CHAIN_RUN_NODE_IO_SHAPE_STATE_AND_CONNECTION}}
 
-#### 关键源码片段
+#### 精选源码证据
 
 - 源码摘录：{{RELATIVE_SOURCE_PATH}}:{{START_LINE}}-{{END_LINE}}
 
@@ -130,57 +154,39 @@ required_question_ids: "{{REQUIRED_QUESTION_IDS}}"
 {{EXACT_SOURCE_EXCERPT}}
 ```
 
-#### 逐段或逐行解释
+{{WHY_THIS_EXCERPT_AND_LINE_LEVEL_EXPLANATION}}
 
-{{LINE_BY_LINE_EXPLANATION}}
+#### 核心机制
 
-#### 变量、参数与状态
+{{VARIABLES_PARAMETERS_FORMULAS_SHAPES_AND_STATE_CHANGES}}
 
-{{VARIABLE_PARAMETER_STATE_MEANING}}
+#### 设计取舍与故障定位
 
-#### 输入、输出、Shape 与状态变化
+{{RATIONALE_ALTERNATIVES_TRADEOFFS_COMMON_ERRORS_AND_SYMPTOMS}}
 
-{{IO_SHAPE_STATE_TRANSITIONS}}
+#### 项目例子与重要 QA
 
-#### 数学公式与参数计算
+{{PROJECT_SPECIFIC_EXAMPLE_AND_SELECTED_QA_COMPLETE_ANSWER}}
 
-{{FORMULAS_AND_PARAMETER_CALCULATIONS}}
+#### 自测与参考答案
 
-#### 为什么这样设计、替代实现与取舍
+{{RECALL_APPLICATION_EXERCISES_AND_REFERENCE_ANSWERS}}
 
-{{RATIONALE_ALTERNATIVES_TRADEOFFS}}
+#### 证据边界与下一跳
 
-#### 常见错误和错误表现
-
-{{COMMON_ERRORS_AND_SYMPTOMS}}
-
-#### 当前项目具体例子
-
-{{PROJECT_SPECIFIC_EXAMPLE}}
-
-#### 重要 QA 问题和完整答案
-
-{{IMPORTANT_QA_WITH_COMPLETE_ANSWER}}
-
-#### 回忆题与练习题
-
-{{RECALL_AND_EXERCISES}}
-
-#### 参考答案
-
-{{REFERENCE_ANSWERS}}
-
-#### 已确认、可推断、待验证的证据边界
-
-{{CONFIRMED_INFERRED_UNVERIFIED}}
-
-#### 与前后 NODE 的连接
-
-{{PREVIOUS_AND_NEXT_NODE_CONNECTION}}
+{{CONFIRMED_INFERRED_UNVERIFIED_PREVIOUS_NEXT_AND_UNIQUE_NEXT_ACTION}}
 
 ## 7. 数据、Shape 与状态流
 
 {{DATA_SHAPE_STATE_FLOW}}
+
+<!-- 跨 Step 复用的深入机制只写一次。Step 条目先给本地闭环，再链接到这里。 -->
+
+<a id="deep-dive-{{DEEP_DIVE_ID}}"></a>
+
+### DEEP-DIVE-{{DEEP_DIVE_ID}} — {{DEEP_DIVE_TITLE}}
+
+{{SHARED_MECHANISM_EXPLANATION}}
 
 ## 8. 目标函数、训练、推理与评估
 
@@ -194,16 +200,11 @@ required_question_ids: "{{REQUIRED_QUESTION_IDS}}"
 
 ## 10. 用户重要提问
 
-### Q-{{Q_ID}} — {{QUESTION_TITLE}}
+| Q-ID | Step | 主题 | 一句话结论 | 正文锚点 |
+| --- | --- | --- | --- | --- |
+| Q-{{Q_ID}} | {{QUESTION_LOCATION}} | {{QUESTION_TITLE}} | {{ONE_LINE_CANONICAL_CONCLUSION}} | [CHAPTER-{{CHAPTER_ID}}](#chapter-{{CHAPTER_ID}}) |
 
-- 学习位置：{{QUESTION_LOCATION}}
-- 用户问题：{{USER_QUESTION}}
-- 为什么重要：{{QUESTION_IMPORTANCE}}
-- 规范答案：{{CANONICAL_ANSWER}}
-- 证据：{{QUESTION_EVIDENCE}}
-- 改变了什么理解：{{QUESTION_IMPACT}}
-- 关联修正：{{RELATED_CORRECTION}}
-- 当前状态：{{QUESTION_STATUS}}
+> 重要 QA 的完整规范答案只在最相关 Step 正文出现一次。本节用于检索，不重复完整答案。
 
 ### 问题覆盖说明
 

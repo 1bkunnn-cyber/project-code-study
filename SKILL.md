@@ -1,7 +1,7 @@
 ---
 name: project-code-study
 description: Use when a learner asks to study a software or ML repository step by step, trace a real runtime call chain, learn source code by RUN/NODE, connect code with papers, recover a compressed study session, or publish a standalone project-learning handbook.
-version: 6.0.0
+version: 6.1.0
 ---
 
 # Project Code Study
@@ -68,7 +68,7 @@ Treat the following scripts as control-plane entry points, not examples:
 - `scripts/interaction_state.py` is the only route-advance decision. Call `can_advance()` with open questions, `retest_due_questions`, pending response, receipt, semantic NODE completion, strict-validation status, explicit `memory_status`, and unresolved user intents. A fresh `继续` alone never advances.
 - `scripts/validate_teaching_response.py` validates the exact state anchors and eight-part NODE teaching response before emission.
 - `scripts/memory_lifecycle.py` owns `candidate → approved → saved/rejected → stale` transitions and complete pre-compaction handoff recovery.
-- `scripts/finalize_project_study.py --publication` validates schema 2.0, a real cold-start report, and atomically stages the formal document. Its `release-pending` result is not a saved claim.
+- `scripts/finalize_project_study.py --publication` validates compact-handbook schema 2.1, a real retrieval/explanation/application cold-start report, and atomically stages the formal document. Its `release-pending` result is not a saved claim.
 - `scripts/release_transaction.py` is the sole publication commit marker. It binds QA, LOG, memory, document, source revision, readiness, validators, cold-start evidence, not-run boundaries, Step/NODE, and the exact response hash in one `COMMITTED` receipt.
 - `scripts/claim_verifier.py` selects a verifier by claim type: source, configuration, runtime, mathematical, paper, comparison, or learner verdict. Do not add project-specific exceptions.
 - `scripts/validate_protocol_memory.py` is the strict doctor for the optional `.project-study-memory/` index and detail files.
@@ -223,7 +223,7 @@ After explicit closure, ask once:
 它会整理每个 Step 可重新学习的知识、真实调用链、重要用户提问、规范修正、相关方法、复现证据和后续方向。
 ```
 
-Do not generate automatically. If the learner requests an early draft, the finalizer may create only `status: incomplete-draft` under a separate target and must list every blocker. On consent, build schema 2.0 chapters, run the exact-source validator, run a real fresh-model/no-chat cold-start test, call `finalize_project_study.py --publication`, then commit QA/LOG/memory/document through `release_transaction.py`. Any missing host capability remains `not-run` and blocks the corresponding claim.
+Do not generate automatically. If the learner requests an early draft, the finalizer may create only `status: incomplete-draft` under a separate target and must list every blocker. On consent, build schema 2.1 layered Step-manual entries, run exact-source, excerpt-budget, duplication, lookup, and deep-dive validators, run a real fresh-model/no-chat retrieval/explanation/application cold-start test, call `finalize_project_study.py --publication`, then commit QA/LOG/memory/document through `release_transaction.py`. Schema 2.0 remains readable for migration but cannot authorize a new formal publication. Any missing host capability remains `not-run` and blocks the corresponding claim.
 
 ## Response contract
 

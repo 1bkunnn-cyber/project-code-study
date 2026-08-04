@@ -1,6 +1,6 @@
 # Project Code Study
 
-[![Skill version](https://img.shields.io/badge/version-6.0.0-blue.svg)](CHANGELOG.md)
+[![Skill version](https://img.shields.io/badge/version-6.1.0-blue.svg)](CHANGELOG.md)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
 [简体中文](#简体中文) · [English](#english)
@@ -47,7 +47,7 @@ flowchart TD
     N --> O{ready}
     O -- 否 --> P[修复缺口]
     P --> N
-    O -- 是 --> Q[schema 2.0 教材 + 真实冷启动]
+    O -- 是 --> Q[schema 2.1 分层 Step 手册 + 真实冷启动]
     Q --> R[统一 WAL + COMMITTED release receipt]
 ```
 
@@ -61,17 +61,17 @@ flowchart TD
 | 持久化 | `Q/M/C/TX` 由 allocator 分配；QA 写入、精确回读、LOG 更新、跨文件对账和 strict validation 组成事务。 |
 | 状态 | 保存后停在 `AWAITING_QUESTIONS_OR_CONTINUE`；旧 `continue`、未保存问题和 `retest-due` 都不能推进主线。 |
 | 失败处理 | 没有机器 receipt 不能声称 `saved`；部分失败返回 `unsaved-partial` 并 fail-closed。 |
-| 最终化 | 正式文档必须是逐 Step 教材章节；finalizer 只产生 `release-pending`，统一 release receipt 才能证明保存。 |
+| 最终化 | 正式文档必须是可检索、可跳读的逐 Step 手册；finalizer 只产生 `release-pending`，统一 release receipt 才能证明保存。 |
 | 记忆 | 普通问题不入长期记忆；偏好、纠正、质量反馈和 Step 规则只生成 candidate，经批准和事务绑定后才能 saved。 |
 
 ### v6 机制与职责边界
 
 | 产物/控制面 | 唯一职责 | 不能替代 |
 | --- | --- | --- |
-| `PROJECT_STUDY_QA.md` | 保存分类型、可独立阅读的完整问答；publication 模式执行 concept/code/shape/metric/review/correction 深度合同 | LOG 状态、memory、正式教材 |
+| `PROJECT_STUDY_QA.md` | 保存分类型、可独立阅读的完整问答；publication 模式执行 concept/code/shape/metric/review/correction 深度合同 | LOG 状态、memory、正式手册 |
 | `PROJECT_STUDY_LOG.md` | 当前 Step/RUN/NODE、主线锚点、retest、pending intents、证据与事务状态 | 完整教学答案 |
 | `.project-study-memory/` | 只保存获批的 durable 偏好、纠正、项目规则和证据指针 | QA/LOG、聊天转录、源代码事实 |
-| `PROJECT_STUDY_DOCUMENT.md` | 每个完成 Step 的独立教材章节、真实源码、练习和答案 | 原聊天或索引式摘要 |
+| `PROJECT_STUDY_DOCUMENT.md` | 每个完成 Step 的紧凑学习闭环、精选源码、检索索引、练习和答案 | 原聊天、完整源码副本或索引式摘要 |
 | `release_transaction.py` | 用一份 WAL/receipt 绑定四类产物、revision、readiness、validator、cold-start 和 exact response | 宿主未执行的 hook |
 
 memory 状态固定为 `candidate → approved → saved → stale`，另有终态
@@ -81,11 +81,24 @@ M-ID、hash、状态和原因。压缩前 handoff 必须包含主线锚点、完
 问题、pending intents、retest、最近 correction、证据、artifact hash 和唯一
 下一行动；hash 不一致时进入 `REPAIR_REQUIRED`。
 
-正式教材使用 schema 2.0。每章覆盖问题、前置知识、真实调用链、上下游、
-RUN/NODE/micro-Step、精确路径和行号、源码片段、逐行解释、变量/状态、
-I/O/Shape、公式、设计理由、替代取舍、错误表现、前后 NODE、项目例子、
-重要 QA、练习/答案、证据边界和完成标准。Step 4.x、6、10 另有专项强制
-profile。旧 schema 1.2 可继续只读审计，但不能通过 v6 publication。
+正式手册使用 schema 2.1，目标是“翻到一个 Step 就能复习”，不是“把聊天和源码
+扩写成厚教材”。每个 Step 用 8 个固定槽位：`30 秒定位`、调用链与数据边界、
+精选源码证据、核心机制、设计取舍与故障定位、项目例子与重要 QA、自测与参考
+答案、证据边界与下一跳。它们继续覆盖问题、前置知识、RUN/NODE、I/O/Shape/
+状态、公式、设计理由、错误表现和完成标准，但不再拆成 15 个等长小节。
+
+每个条目声明 `compact`、`standard` 或 `specialist` 阅读层级，对应 450–1,200、
+800–2,200、1,400–3,600 个非代码字符。源码摘录总预算分别为 24、60、120 行，
+单段最多 45 行；源文件不少于 20 行时，同一 Step 最多引用 35%。80 字以上的
+非代码段落不得跨 Step 原样重复。训练、Shape、指标或创新机制可在文档内唯一的
+`DEEP-DIVE-*` 深讲一次，但每个 Step 仍须先给出本地核心答案。Step 4.x、6、10
+强制使用 `specialist`。schema 2.0 可继续只读迁移审计；新的正式 publication
+必须是 2.1。
+
+顶部快速索引支持按 Step、关键词、源码/符号和 Q-ID 定位。重要 QA 的完整规范
+答案只在最相关 Step 正文出现一次；顶层问题区只保留 Q-ID、Step、主题、一句话
+结论和正文锚点，避免二次复制。冷启动也不再只测“是否能复述”，而是依次测试
+能否定位、解释和完成应用题。
 
 ### 输出与控制面
 
@@ -97,7 +110,7 @@ profile。旧 schema 1.2 可继续只读审计，但不能通过 v6 publication�
 | `PROJECT_STUDY_LOG.md` | 已完成节点、问题状态、纠正、复测和事务回执。 |
 | `PROJECT_STUDY_QA.md` | 完整、可独立阅读的规范问答。 |
 | `.project-study-memory/MEMORY.md` | 可恢复的连续性记忆索引与当前恢复指针。 |
-| `PROJECT_STUDY_DOCUMENT.md` | 通过 readiness、教材 validator、真实冷启动和统一 release 后的正式学习手册。 |
+| `PROJECT_STUDY_DOCUMENT.md` | 通过 readiness、紧凑手册 validator、真实检索/解释/应用冷启动和统一 release 后的正式学习手册。 |
 
 推荐从以下入口理解实现：
 
@@ -122,7 +135,7 @@ Codex 用户级：      ~/.codex/skills/project-code-study
 项目级：            <project>/<host-skill-directory>/project-code-study
 ```
 
-请保留 `skills/project-study-document` 子目录。伴生的 [project-study-document](skills/project-study-document/SKILL.md) 负责将已验证的学习记录整理为独立 UNIT；它不能绕过主 Skill 的事务和 readiness 门禁。
+请保留 `skills/project-study-document` 子目录。伴生的 [project-study-document](skills/project-study-document/SKILL.md) 负责将已验证的学习记录整理为 schema 2.1 分层 Step 手册；它不能绕过主 Skill 的事务和 readiness 门禁。
 
 首次在某个项目中启用连续性记忆时，Skill 会先询问是否允许创建项目根目录下的 `.project-study-memory/`。只有在用户明确同意后才运行 `sync_protocol_memory.py init ... --user-consent`；拒绝或未回答都不会创建。
 
@@ -154,7 +167,7 @@ python -m unittest discover -s tests -p "test_*.py" -v
 python scripts/validate_learning_ledger.py <PROJECT_STUDY_LOG.md> --strict --publication --qa <PROJECT_STUDY_QA.md>
 python scripts/validate_finalization_bundle.py --ledger <PROJECT_STUDY_LOG.md> --qa <PROJECT_STUDY_QA.md> --publication
 python scripts/validate_protocol_memory.py <MEMORY_ROOT>
-python scripts/cold_start_test.py --report <REPORT.json> --document <PROJECT_STUDY_DOCUMENT.md> --step <STEP>
+python scripts/cold_start_test.py --report <REPORT.json> --document <PROJECT_STUDY_DOCUMENT.md> --step <STEP> --handbook-schema 2.1
 python skills/project-study-document/scripts/validate_study_document.py <PROJECT_STUDY_DOCUMENT.md> --ledger <LOG> --qa <QA> --repo-root <PROJECT_ROOT> --publication --cold-start-report <REPORT.json>
 python scripts/release_transaction.py prepare --manifest <RELEASE_MANIFEST.json> --wal <RELEASE.wal.json> --response-file <RESPONSE.md>
 python scripts/release_transaction.py commit --wal <RELEASE.wal.json> --receipt <RELEASE.receipt.json>
@@ -197,12 +210,18 @@ project-code-study/
 拒绝项见 [GitHub 调研与致谢](GITHUB_RESEARCH_AND_ACKNOWLEDGEMENTS.md)。
 特别感谢 Engramory、Mem0、Letta、Zep Graphiti、LangGraph、OpenHands、
 SWE-agent、Aider、AutoGen、CrewAI、learn-codebase、PocketFlow Tutorial
-Codebase Knowledge、RepoAgent、CodeTour、DeepWiki-Open、MathTutorBench 和
+Codebase Knowledge、RepoAgent、CodeTour、DeepWiki-Open、Diátaxis、
+Material for MkDocs、mdBook、Rust by Example、Log4brains、MathTutorBench 和
 EducationQ 的维护者与研究者公开相关思想。
 
 | 项目/文档 | 借鉴的通用思想 | 说明 |
 | --- | --- | --- |
 | [Engramory](https://github.com/tinqiao-oss/engramory) | 文件化连续性记忆、受控索引、单事实记录、去重/更新/归档 | 启发了本 Skill 的 memory 协议；未复制其源代码。该仓库 README 标注为 MIT。 |
+| [CodeTour](https://github.com/microsoft/codetour) | 有序代码导览、文件/行选择、primary tour 与下一跳 | 启发了 Step 顺序、精选源码锚点和前后导航；未复制其扩展代码。 |
+| [Diátaxis](https://github.com/evildmp/diataxis-documentation-framework) | tutorial/how-to/reference/explanation 分工和按需深入 | 启发了“Step 核心闭环 + 检索索引 + 共享深讲”的分层结构；其文档为 CC-BY-SA 4.0，本仓库只借鉴思想。 |
+| [Material for MkDocs](https://github.com/squidfunk/mkdocs-material) 与 [mdBook](https://github.com/rust-lang/mdBook) | 搜索、目录、锚点、前后导航和源码归属 | 启发了单 Markdown 内的快速索引；未引入站点运行时。 |
+| [Rust by Example](https://github.com/rust-lang/rust-by-example) | 小而完整的例子和可应用练习 | 启发了每 Step 一个项目最小例子；未复制示例内容。 |
+| [Log4brains](https://github.com/thomvaill/log4brains) | 轻量 Markdown、可搜索元数据和渐进披露 | 启发了内容预算、去重和可选深读；未复制其实现。 |
 | [learn-codebase](https://github.com/ktaletsk/learn-codebase) | 苏格拉底式提问、先预测后揭示、主动回忆、渐进式支架和学习日志 | 启发了主动回忆、复测和教学输出契约；许可证以其仓库为准。 |
 | [VS Code Agents documentation](https://github.com/microsoft/vscode-docs/blob/main/docs/copilot/concepts/agents.md) | Understand → Act → Validate 循环、计划阶段、动作结果反馈 | 启发了本 Skill 的执行—验证闭环；许可证以其仓库为准。 |
 | [GitHub Awesome Copilot](https://github.com/github/awesome-copilot) | preflight、条件步骤、失败即停、结构化包装提示和输出契约 | 启发了提示词路由与 fail-closed 规则；许可证以其仓库为准。 |
@@ -221,9 +240,11 @@ EducationQ 的维护者与研究者公开相关思想。
 
 `project-code-study` is a Chinese-first, evidence-bound Agent Skill for studying real software projects. It turns a verified runtime call chain into a route of `RUN/NODE` units, teaches one node at a time, evaluates active recall, and persists questions, progress, evidence, and study documents for independent review.
 
-Version 6 adds typed durable-memory candidates, hash-bound compaction handoffs,
-type-specific QA depth contracts, schema 2.0 per-Step textbook chapters with
-exact source excerpts, real fresh-model cold-start reports, and one WAL-backed
+Version 6.1 adds compact schema 2.1 Step-manual entries, quick lookup indexes,
+reading and source-excerpt budgets, cross-Step duplication checks, document-local
+deep dives, and retrieval/explanation/application cold-start reports. It keeps
+the v6 typed durable-memory candidates, hash-bound compaction handoffs,
+type-specific QA depth contracts, exact source evidence, and one WAL-backed
 release receipt binding QA, LOG, memory, document, validators, source revision,
 not-run boundaries, and the exact response. See the
 [research and acknowledgements table](GITHUB_RESEARCH_AND_ACKNOWLEDGEMENTS.md)
@@ -249,8 +270,8 @@ Verified source/runtime evidence
   -> wait in AWAITING_QUESTIONS_OR_CONTINUE
   -> advance only after a new continue
   -> build a fresh readiness manifest
-  -> build schema 2.0 per-Step textbook chapters
-  -> run a real fresh-model/document-only cold-start
+  -> build schema 2.1 layered Step-manual entries
+  -> run a real fresh-model/document-only lookup, explanation, and application cold-start
   -> stage through the finalizer
   -> commit one hash-bound release receipt
 ```
@@ -265,8 +286,18 @@ Verified source/runtime evidence
 | Persistence | Allocate `Q/M/C/TX` IDs uniquely; combine QA write, exact readback, LOG update, reconciliation, and strict validation into a transaction. |
 | State | Stop at `AWAITING_QUESTIONS_OR_CONTINUE`; unsaved questions, stale continue tokens, and `retest-due` states cannot advance the main route. |
 | Failure | Do not claim `saved` without a COMMITTED release receipt bound to the exact response; return `unsaved-partial` or `release-pending`. |
-| Finalization | Require schema 2.0 chapters, exact source excerpts, real cold-start, and one release receipt; preserve the target when `ready=false`. |
+| Finalization | Require schema 2.1 compact entries, selected exact source excerpts, real retrieval/explanation/application cold-start, and one release receipt; preserve the target when `ready=false`. |
 | Memory | Create candidates only for durable preferences, corrections, quality feedback, and Step rules; approve/reject explicitly and restore from hash-bound handoffs. |
+
+The final document is a manual to consult, not a textbook dump. Each Step uses
+eight slots: quick orientation; call/data boundary; selected source evidence;
+core mechanism; trade-offs and failure diagnosis; project example and selected
+QA; self-test and answer; evidence boundary and next hop. `compact`, `standard`,
+and `specialist` profiles cap non-code prose at 1,200, 2,200, and 3,600
+characters and total excerpts at 24, 60, and 120 lines. One excerpt is at most
+45 lines, a long source file may be quoted at most 35%, and long prose
+paragraphs cannot be copied across Steps. Shared mechanisms live once under a
+document-local `DEEP-DIVE-*`; each Step still contains its local answer.
 
 ### Outputs and control plane
 
@@ -278,7 +309,7 @@ The normal loop produces two layers of output. Chat provides the conclusion, key
 | `PROJECT_STUDY_LOG.md` | Completed nodes, question states, corrections, retests, and transaction receipts. |
 | `PROJECT_STUDY_QA.md` | Complete, independently readable canonical answers. |
 | `.project-study-memory/MEMORY.md` | Recoverable continuity-memory index and resume pointers. |
-| `PROJECT_STUDY_DOCUMENT.md` | Formal per-Step handbook released after readiness, schema 2.0 validation, real cold-start, and one committed receipt. |
+| `PROJECT_STUDY_DOCUMENT.md` | Formal per-Step manual released after readiness, schema 2.1 compactness/source/navigation validation, real cold-start, and one committed receipt. |
 
 Start with [SKILL.md](SKILL.md). Route user intent through [references/user-prompts.md](references/user-prompts.md); use [prompt-workflow-patterns.md](references/prompt-workflow-patterns.md) for abstract prompt patterns; consult the protocol references and [scripts/](scripts/) for the executable control plane.
 
@@ -294,7 +325,7 @@ Codex user scope:       ~/.codex/skills/project-code-study
 Project scope:          <project>/<host-skill-directory>/project-code-study
 ```
 
-Keep the `skills/project-study-document` companion directory. It turns validated study records into standalone per-Step textbook chapters and cannot bypass the main Skill's transaction, cold-start, or release gates.
+Keep the `skills/project-study-document` companion directory. It turns validated study records into searchable schema 2.1 Step-manual entries and cannot bypass the main Skill's transaction, cold-start, or release gates.
 
 When continuity memory is first enabled for a project, the Skill asks for explicit consent before creating `<PROJECT_ROOT>/.project-study-memory/`. A decline or missing answer creates no memory directory. The initialization command requires `--user-consent`.
 
@@ -326,7 +357,7 @@ python scripts/validate_skill_structure.py
 python scripts/validate_learning_ledger.py <PROJECT_STUDY_LOG.md> --strict --publication --qa <PROJECT_STUDY_QA.md>
 python scripts/validate_finalization_bundle.py --ledger <PROJECT_STUDY_LOG.md> --qa <PROJECT_STUDY_QA.md> --publication
 python scripts/validate_protocol_memory.py <MEMORY_ROOT>
-python scripts/cold_start_test.py --report <REPORT.json> --document <PROJECT_STUDY_DOCUMENT.md> --step <STEP>
+python scripts/cold_start_test.py --report <REPORT.json> --document <PROJECT_STUDY_DOCUMENT.md> --step <STEP> --handbook-schema 2.1
 python skills/project-study-document/scripts/validate_study_document.py <DOCUMENT> --ledger <LOG> --qa <QA> --repo-root <PROJECT_ROOT> --publication --cold-start-report <REPORT.json>
 python scripts/release_transaction.py prepare --manifest <MANIFEST.json> --wal <WAL.json> --response-file <RESPONSE.md>
 python scripts/release_transaction.py commit --wal <WAL.json> --receipt <RECEIPT.json>
@@ -334,7 +365,7 @@ python scripts/response_claim_guard.py <RESPONSE.md> --receipt <RECEIPT.json>
 git diff --check
 ```
 
-Validation must also prove that no success bypass exists after a failure: the formal target remains unchanged, `saved` requires one committed release receipt, duplicate IDs and boundary pollution are rejected, invalid source excerpts fail, shallow chapters cannot validate, and stale state cannot advance the route.
+Validation must also prove that no success bypass exists after a failure: the formal target remains unchanged, `saved` requires one committed release receipt, duplicate IDs and boundary pollution are rejected, invalid or over-budget source excerpts fail, shallow or bloated entries cannot validate, repeated long paragraphs fail, and stale state cannot advance the route.
 
 The repository contains local/static regression tests. Real host behavior, cross-model behavior, and cross-session persistence must be tested in the target host separately and must not be reported as passing based only on a static proxy.
 
@@ -368,6 +399,11 @@ This Skill independently abstracts workflow ideas from the following public proj
 | Project/document | General idea referenced | Note |
 | --- | --- | --- |
 | [Engramory](https://github.com/tinqiao-oss/engramory) | File-based continuity memory, bounded indexes, one-fact records, deduplication, update, and archive discipline. | Inspired the memory protocol; no source code was copied. Its README identifies the project as MIT-licensed. |
+| [CodeTour](https://github.com/microsoft/codetour) | Ordered code tours, file/line selections, primary tours, and next-step navigation. | Inspired Step ordering, selected source anchors, and continuation links; no extension code was copied. |
+| [Diátaxis](https://github.com/evildmp/diataxis-documentation-framework) | Separation of tutorial, how-to, reference, and explanation, with deeper material available on demand. | Inspired the local Step closure, lookup index, and shared deep-dive layers; ideas only. |
+| [Material for MkDocs](https://github.com/squidfunk/mkdocs-material) and [mdBook](https://github.com/rust-lang/mdBook) | Search, tables of contents, anchors, breadcrumbs, and previous/next navigation. | Inspired navigation inside one Markdown artifact; no site runtime was added. |
+| [Rust by Example](https://github.com/rust-lang/rust-by-example) | Small, complete examples and application-oriented learning. | Inspired one minimal project example per Step; no examples were copied. |
+| [Log4brains](https://github.com/thomvaill/log4brains) | Lightweight searchable Markdown knowledge and progressive disclosure. | Inspired content budgets, deduplication, and optional deeper reading; no implementation was copied. |
 | [learn-codebase](https://github.com/ktaletsk/learn-codebase) | Socratic questioning, prediction before reveal, active recall, graduated scaffolding, and learning journals. | Inspired the recall, retest, and teaching contracts; see the upstream repository for its license. |
 | [VS Code Agents documentation](https://github.com/microsoft/vscode-docs/blob/main/docs/copilot/concepts/agents.md) | Understand → Act → Validate loops, plan phases, and action-result feedback. | Inspired the execution/validation loop; see the upstream repository for its license. |
 | [GitHub Awesome Copilot](https://github.com/github/awesome-copilot) | Preflight, conditional steps, fail-stop behavior, structured wrappers, and output contracts. | Inspired prompt routing and fail-closed rules; see the upstream repository for its license. |
