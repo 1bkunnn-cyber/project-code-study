@@ -14,7 +14,7 @@
 | Description quality | 96 | 25% | 24.0 | Starts with `Use when`, names concrete repository-learning, call-chain, recovery, and handbook triggers without summarizing the full workflow. |
 | Content organization | 92 | 30% | 27.6 | Main Skill is 2,780 whitespace-delimited words; 15 heavy references, 15 control scripts, assets, and a companion Skill provide progressive disclosure. |
 | Writing style | 91 | 20% | 18.2 | Mostly imperative, evidence-bound, and state-oriented. Some long paragraphs remain because the state/permission boundary is intentionally explicit. |
-| Structural integrity | 99 | 25% | 24.8 | Valid frontmatter, version 6.0.0, all required resources present, Python parses, schema 2.0 template and gold publication pass, 88 tests pass. |
+| Structural integrity | 99 | 25% | 24.8 | Valid frontmatter, version 6.0.0, all required resources present, Python parses, schema 2.0 template and gold publication pass; 88 total tests, 87 pass and 1 explicit external-host skip. |
 | **Overall** |  | **100%** | **94.6 (A)** |  |
 
 ## Strengths

@@ -42,7 +42,7 @@ fail-closed、显式文档同意、草稿隔离、readiness repair、research �
 | 要求 | 命令/用例 | 结果 |
 | --- | --- | --- |
 | Skill 静态结构 | `validate_skill_structure.py` | PASS |
-| 所有脚本单元测试 | `python -m unittest discover -s tests -p "test_*.py" -v` | 88 PASS / 1 SKIP |
+| 所有脚本单元测试 | `python -m unittest discover -s tests -p "test_*.py" -v` | 88 total：87 PASS / 1 SKIP |
 | 旧 QA/LOG strict | 授权样本，非 publication | PASS |
 | v6 QA 深度 | 授权样本 `--publication` | 正确 FAIL；586 条深度缺口 |
 | memory doctor | 授权样本 `.project-study-memory` | PASS |
