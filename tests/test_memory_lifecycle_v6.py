@@ -98,6 +98,10 @@ class MemoryLifecycleV6Tests(unittest.TestCase):
             "recent_corrections": ["C-004"],
             "evidence_ids": ["SRC-008"],
             "unique_next_action": "retest Q-063",
+            "active_input_event_id": "INPUT-0063",
+            "question_queue_ids": ["Q-063"],
+            "current_question_id": "Q-063",
+            "question_queue_return_state": "AWAITING_RECALL",
         }
         handoff = memory_lifecycle.create_compaction_handoff(
             state,

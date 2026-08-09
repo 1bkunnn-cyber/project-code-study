@@ -6,7 +6,7 @@ Use this protocol when the learner asks a substantive question, answers active r
 
 Create a new Q entry for every first question, follow-up asking for a different reason/example/implication/path, new question in the same Step, syntax question that affects the current NODE, active-recall response, or question that revises an earlier claim. Do not create Q entries for operational acknowledgements such as `继续`, `好的`, or `明白` unless they change constraints.
 
-Never reuse an ID. Set `parent_id` for follow-ups. Preserve the current scenario, Step/NODE, interaction state, and exact continuation NODE before answering.
+Never reuse an ID. Set `parent_id` for follow-ups. Preserve the current scenario, Step/NODE, interaction state, and exact continuation NODE before answering. Bind every Q to its schema 6.2 input event, intent ID/order, exact source span/hash, and `answer_status`.
 
 ## 2. Standalone Q&A record
 
@@ -26,17 +26,27 @@ Forbidden answer substitutions: `详见 chat`, `同上`, `前文已解释`, `见
 
 ## 3. Persistence order
 
-In the same turn as the answer:
+For one input containing N questions, persistence has two stages.
 
-1. allocate one TX ID;
-2. write Q&A detail and Q&A index;
+Intake stage, before any answer:
+
+1. validate the input envelope and capture the exact return state;
+2. allocate all N Q IDs in source order;
+3. write every QA detail/index and LOG index as `answer_status: pending`;
+4. record input/intent identity, Parent Q, anchor, and ordered queue;
+5. strictly validate and emit one `question-intake` receipt.
+
+Answer stage, once per existing Q:
+
+1. allocate one new TX ID but retain the existing Q ID;
+2. replace that Q's pending answer with the standalone answer and update its indexes;
 3. read back Q ID, parent, complete answer, status, anchor, evidence links, and TX ID;
 4. write the LOG Q index, authoritative state, correction/K-card changes, and same TX ID;
 5. read back LOG current/next/state and affected rows;
 6. run strict cross-file validation;
 7. return `saved` only after all checks pass.
 
-Do not batch questions until the end of a Step. Partial success is `unsaved-partial`, never `saved`.
+Do not defer questions until the end of a Step. Partial success is `unsaved-partial`, never `saved`. A failed answer transaction changes no file; earlier answered Qs remain committed and later Qs remain pending.
 
 ## 4. Active-recall closure
 
@@ -79,7 +89,7 @@ Mark superseded promoted wording stale. Update hot summaries and affected K card
 
 ## 7. Multiple questions and feedback
 
-When multiple substantive questions arrive, allocate one ID per intent, answer in a bounded sequence, and preserve the same continuation NODE unless evidence legitimately changes the route. Teaching feedback receives an `FB-` ID and records concrete adjustment without advancing. A mixed message that includes `继续`, a recall response, a question, a correction, or a mode change must be represented as an explicit pending-intent queue; never silently drop an intent or consume `继续` before earlier intents close.
+When multiple substantive questions arrive, there is no protocol N limit. Register every intent before answering, answer in source order with one receipt per Q, and preserve the captured return state unless evidence legitimately changes the route through a correction transaction. Chat may show at most three answers per response, but display paging never removes a queue member. A follow-up receives a new Q and correct Parent Q. Teaching feedback receives an `FB-` ID and records concrete adjustment without advancing. A mixed message that includes `继续`, a recall response, a question, a correction, or a mode change must be represented as an explicit pending-intent queue; never silently drop an intent. A question/correction makes same-event `继续` expired rather than delayed.
 
 ## 8. Read strategy
 

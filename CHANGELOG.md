@@ -1,5 +1,15 @@
 # Changelog
 
+## 6.2.0 — 2026-08-09
+
+- Replaced the 19-template learner prompt catalog with one start prompt, natural follow-ups, and the standard `定位 → 学习 → 检验 → 沉淀 → 等待` loop.
+- Added schema 6.2 input envelopes with source spans/hashes, ordered intents, mixed-message routing, and same-event continue expiration.
+- Added arbitrary-size two-stage question transactions: register every Q before answering, then update one existing Q-ID per independently validated answer transaction.
+- Added `REGISTERING_QUESTION_BATCH`, `ANSWERING_QUESTION_QUEUE`, and `QUESTION_BATCH_REPAIR`, with exact captured-state return and compaction queue fields.
+- Upgraded generated LOG/QA templates to schema 4.2/1.2 while retaining strict read compatibility for 4.1/1.1 audit samples.
+- Replaced the uniform response validator with seven response profiles and content-specific code/Shape/metric/state evidence contracts.
+- Updated README, protocols, tests, research decisions, and acknowledgements; no external prompt or protocol text was copied.
+
 ## 6.1.0 — 2026-08-04
 
 - Reframed the formal artifact from a long per-Step textbook to a searchable,

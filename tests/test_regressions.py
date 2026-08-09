@@ -93,10 +93,10 @@ def make_bundle(root: Path, question_count: int = 1) -> tuple[Path, Path]:
 """
     log = log.replace("### 4.2 掌握度地图", card + "\n### 4.2 掌握度地图")
     q_rows = "\n".join(
-        f"| Q-{i:03d} | 0 / NODE-001 | question {i} | none | closed | no | SRC-001 | none |"
+        f"| Q-{i:03d} | 0 / NODE-001 | question {i} | none | closed | answered | INPUT-{i:04d} | INPUT-{i:04d}-I01 | no | SRC-001 | none |"
         for i in range(1, question_count + 1)
     )
-    q_header = "| Q ID | Step / Node | 问题摘要 | Parent Q | 状态 | 是否阻塞 | 修正 / 证据 ID | 下一动作 |\n| --- | --- | --- | --- | --- | --- | --- | --- |"
+    q_header = "| Q ID | Step / Node | 问题摘要 | Parent Q | 状态 | 回答状态 | Input event | Intent ID | 是否阻塞 | 修正 / 证据 ID | 下一动作 |\n| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |"
     log = re.sub(r"\| Q ID \| Step / Node \| 问题摘要 .*?(?=\n---\n\n## 9)", q_header + ("\n" + q_rows if q_rows else ""), log, flags=re.S)
     tx_table = f"""| Transaction ID | 时间 | QA delta | LOG delta | 精确回读 | Strict validation | Receipt |
 | --- | --- | --- | --- | --- | --- | --- |
@@ -111,12 +111,15 @@ def make_bundle(root: Path, question_count: int = 1) -> tuple[Path, Path]:
     details = []
     for i in range(1, question_count + 1):
         qid, txid = f"Q-{i:03d}", f"TX-{i + 1:04d}"
-        index_rows.append(f"| {qid} | 2026-07-19 | 0 / NODE-001 | code | question {i} | none | closed | detail | none | {txid} |")
+        index_rows.append(f"| {qid} | 2026-07-19 | 0 / NODE-001 | code | question {i} | none | closed | answered | INPUT-{i:04d} | INPUT-{i:04d}-I01 | detail | none | {txid} |")
         details.append(f"""### {qid} — question {i}
 
 - 日期：2026-07-19
 - Step / Node：0 / NODE-001
 - Parent Q：none
+- Input event：INPUT-{i:04d}
+- Intent ID：INPUT-{i:04d}-I01
+- Intent 顺序：1
 - 主线继续位置：NODE-001
 - 用户问题原意：Why does the entry call the main operation?
 - 直接结论：It preserves one validated runtime boundary.
@@ -129,11 +132,12 @@ def make_bundle(root: Path, question_count: int = 1) -> tuple[Path, Path]:
 - 关联 M-/C-/SRC- ID：SRC-001
 - 最小验证动作：trace input to output
 - 回到主线：NODE-001
+- 回答状态：answered
 - 状态：closed
 - Transaction ID：{txid}
 - Persistence receipt：saved after exact LOG/QA readback and strict validation
 """)
-    qa_header = "| Q ID | 日期 | Step / Node | 类型 | 问题摘要 | Parent Q | 状态 | 回答位置 | 修正 ID | Transaction ID |\n| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |"
+    qa_header = "| Q ID | 日期 | Step / Node | 类型 | 问题摘要 | Parent Q | 状态 | 回答状态 | Input event | Intent ID | 回答位置 | 修正 ID | Transaction ID |\n| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |"
     qa = re.sub(r"\| Q ID \| 日期 \| Step / Node .*?(?=\n类型：)", qa_header + ("\n" + "\n".join(index_rows) if index_rows else ""), qa, flags=re.S)
     qa = qa.replace("## 3. 用户心得与学习感受", "\n".join(details) + "\n## 3. 用户心得与学习感受")
     qa = qa.replace("| 最近一个 Q ID | `无` |", f"| 最近一个 Q ID | `{last_q}` |")

@@ -63,6 +63,8 @@ class TeachingResponseContractV6Tests(unittest.TestCase):
                 "cold_start_host": False,
                 "real_compaction_hook": False,
             },
+            "response_profile": "node-teaching",
+            "content_kind": "tensor",
         }
 
     def test_complete_node_response_matches_loaded_state(self) -> None:
@@ -90,7 +92,7 @@ class TeachingResponseContractV6Tests(unittest.TestCase):
 
     def test_recall_answer_requires_evaluation_then_full_explanation(self) -> None:
         state = dict(self.state)
-        state["response_mode"] = "recall_answer"
+        state["response_profile"] = "recall-assessment"
         errors = validate_teaching_response.validate_response(valid_response(), state)
         self.assertTrue(any("回答评价" in error for error in errors))
         enriched = valid_response() + "\n## 回答评价\n方向正确但缺少 loss。\n\n## 完整解释\n返回值由 loss NODE 消费。\n"
@@ -128,6 +130,77 @@ class TeachingResponseContractV6Tests(unittest.TestCase):
         )
         self.assertEqual(capabilities["capabilities"]["pre_response_hook"], "advisory")
         self.assertEqual(capabilities["capabilities"]["real_compaction_hook"], "not-run")
+
+    def test_start_profile_uses_small_mode_contract_not_eight_node_sections(self) -> None:
+        state = dict(self.state)
+        state["response_profile"] = "start"
+        state["content_kind"] = "state"
+        response = """## 学习定位
+- 当前 Step：4.1
+- 当前 micro-Step：4.1.a
+- 当前 RUN：RUN-train
+- 当前 NODE：NODE-forward
+- 主线锚点：ANCHOR-train-forward
+
+当前先确认真实训练入口。
+
+## 下一步
+定位 dataloader 到 trainer 的调用边界。
+
+## QA / receipt 状态
+没有新问题；未执行持久化。
+"""
+        self.assertEqual(validate_teaching_response.validate_response(response, state), [])
+
+    def test_question_answer_state_content_does_not_invent_numeric_shape(self) -> None:
+        state = dict(self.state)
+        state["response_profile"] = "question-answer"
+        state["content_kind"] = "state"
+        response = """## 问题结论
+- 当前 Step：4.1
+- 当前 micro-Step：4.1.a
+- 当前 RUN：RUN-train
+- 当前 NODE：NODE-forward
+- 主线锚点：ANCHOR-train-forward
+
+`optimizer.step()` 之后参数状态才改变。
+
+## 解释与证据
+调用者是 `_do_train()`；当前证据为源码 E1，尚未运行。
+
+## 回到主线
+仍回到 NODE-forward 的原回忆题。
+
+## QA / receipt 状态
+Q-064 已登记；回答事务尚未执行。
+"""
+        self.assertEqual(validate_teaching_response.validate_response(response, state), [])
+
+    def test_tensor_question_requires_concrete_shape_but_config_question_does_not(self) -> None:
+        state = dict(self.state)
+        state["response_profile"] = "question-answer"
+        base = """## 问题结论
+- 当前 Step：4.1
+- 当前 micro-Step：4.1.a
+- 当前 RUN：RUN-train
+- 当前 NODE：NODE-forward
+- 主线锚点：ANCHOR-train-forward
+
+输出进入下一节点。
+
+## 解释与证据
+源码证据为 SRC-002。
+
+## 回到主线
+返回 NODE-forward。
+
+## QA / receipt 状态
+Q-065 pending。
+"""
+        state["content_kind"] = "tensor"
+        self.assertTrue(any("Shape" in error for error in validate_teaching_response.validate_response(base, state)))
+        state["content_kind"] = "config"
+        self.assertEqual(validate_teaching_response.validate_response(base, state), [])
 
 
 if __name__ == "__main__":

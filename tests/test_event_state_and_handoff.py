@@ -47,6 +47,10 @@ class EventStateAndHandoffTests(unittest.TestCase):
             "recent_corrections": ["C-004"],
             "evidence_ids": ["SRC-008"],
             "unique_next_action": "retest Q-063",
+            "active_input_event_id": "INPUT-0063",
+            "question_queue_ids": ["Q-063"],
+            "current_question_id": "Q-063",
+            "question_queue_return_state": "AWAITING_RECALL",
         }
         handoff = study_events.build_handoff(
             state,
@@ -58,6 +62,30 @@ class EventStateAndHandoffTests(unittest.TestCase):
         )
         self.assertEqual(restored["status"], "REPAIR_REQUIRED")
         self.assertIn("PROJECT_STUDY_QA.md", restored["mismatched_artifacts"])
+
+    def test_question_batch_restores_exact_state_after_ordered_answers(self) -> None:
+        context = interaction_state.begin_question_batch(
+            "AWAITING_RECALL", "INPUT-0064", ["Q-064", "Q-065"]
+        )
+        self.assertEqual(context["state"], "REGISTERING_QUESTION_BATCH")
+        context = interaction_state.question_batch_event(context, "intake-saved")
+        self.assertEqual(context["current_question_id"], "Q-064")
+        context = interaction_state.question_batch_event(context, "answer-saved", qid="Q-064")
+        self.assertEqual(context["current_question_id"], "Q-065")
+        context = interaction_state.question_batch_event(context, "answer-saved", qid="Q-065")
+        self.assertEqual(context["state"], "AWAITING_RECALL")
+        self.assertEqual(context["pending_question_ids"], [])
+
+    def test_question_batch_failure_enters_repair_without_losing_queue(self) -> None:
+        context = interaction_state.begin_question_batch(
+            "TEACHING_CURRENT_NODE", "INPUT-0065", ["Q-066", "Q-067"]
+        )
+        context = interaction_state.question_batch_event(context, "intake-saved")
+        failed = interaction_state.question_batch_event(context, "answer-failed", qid="Q-066")
+        self.assertEqual(failed["state"], "QUESTION_BATCH_REPAIR")
+        self.assertEqual(failed["pending_question_ids"], ["Q-066", "Q-067"])
+        repaired = interaction_state.question_batch_event(failed, "repair-complete")
+        self.assertEqual(repaired["state"], "ANSWERING_QUESTION_QUEUE")
 
     def test_any_state_mismatch_enters_repair_and_returns_to_recorded_state(self) -> None:
         repaired = interaction_state.transition("TEACHING_CURRENT_NODE", "state-mismatch")

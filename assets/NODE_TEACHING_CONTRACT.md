@@ -1,16 +1,11 @@
-# NODE Teaching Contract 6.0
+# Short Response Contract 6.2
 
-Load this short contract before every teaching response.
+Load before every learner-facing response.
 
-1. Read authoritative `current_step`, `current_micro_step`, `current_run`,
-   `current_node`, `mainline_anchor`, pending intents, open questions, and
-   retest state. Hash/state drift means `REPAIR_REQUIRED`.
-2. Split mixed input first. Preserve intent order and the source input event
-   ID. A `continue` event is single-use and cannot cross a new question.
-3. Emit all eight sections: problem, call chain, real code, I/O/Shape/state,
-   rationale, common errors, self-test, and QA/receipt status.
-4. After a recall answer, evaluate the learner response before the complete
-   explanation. A side question does not consume or replace the recall item.
-5. Do not claim `saved`, `validated`, `complete`, or `ready` unless the host
-   executed the corresponding control script and the exact response hash is
-   present in a COMMITTED schema 6.0 release receipt.
+1. Reconcile current Step, micro-Step, RUN, NODE, main-line anchor, active input/question queue, pending intents, retest, and artifact hashes. Drift means `REPAIR_REQUIRED`.
+2. Route natural input to `start`, `node-teaching`, `question-answer`, `recall-assessment`, `recovery`, `repair`, or `close`. Do not force all modes into the NODE eight-section template.
+3. Every profile includes the five location fields and `QA / receipt 状态`. A NODE lesson additionally includes problem, call chain, real code, I/O/Shape/state, rationale, errors, and self-test.
+4. Match evidence to content: tensor → concrete Shape flow; code → fenced verified excerpt; metric → formula/threshold/project field; config/state → actual field/state transition, never fabricated Shape.
+5. For N questions, register all N first, then answer and commit each original Q-ID independently. Preserve the captured return state and original recall question.
+6. Evaluate recall before the complete explanation. A side question does not consume recall; a question/correction expires same-event continue.
+7. Never claim `saved`, `validated`, `complete`, or `ready` unless the host executed the control path and the exact response is authorized by a matching machine receipt.

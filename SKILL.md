@@ -1,7 +1,7 @@
 ---
 name: project-code-study
 description: Use when a learner asks to study a software or ML repository step by step, trace a real runtime call chain, learn source code by RUN/NODE, connect code with papers, recover a compressed study session, or publish a standalone project-learning handbook.
-version: 6.1.0
+version: 6.2.0
 ---
 
 # Project Code Study
@@ -16,6 +16,7 @@ Guide a learner from repository evidence to a verified mental model. Prefer a pr
 - Label high-impact claims `已确认`, `可推断`, `背景知识`, or `待验证`, and record the evidence that could change them.
 - Exposure is not mastery. A Step, micro Step, or NODE is not complete merely because it was explained or the learner said `继续`.
 - Every substantive new question or follow-up receives a stable `Q-` ID and a standalone complete answer in `PROJECT_STUDY_QA.md`.
+- When one input contains N substantive questions, register all N with source-bound intents before answering any; then update each original Q-ID in an independent answer transaction.
 - A side question, recall answer, or correction never moves the main-line anchor. The same response must not begin the next micro Step.
 - A `继续` token is single-use. Only a fresh `继续` received while waiting may advance the route.
 - A write request, tool invocation, or partial update is not a successful save. Only exact readback plus validation permits a `saved` receipt.
@@ -39,6 +40,7 @@ Internal Skill protocols and maintenance documents may use English. `README.md` 
 Read only what the current action needs, but read each selected resource completely:
 
 - `references/runtime-trace-protocol.md`: scenario graphs, NODE states, dynamic micro Steps, and continuation control.
+- `references/interaction-mode-protocol.md`: natural-language modes, input envelopes, arbitrary-size question queues, response profiles, and recovery.
 - `references/learning-ledger-protocol.md`: authoritative state, transactions, strict validation, migration, and compaction.
 - `references/question-protocol.md`: Q&A independence, active recall, pause behavior, and canonical corrections.
 - `references/quality-rubric.md`: evidence, semantic completion, document readiness, and correction gates.
@@ -47,7 +49,7 @@ Read only what the current action needs, but read each selected resource complet
 - `references/paper-code-template.md`: paper-to-code work.
 - `references/context-audit-template.md`: global coverage audit.
 - `references/final-summary-template.md`: compact or legacy summary only, never the consent-gated final document.
-- `references/user-prompts.md`: recovery and diagnostic prompts only when requested.
+- `references/user-prompts.md`: one start prompt, natural daily input, and advanced diagnostics.
 - `references/transaction-and-evidence-protocol.md`: machine receipts, structured updates, correction propagation, and claim-verifier registry.
 - `references/teaching-output-contract.md`: source-NODE, active-recall, chat/QA, Shape, visual, and independent-UNIT contracts.
 - `references/continuity-memory-protocol.md`: bounded protocol memory for long-context recovery, deduplication, and response-claim auditing.
@@ -63,10 +65,10 @@ Read only what the current action needs, but read each selected resource complet
 
 Treat the following scripts as control-plane entry points, not examples:
 
-- `scripts/project_study_transaction.py` is the only allocator and LOG/QA commit path. Allocate `Q-`, `M-`, `C-`, and `TX-` IDs there; write structured sections; read back both files; run strict validation; emit a machine receipt only after all checks pass. A partial write is `unsaved-partial` and its only next action is record repair.
-- `scripts/study_events.py` splits mixed messages into ordered input-bound intents, irreversibly consumes a fresh `continue`, and hash-binds handoff state.
+- `scripts/project_study_transaction.py` is the only allocator and LOG/QA commit path. Use `register_question_batch()` to register every Q before teaching and `answer_question()` for one-Q answer commits. Allocate `Q-`, `M-`, `C-`, and `TX-` IDs there; write structured sections; read back both files; run strict validation; emit a machine receipt only after all checks pass. A partial write is `unsaved-partial` and its only next action is record repair.
+- `scripts/study_events.py` creates schema 6.2 source-span/hash-bound intent envelopes, splits mixed messages without an N limit, expires same-event continue after a question/correction, and hash-binds handoff state.
 - `scripts/interaction_state.py` is the only route-advance decision. Call `can_advance()` with open questions, `retest_due_questions`, pending response, receipt, semantic NODE completion, strict-validation status, explicit `memory_status`, and unresolved user intents. A fresh `继续` alone never advances.
-- `scripts/validate_teaching_response.py` validates the exact state anchors and eight-part NODE teaching response before emission.
+- `scripts/validate_teaching_response.py` validates exact state anchors plus the selected `start`, `node-teaching`, `question-answer`, `recall-assessment`, `recovery`, `repair`, or `close` profile. Shape is mandatory only for tensor content.
 - `scripts/memory_lifecycle.py` owns `candidate → approved → saved/rejected → stale` transitions and complete pre-compaction handoff recovery.
 - `scripts/finalize_project_study.py --publication` validates compact-handbook schema 2.1, a real retrieval/explanation/application cold-start report, and atomically stages the formal document. Its `release-pending` result is not a saved claim.
 - `scripts/release_transaction.py` is the sole publication commit marker. It binds QA, LOG, memory, document, source revision, readiness, validators, cold-start evidence, not-run boundaries, Step/NODE, and the exact response hash in one `COMMITTED` receipt.
@@ -88,7 +90,7 @@ After a successful LOG/QA transaction, promote only approved durable information
 
 Before emitting any response that contains a positive persistence or readiness claim, run `scripts/response_claim_guard.py` against the exact response text and the unified release receipt. If the host cannot execute this guard, omit the positive claim and report the host hook as `not-run`; an advisory prompt is not enforcement.
 
-Use `references/user-prompts.md` as the user-facing router. Treat each prompt as an intent selector, not as a replacement for the state machine. The normal loop is `start/recover → preflight → route → one NODE → recall/question → transaction → waiting → fresh continue`; failures branch only to repair, retest, recovery, or finalization. Do not require the learner to repeat internal recordkeeping instructions.
+Use `references/user-prompts.md` as the learner entry point and `references/interaction-mode-protocol.md` as the internal router. The standard loop is `定位 → 学习 → 检验 → 沉淀 → 等待`; modes are `START`, `LEARN`, `ASK`, `ASSESS`, `RECOVER`, `CLOSE`, and `REPAIR`. Do not require the learner to repeat internal recordkeeping instructions.
 
 When the studied project has no `.project-study-memory/` directory, ask once whether the learner wants project-scoped continuity memory. On explicit approval, run `scripts/sync_protocol_memory.py init ... --user-consent`, validate the new store, and only then mark memory enabled. On decline, keep memory disabled and do not create the directory. On missing or ambiguous consent, stop at `memory-consent-pending`; never create the directory silently.
 
@@ -103,6 +105,9 @@ Persist `interaction_state` in the ledger and follow this table. `scripts/intera
 | `ANSWERING_RECALL_SIDE_QUESTION` | Answer an interruption without consuming the recall response | `AWAITING_RECALL` |
 | `ANSWERING_RECALL` | Give complete closure and persist it | `AWAITING_QUESTIONS_OR_CONTINUE`; an incorrect/partial verdict also records `retest-due` |
 | `ANSWERING_SIDE_QUESTION` | Answer and persist one or more Q IDs without moving the anchor | `AWAITING_QUESTIONS_OR_CONTINUE` |
+| `REGISTERING_QUESTION_BATCH` | Allocate and persist every Q from one input event before answering | `ANSWERING_QUESTION_QUEUE` or `QUESTION_BATCH_REPAIR` |
+| `ANSWERING_QUESTION_QUEUE` | Answer exactly the current registered Q and commit an independent receipt | remain here or restore captured return state |
+| `QUESTION_BATCH_REPAIR` | Repair the failed intake/current-Q transaction without losing queue order | `ANSWERING_QUESTION_QUEUE` after validation |
 | `AWAITING_QUESTIONS_OR_CONTINUE` | Accept a new question or one fresh `继续` | question state or `TEACHING_CURRENT_NODE` |
 | `FINAL_QUESTION_PHASE` | Continue answering questions | remain here until explicit closure |
 | `ANSWERING_FINAL_SIDE_QUESTION` | Answer a final-phase question without reopening the main route | `FINAL_QUESTION_PHASE` |
@@ -161,7 +166,7 @@ Create a new stable Q ID for every substantive question and follow-up. Preserve 
 
 If the learner asks a side question while a recall response is pending, enqueue it as an unresolved intent, answer and persist it, then return to `AWAITING_RECALL`; do not consume or discard the recall prompt. After active recall, always provide: the learner answer as understood; correct parts; missing/incorrect parts without invented errors; complete reference answer; reason; evidence; alternate explanation; retest when needed; persistence receipt. Then enter `AWAITING_QUESTIONS_OR_CONTINUE`. An incorrect or partial answer sets `retest-due` and makes `can_advance()` false. Advancement requires a new user message that explicitly continues, no unresolved user intents, and a passed retest.
 
-For a compound question, split independent intents before answering. Allocate one Q-ID per intent and keep every answer complete even when the chat displays the queue in batches. Do not advance until every member is closed.
+For a compound question, first build and validate one schema 6.2 input envelope. Capture the return state, allocate every Q-ID in source order, and persist all QA/LOG entries as `pending` in one `question-intake` transaction before emitting any answer. Then answer each existing Q-ID in its own transaction. The queue has no protocol N limit; chat may page at most three answers per response. Failure on question N preserves prior commits, keeps later questions pending, and enters `QUESTION_BATCH_REPAIR`. Restore the exact captured state only when the queue is empty. Do not advance until every member is closed.
 
 ### 6. Persist with an auditable transaction
 

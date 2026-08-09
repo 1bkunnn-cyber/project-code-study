@@ -5,6 +5,7 @@ from __future__ import annotations
 
 from copy import deepcopy
 from datetime import datetime, timezone
+import hashlib
 import re
 from typing import Any
 
@@ -25,6 +26,10 @@ HANDOFF_FIELDS = {
     "recent_corrections",
     "evidence_ids",
     "unique_next_action",
+    "active_input_event_id",
+    "question_queue_ids",
+    "current_question_id",
+    "question_queue_return_state",
 }
 
 
@@ -41,24 +46,160 @@ def _intent_kind(text: str) -> str:
     return "statement"
 
 
-def split_intents(text: str, input_event_id: str) -> list[dict[str, str]]:
-    """Split mixed prose without detaching intents from their source event."""
+def _sha256(text: str) -> str:
+    return hashlib.sha256(text.encode("utf-8")).hexdigest()
+
+
+def _trimmed_span(text: str, start: int, end: int) -> tuple[int, int] | None:
+    while start < end and text[start] in " \t\r\n，,":
+        start += 1
+    while end > start and text[end - 1] in " \t\r\n，,":
+        end -= 1
+    return (start, end) if start < end else None
+
+
+def _intent_spans(text: str) -> list[tuple[int, int]]:
+    """Return exact, ordered source spans without imposing a question-count limit."""
+    coarse: list[tuple[int, int]] = []
+    cursor = 0
+    for separator in re.finditer(r"(?:\r?\n+|[；;])", text):
+        span = _trimmed_span(text, cursor, separator.start())
+        if span:
+            coarse.append(span)
+        cursor = separator.end()
+    tail = _trimmed_span(text, cursor, len(text))
+    if tail:
+        coarse.append(tail)
+
+    spans: list[tuple[int, int]] = []
+    for start, end in coarse:
+        fragment = text[start:end]
+        question_marks = list(re.finditer(r"[？?]", fragment))
+        if len(question_marks) <= 1:
+            spans.append((start, end))
+            continue
+        local_start = 0
+        for mark in question_marks:
+            local_end = mark.end()
+            span = _trimmed_span(text, start + local_start, start + local_end)
+            if span:
+                spans.append(span)
+            local_start = local_end
+        remainder = _trimmed_span(text, start + local_start, end)
+        if remainder:
+            spans.append(remainder)
+    return spans
+
+
+def validate_intent_envelope(payload: dict[str, Any], source_text: str) -> list[str]:
+    """Validate that an intent envelope remains exactly bound to its source input."""
+    errors: list[str] = []
+    if payload.get("schema_version") != "6.2":
+        errors.append("unsupported intent envelope schema")
+    input_event_id = payload.get("input_event_id")
+    if not isinstance(input_event_id, str) or not re.fullmatch(r"INPUT-\d+", input_event_id):
+        errors.append("invalid input event id")
+    if payload.get("raw_text_hash") != _sha256(source_text):
+        errors.append("raw source text hash mismatch")
+    intents = payload.get("intents")
+    if not isinstance(intents, list):
+        return [*errors, "intents must be a list"]
+    previous_end = -1
+    for order, item in enumerate(intents, 1):
+        if not isinstance(item, dict):
+            errors.append(f"intent {order} is not an object")
+            continue
+        if item.get("source_order") != order:
+            errors.append(f"intent {order} source order mismatch")
+        span = item.get("source_span")
+        if (
+            not isinstance(span, list)
+            or len(span) != 2
+            or not all(isinstance(value, int) for value in span)
+        ):
+            errors.append(f"intent {order} has invalid source span")
+            continue
+        start, end = span
+        if start < 0 or end <= start or end > len(source_text) or start < previous_end:
+            errors.append(f"intent {order} source span is out of range or unordered")
+            continue
+        bound_text = source_text[start:end]
+        if item.get("text") != bound_text:
+            errors.append(f"intent {order} source text mismatch")
+        if item.get("source_text_hash") != _sha256(bound_text):
+            errors.append(f"intent {order} source text hash mismatch")
+        previous_end = end
+    return errors
+
+
+def build_input_event(
+    text: str,
+    input_event_id: str,
+    received_state: str,
+    *,
+    proposed_intents: list[dict[str, Any]] | None = None,
+) -> dict[str, Any]:
+    """Build a source-bound v6.2 input event for routing and persistence."""
     if not re.fullmatch(r"INPUT-\d+", input_event_id):
         raise EventStateError(f"invalid input event id: {input_event_id}")
-    segments = [
-        segment.strip(" \t\r\n，,")
-        for segment in re.split(r"(?:\r?\n+|[；;])", text)
-        if segment.strip(" \t\r\n，,")
-    ]
+    spans = (
+        [tuple(item.get("source_span", ())) for item in proposed_intents]
+        if proposed_intents is not None
+        else _intent_spans(text)
+    )
+    intents: list[dict[str, Any]] = []
+    for order, span in enumerate(spans, 1):
+        if len(span) != 2 or not all(isinstance(value, int) for value in span):
+            raise EventStateError(f"invalid proposed source span at intent {order}")
+        start, end = span
+        source = text[start:end]
+        proposed = proposed_intents[order - 1] if proposed_intents is not None else {}
+        kind = proposed.get("kind") or _intent_kind(source)
+        intents.append(
+            {
+                "intent_id": f"{input_event_id}-I{order:02d}",
+                "input_event_id": input_event_id,
+                "kind": kind,
+                "text": source,
+                "source_order": order,
+                "source_span": [start, end],
+                "source_text_hash": _sha256(source),
+                "target": proposed.get("target", "current-anchor"),
+                "parent_intent_id": proposed.get("parent_intent_id"),
+                "question_id": proposed.get("question_id"),
+                "status": proposed.get("status", "pending"),
+            }
+        )
+    if any(item["kind"] in {"question", "correction"} for item in intents):
+        for item in intents:
+            if item["kind"] == "continue":
+                item["status"] = "expired-by-question"
+    envelope = {
+        "schema_version": "6.2",
+        "input_event_id": input_event_id,
+        "received_state": received_state,
+        "raw_text": text,
+        "raw_text_hash": _sha256(text),
+        "intents": intents,
+    }
+    errors = validate_intent_envelope(envelope, text)
+    if errors:
+        raise EventStateError("; ".join(errors))
+    return envelope
+
+
+def split_intents(text: str, input_event_id: str) -> list[dict[str, str]]:
+    """Split mixed prose without detaching intents from their source event."""
+    envelope = build_input_event(text, input_event_id, "unknown")
     return [
         {
-            "intent_id": f"{input_event_id}-I{index:02d}",
-            "input_event_id": input_event_id,
-            "kind": _intent_kind(segment),
-            "text": segment,
-            "status": "pending",
+            "intent_id": item["intent_id"],
+            "input_event_id": item["input_event_id"],
+            "kind": item["kind"],
+            "text": item["text"],
+            "status": item["status"],
         }
-        for index, segment in enumerate(segments, 1)
+        for item in envelope["intents"]
     ]
 
 

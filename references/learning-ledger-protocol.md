@@ -4,7 +4,7 @@ Use this protocol whenever creating, reading, updating, validating, compacting, 
 
 ## 1. Record architecture and authority
 
-Schema 4.1 uses two linked files:
+Current ledger schema 4.2 and QA schema 1.2 use two linked files. Strict 4.1/1.1 records remain readable for audit compatibility:
 
 - `PROJECT_STUDY_LOG.md`: authoritative working state, route, evidence, mastery, durable knowledge, corrections, experiments, reviews, transactions, milestones, and sessions.
 - `PROJECT_STUDY_QA.md`: authoritative full questions, follow-ups, standalone answers, learner reflections, and feedback.
@@ -14,7 +14,7 @@ Templates:
 - `assets/PROJECT_STUDY_LOG.template.md`
 - `assets/PROJECT_STUDY_QA.template.md`
 
-The authoritative state fields are `current_scenario`, `current_step`, `current_micro_step`, `current_node_id`, `continuation_node_id`, `interaction_state`, `pending_user_response`, `active_side_question_ids`, `pending_user_intents`, `last_question_id`, `last_transaction_id`, and `updated_at`. Frontmatter and Section 1 must match exactly. Route tables, indexes, review queues, knowledge cards, and session rows are derived views; update them in the same transaction.
+The authoritative state fields are `current_scenario`, `current_step`, `current_micro_step`, `current_node_id`, `continuation_node_id`, `interaction_state`, `pending_user_response`, `active_side_question_ids`, `pending_user_intents`, `active_input_event_id`, `question_queue_ids`, `question_queue_return_state`, `last_question_id`, `last_transaction_id`, and `updated_at`. Frontmatter and Section 1 must match exactly. Route tables, indexes, review queues, knowledge cards, and session rows are derived views; update them in the same transaction.
 
 ## 2. Creation
 
@@ -70,7 +70,7 @@ For ordinary continuation, read only authoritative state, the active route/NODE,
 
 Keep the hot snapshot readable in about 60 seconds. It must show current scenario, Step/micro Step, NODE, completed representative nodes, active side questions, blocker, exact continuation NODE, interaction state, pending response, and exactly one primary next action.
 
-Side questions and recall closure preserve `continuation_node_id`. A side question that interrupts `AWAITING_RECALL` returns to `AWAITING_RECALL` after its answer is saved; a side question in `FINAL_QUESTION_PHASE` returns to `FINAL_QUESTION_PHASE`. After ordinary side-question or recall closure, set `interaction_state: AWAITING_QUESTIONS_OR_CONTINUE` and `pending_user_response: true`. Only a fresh continue event may enter `TEACHING_CURRENT_NODE`; consume it once. A `FINAL_AUDIT` failure enters `FINAL_AUDIT_REPAIR` and cannot be converted into ordinary waiting. Any unresolved user-intent queue blocks advancement.
+Side questions and recall closure preserve `continuation_node_id`. Before an arbitrary-size question batch, capture the exact return state, set `REGISTERING_QUESTION_BATCH`, and persist every Q as pending. Successful intake enters `ANSWERING_QUESTION_QUEUE`; answer failure enters `QUESTION_BATCH_REPAIR` without changing queue order. Restore the captured state only after the queue is empty. A side question that interrupts `AWAITING_RECALL` therefore returns to `AWAITING_RECALL`; a final-phase batch returns to `FINAL_QUESTION_PHASE`. After ordinary recall closure, set `interaction_state: AWAITING_QUESTIONS_OR_CONTINUE` and `pending_user_response: true`. Only a fresh continue event may enter `TEACHING_CURRENT_NODE`; consume it once. A question/correction expires same-event continue. A `FINAL_AUDIT` failure enters `FINAL_AUDIT_REPAIR` and cannot be converted into ordinary waiting. Any unresolved user-intent or question queue blocks advancement.
 
 ## 7. Mastery and durable knowledge
 
@@ -129,10 +129,10 @@ Compact by removing accidental duplicates, keeping only Q indexes in the log, sy
 
 ## 11. Compatibility and migration
 
-Schema 4.0 and legacy 3.1 remain readable. Strict cross-file guarantees apply to 4.1. Migrate only with authorization:
+Schema 4.1/QA 1.1, 4.0, and legacy 3.1 remain readable. Current strict generation uses 4.2/1.2; 4.1/1.1 stays strict-readable for existing audit samples but lacks the v6.2 queue identity fields. Migrate only with authorization:
 
 1. preserve a backup;
-2. instantiate 4.1 templates;
+2. instantiate 4.2/1.2 templates;
 3. migrate confirmed state, route, evidence, mastery, knowledge, corrections, experiments, reviews, and sessions;
 4. migrate full Q&A while retaining compact indexes;
 5. mark reconstructed fields;

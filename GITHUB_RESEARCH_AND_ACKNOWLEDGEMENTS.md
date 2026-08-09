@@ -1,6 +1,6 @@
 # GitHub 调研、采用决策与致谢
 
-审计日期：2026-08-04。仓库存在性、`archived`、`pushed_at` 和 GitHub
+初次审计日期：2026-08-04；v6.2 交互模式补充调研：2026-08-09。仓库存在性、`archived`、`pushed_at` 和 GitHub
 检测到的 SPDX 许可证通过 GitHub 官方仓库/API 复核。活跃度只描述审计日
 观察：高＝近 30 天有 push；中＝近 180 天有 push；低＝超过 180 天无 push。
 许可证为 `未检测到` 时不推定可复制。本 Skill 只独立实现公开思想，没有复制
@@ -33,6 +33,11 @@
 | [DeepWiki-Open](https://github.com/AsyncFuncAI/deepwiki-open) | 仓库知识库、结构导航、关系图 | MIT | 高；未归档 | **只借鉴可导航知识结构**；云检索和自动 wiki 不能证明教学深度。 |
 | [MathTutorBench](https://github.com/eth-lre/mathtutorbench) | 教学能力任务、teacher-grounded scoring、错误定位与 scaffolding | 未检测到 | 高；未归档 | **只借鉴 rubric/evaluation 思想**；无明确许可证，不复制代码或数据。 |
 | [EducationQ](https://arxiv.org/abs/2504.14928) | 教育型对话质量维度与评估 | 论文，以出版条款为准 | 论文 | **只借鉴评估维度**；不导入数据或量表原文。 |
+| [GitHub Copilot customization](https://docs.github.com/en/copilot/customizing-copilot/about-customizing-github-copilot-chat-responses) | 区分 repository instructions、prompt files、skills 与 hooks 的作用域 | 官方文档条款 | 活跃官方文档 | **可直接借鉴职责分层思想**：用户自然输入、Skill 工作流、协议资源、宿主强制分开；不复制提示词。 |
+| [Claude Code skills](https://docs.anthropic.com/en/docs/claude-code/skills) | Skill 可自动/手动触发、正文加载后保持有效；压缩仍需显式恢复机制 | 官方文档条款 | 活跃官方文档 | **只借鉴调用与上下文边界**：Skill 管机制，handoff 管恢复；不假设宿主 hook 已执行。 |
+| [Anthropic skills / skill-creator](https://github.com/anthropics/skills/tree/main/skills/skill-creator) | 元数据、主体、按需 references/scripts 的渐进披露 | Apache-2.0 | 高；未归档 | **可直接借鉴信息分层思想**：短响应合同 + scoped protocol；未复制模板或协议。 |
+| [Superpowers](https://github.com/obra/superpowers) | phase trigger、hard gate、计划与验证闭环 | MIT | 高；未归档 | **只借鉴硬门禁思想**：intake-before-answer、repair-only、verification-before-claim；不引入运行时。 |
+| [awesome-copilot](https://github.com/github/awesome-copilot) | 可组合 instructions/prompts/agents 与简洁行动 handoff | MIT | 高；未归档 | **只借鉴简洁交接思想**：一个自然入口、一个唯一下一行动；不复制提示内容。 |
 
 ## 实际采用
 
@@ -50,6 +55,10 @@
    Log4brains 的导航/渐进披露思想，重做为 schema 2.1 快速索引、8 槽位
    Step 条目、阅读/源码预算、跨 Step 去重、共享 deep dive，以及
    “定位→解释→应用”的冷启动测试。
+7. learn-codebase 的自然追问、GitHub Copilot/Claude Code/Anthropic skills 的
+   职责与渐进加载边界、Superpowers 的阶段硬门禁、awesome-copilot 的简洁
+   handoff，重做为 v6.2 的单启动提示、七模式响应、两阶段任意问题事务和
+   `定位→学习→检验→沉淀→等待` 标准循环。
 
 ## 明确拒绝
 
@@ -61,6 +70,8 @@
   可 hash、可由统一 receipt 绑定的 Markdown。
 - 不采用会削弱证据等级、用户 consent、fail-closed、research 副本隔离或
   隐私边界的外部方案。
+- 不把官方文档描述的“可调用”误写为当前宿主已执行 hook；宿主控制仍需
+  独立 receipt 证明。
 
 感谢上述维护者、研究者和贡献者公开这些项目与思想。本仓库与它们无隶属、
 赞助或背书关系；第三方权利和许可证归各自权利人所有。

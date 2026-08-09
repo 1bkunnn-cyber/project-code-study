@@ -14,7 +14,11 @@
     "retest_due_questions": [],
     "recent_corrections": [],
     "evidence_ids": [],
-    "unique_next_action": "<exactly one action>"
+    "unique_next_action": "<exactly one action>",
+    "active_input_event_id": "<INPUT-ID-or-none>",
+    "question_queue_ids": [],
+    "current_question_id": "<Q-ID-or-none>",
+    "question_queue_return_state": "<captured-interaction-state>"
   },
   "artifact_hashes": {
     "PROJECT_STUDY_LOG.md": "<sha256>",

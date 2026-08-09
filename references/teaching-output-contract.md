@@ -1,12 +1,19 @@
 # Teaching Output Contract
 
-## Mandatory short contract before every NODE
+## Mode-aware short contract before every response
 
 Load `assets/NODE_TEACHING_CONTRACT.md`, reconcile Step, micro-Step, RUN, NODE,
-main-line anchor, pending intents, retest, and handoff hashes, then validate the
-draft with `scripts/validate_teaching_response.py`. Every NODE response contains
-the problem, real call chain, fenced real code, concrete I/O/Shape/state,
-rationale, common errors, self-test, and honest QA/receipt state.
+main-line anchor, question queue, pending intents, retest, and handoff hashes,
+then select a response profile and validate the draft with
+`scripts/validate_teaching_response.py`. All profiles include the authoritative
+location strip and honest QA/receipt closure. Only `node-teaching` uses the full
+problem/call/code/I-O/rationale/error/self-test body; ASK, ASSESS, recovery,
+repair, start, and close have smaller mode-specific contracts.
+
+Select `content_kind` independently from response profile. Tensor explanations
+need a concrete Shape flow; code needs a fenced verified excerpt; metric needs
+the equation, threshold, and project field; config/state explains real fields
+and transitions without inventing numeric Shape.
 
 A recall answer starts with evaluation and then gives the complete explanation.
 A side question preserves the original recall prompt. Long context never permits
@@ -30,7 +37,11 @@ QA stores the complete standalone canonical answer, evidence, parent Q, anchor, 
 
 ## Compound questions
 
-Split independent intents before answering and allocate one Q-ID per intent. Display in batches when necessary, but save and close every member independently. No main-line advance occurs while any member is open or `retest-due`.
+Build a source-bound input envelope, register every independent question in one
+intake transaction, and only then begin teaching answers. Update one existing
+Q-ID per answer transaction. Display in batches when necessary, but never
+truncate the queue. A failure preserves earlier commits and later pending Qs;
+no main-line advance occurs while any member is pending, open, or `retest-due`.
 
 ## Visual and formula contract
 

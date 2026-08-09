@@ -2,7 +2,7 @@
 """Validate project-code-study ledgers and Q&A records.
 
 Schema-only validation preserves compatibility with ledger 3.1/4.0 and Q&A
-1.0. ``--strict`` enables schema 4.1/1.1 semantic and cross-file gates.
+1.0. ``--strict`` enables schema 4.1/1.1 compatibility and current 4.2/1.2 gates.
 """
 
 from __future__ import annotations
@@ -48,8 +48,12 @@ LOG_41_METADATA = COMMON_METADATA + [
     "last_transaction_id", "learner_closed_question_phase",
     "learner_consented_to_generation", "study_mode",
 ]
+LOG_42_METADATA = LOG_41_METADATA + [
+    "active_input_event_id", "question_queue_ids", "question_queue_return_state",
+]
 QA_10_METADATA = COMMON_METADATA + ["ledger_path"]
 QA_11_METADATA = COMMON_METADATA + ["language", "ledger_path", "last_question_id", "last_transaction_id"]
+QA_12_METADATA = QA_11_METADATA
 
 LOG_40_HEADERS = [
     {"Step", "主题", "状态", "完成标准", "当前行为证据", "下一决策"},
@@ -66,11 +70,19 @@ LOG_41_HEADERS = [
     {"Q ID", "Step / Node", "问题摘要", "Parent Q", "状态", "下一动作"},
     {"Transaction ID", "时间", "QA delta", "LOG delta", "精确回读", "Strict validation", "Receipt"},
 ]
+LOG_42_HEADERS = [
+    *LOG_41_HEADERS[:4],
+    {"Q ID", "Step / Node", "问题摘要", "Parent Q", "状态", "回答状态", "Input event", "Intent ID", "下一动作"},
+    LOG_41_HEADERS[5],
+]
 QA_10_HEADERS = [
     {"Q ID", "日期", "Step / Node", "类型", "问题摘要", "Parent Q", "状态", "回答位置", "修正 ID"},
 ]
 QA_11_HEADERS = [
     {"Q ID", "日期", "Step / Node", "类型", "问题摘要", "Parent Q", "状态", "回答位置", "修正 ID", "Transaction ID"},
+]
+QA_12_HEADERS = [
+    {"Q ID", "日期", "Step / Node", "类型", "问题摘要", "Parent Q", "状态", "回答状态", "Input event", "Intent ID", "回答位置", "修正 ID", "Transaction ID"},
 ]
 
 STEP_STATES = {"planned", "active", "blocked-prerequisite", "review", "done", "skipped", "stale"}
@@ -81,7 +93,8 @@ INTERACTION_STATES = {
     "ANSWERING_SIDE_QUESTION", "ANSWERING_RECALL_SIDE_QUESTION",
     "AWAITING_QUESTIONS_OR_CONTINUE", "FINAL_QUESTION_PHASE",
     "ANSWERING_FINAL_SIDE_QUESTION", "FINAL_AUDIT", "FINAL_AUDIT_REPAIR",
-    "DOCUMENT_CONSENT", "READY_TO_GENERATE",
+    "DOCUMENT_CONSENT", "READY_TO_GENERATE", "REGISTERING_QUESTION_BATCH",
+    "ANSWERING_QUESTION_QUEUE", "QUESTION_BATCH_REPAIR", "REPAIR_REQUIRED",
 }
 FINAL_STEP_STATES = {"done", "skipped", "stale"}
 EMPTY = {"", "-", "—", "none", "n/a", "na", "无", "待确认", "待生成", "待学习"}
@@ -91,6 +104,7 @@ Q_DETAIL_LABELS = [
     "是否改变旧结论", "关联 M-/C-/SRC- ID", "最小验证动作", "回到主线",
     "状态", "Transaction ID", "Persistence receipt",
 ]
+Q_12_INTAKE_LABELS = ["Input event", "Intent ID", "Intent 顺序", "回答状态"]
 K_DETAIL_LABELS = [
     "Transaction ID", "Prerequisites", "Learning objective", "Runtime position",
     "Complete explanation", "Source locations", "Inputs / outputs / Shapes / states",
@@ -290,6 +304,9 @@ def validate_log_strict(text: str, fm: dict[str, str], tables: list[tuple[list[s
         "continuation_node_id": "继续节点 ID", "interaction_state": "交互状态",
         "pending_user_response": "等待用户回应", "active_side_question_ids": "当前支线问题",
         "pending_user_intents": "待处理用户意图",
+        "active_input_event_id": "当前输入事件",
+        "question_queue_ids": "问题队列",
+        "question_queue_return_state": "问题队列返回状态",
         "last_question_id": "最近 Q ID", "last_transaction_id": "最近事务 ID",
         "updated_at": "更新时间",
     }
@@ -302,6 +319,8 @@ def validate_log_strict(text: str, fm: dict[str, str], tables: list[tuple[list[s
             if parts[1] != clean(fm.get("current_micro_step")):
                 errors.append("frontmatter current_micro_step differs from hot state")
     for key, label in mapping.items():
+        if key not in fm:
+            continue
         if label not in hot:
             errors.append(f"hot state missing authoritative field: {label}")
         elif norm(fm.get(key)) != norm(hot[label]):
@@ -397,10 +416,25 @@ def validate_qa_strict(
         if qid not in blocks:
             errors.append(f"Q&A index has no detail block for {qid}")
             continue
-        for label in Q_DETAIL_LABELS:
+        answer_status = norm(label_value(blocks[qid], "回答状态")) or "answered"
+        if fm.get("schema_version") == "1.2":
+            for label in Q_12_INTAKE_LABELS:
+                value = label_value(blocks[qid], label)
+                if value is None or is_empty(value):
+                    errors.append(f"{qid} missing or empty intake field: {label}")
+        if answer_status not in {"pending", "answered", "rejected", "stale"}:
+            errors.append(f"{qid} has invalid answer status: {answer_status}")
+        required_labels = Q_DETAIL_LABELS
+        for label in required_labels:
             value = label_value(blocks[qid], label)
-            if value is None or is_empty(value):
+            if value is None:
+                errors.append(f"{qid} missing standalone field: {label}")
+            elif answer_status != "pending" and is_empty(value):
                 errors.append(f"{qid} missing or empty standalone field: {label}")
+        if answer_status == "pending":
+            if publication:
+                errors.append(f"{qid} answer is pending; publication is blocked")
+            continue
         answer = label_value(blocks[qid], "完整参考答案") or ""
         if len(answer) < 20:
             errors.append(f"{qid} complete reference answer is too thin")
@@ -453,12 +487,16 @@ def validate_text(
     document_type = fm.get("document_type", "")
     schema = fm.get("schema_version", "")
     tables = tables_of(text)
-    if document_type == "project-code-study-ledger" and schema == "4.1":
+    if document_type == "project-code-study-ledger" and schema == "4.2":
+        required, headings, headers, label = LOG_42_METADATA, LOG_H2, LOG_42_HEADERS, "learning ledger schema 4.2"
+    elif document_type == "project-code-study-ledger" and schema == "4.1":
         required, headings, headers, label = LOG_41_METADATA, LOG_H2, LOG_41_HEADERS, "learning ledger schema 4.1"
     elif document_type == "project-code-study-ledger" and schema == "4.0":
         required, headings, headers, label = LOG_40_METADATA, LOG_H2, LOG_40_HEADERS, "learning ledger schema 4.0"
     elif document_type == "project-code-study-ledger" and schema == "3.1":
         required, headings, headers, label = ["document_type", "schema_version", "project_name", "project_path", "created_at", "updated_at", "current_step", "study_mode", "write_authorized"], LEGACY_H2, [], "legacy learning ledger schema 3.1"
+    elif document_type == "project-code-study-qa" and schema == "1.2":
+        required, headings, headers, label = QA_12_METADATA, QA_H2, QA_12_HEADERS, "Q&A record schema 1.2"
     elif document_type == "project-code-study-qa" and schema == "1.1":
         required, headings, headers, label = QA_11_METADATA, QA_H2, QA_11_HEADERS, "Q&A record schema 1.1"
     elif document_type == "project-code-study-qa" and schema == "1.0":
@@ -468,7 +506,7 @@ def validate_text(
     for key in required:
         if key not in fm:
             errors.append(f"missing metadata key: {key}")
-    if schema in {"4.1", "1.1"} and clean(fm.get("language")).lower() != "zh-cn":
+    if schema in {"4.2", "4.1", "1.2", "1.1"} and clean(fm.get("language")).lower() != "zh-cn":
         errors.append("current generated learning artifacts require language: zh-CN")
     validate_headings(text, headings, errors)
     validate_headers(tables, headers, errors)
@@ -477,10 +515,10 @@ def validate_text(
         if placeholders:
             errors.append("uninitialized placeholders: " + ", ".join(placeholders))
     if strict and not allow_template:
-        if document_type == "project-code-study-ledger" and schema != "4.1":
-            errors.append("strict validation requires ledger schema 4.1")
-        elif document_type == "project-code-study-qa" and schema != "1.1":
-            errors.append("strict validation requires Q&A schema 1.1")
+        if document_type == "project-code-study-ledger" and schema not in {"4.1", "4.2"}:
+            errors.append("strict validation requires ledger schema 4.1 or 4.2")
+        elif document_type == "project-code-study-qa" and schema not in {"1.1", "1.2"}:
+            errors.append("strict validation requires Q&A schema 1.1 or 1.2")
         elif document_type == "project-code-study-ledger":
             validate_log_strict(text, fm, tables, errors)
         else:

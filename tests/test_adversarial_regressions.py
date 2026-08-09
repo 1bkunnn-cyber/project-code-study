@@ -194,7 +194,7 @@ class AdversarialRegressionTests(unittest.TestCase):
 
     def test_T29_legacy_schema_cannot_bypass_finalizer(self) -> None:
         log, qa = make_bundle(self.root)
-        log.write_text(log.read_text(encoding="utf-8").replace('schema_version: "4.1"', 'schema_version: "4.0"'), encoding="utf-8")
+        log.write_text(log.read_text(encoding="utf-8").replace('schema_version: "4.2"', 'schema_version: "4.0"'), encoding="utf-8")
         candidate = make_document(self.root)
         target = self.root / "PROJECT_STUDY_DOCUMENT.md"
         target.write_text("formal-before", encoding="utf-8")

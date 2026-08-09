@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Static structure and parse audit for project-code-study v6.1."""
+"""Static structure and parse audit for project-code-study v6.2."""
 
 from __future__ import annotations
 
@@ -15,7 +15,9 @@ REQUIRED_PATHS = [
     Path("README.md"),
     Path("CHANGELOG.md"),
     Path("GITHUB_RESEARCH_AND_ACKNOWLEDGEMENTS.md"),
+    Path("PROJECT_CODE_STUDY_V6_2_IMPLEMENTATION_REPORT.md"),
     Path("assets/NODE_TEACHING_CONTRACT.md"),
+    Path("references/interaction-mode-protocol.md"),
     Path("assets/PROJECT_STUDY_HANDOFF.template.json"),
     Path("assets/PROJECT_STUDY_MEMORY_CANDIDATES.template.json"),
     Path("assets/PROJECT_STUDY_RELEASE_MANIFEST.template.json"),
@@ -35,6 +37,8 @@ REQUIRED_PATHS = [
     Path("tests/test_release_transaction_v6.py"),
     Path("tests/test_document_handbook_v6.py"),
     Path("tests/test_compact_handbook_v61.py"),
+    Path("tests/test_interaction_modes_v62.py"),
+    Path("tests/test_question_batch_v62.py"),
 ]
 
 
@@ -51,8 +55,8 @@ def validate_structure(root: Path) -> list[str]:
     if errors:
         return errors
     skill = (root / "SKILL.md").read_text(encoding="utf-8")
-    if not re.search(r"(?m)^version:\s*6\.1\.0\s*$", skill):
-        errors.append("SKILL.md version must be 6.1.0")
+    if not re.search(r"(?m)^version:\s*6\.2\.0\s*$", skill):
+        errors.append("SKILL.md version must be 6.2.0")
     description = re.search(r"(?m)^description:\s*(.+)$", skill)
     if not description or not description.group(1).startswith("Use when"):
         errors.append("SKILL.md description must start with 'Use when'")
@@ -70,8 +74,8 @@ def validate_structure(root: Path) -> list[str]:
     ):
         errors.append("document template must use compact handbook schema 2.1")
     readme = (root / "README.md").read_text(encoding="utf-8")
-    if "version-6.1.0" not in readme:
-        errors.append("README version badge is not 6.1.0")
+    if "version-6.2.0" not in readme:
+        errors.append("README version badge is not 6.2.0")
     if "GITHUB_RESEARCH_AND_ACKNOWLEDGEMENTS.md" not in readme:
         errors.append("README does not link the research acknowledgements")
     for path in sorted((root / "scripts").glob("*.py")):

@@ -1,6 +1,6 @@
 # Project Code Study
 
-[![Skill version](https://img.shields.io/badge/version-6.1.0-blue.svg)](CHANGELOG.md)
+[![Skill version](https://img.shields.io/badge/version-6.2.0-blue.svg)](CHANGELOG.md)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
 [简体中文](#简体中文) · [English](#english)
@@ -66,6 +66,22 @@ flowchart TD
 
 ### v6 机制与职责边界
 
+v6.2 把使用方式收敛为一套固定模式。用户只有一个启动提示，之后直接自然
+提问、回答回忆题、纠正或说“继续”；Skill 内部始终执行
+`定位 → 学习 → 检验 → 沉淀 → 等待`。七个模式为 `START`、`LEARN`、
+`ASK`、`ASSESS`、`RECOVER`、`CLOSE` 和 `REPAIR`，对应不同的短响应合同，
+不再让启动、问答、恢复和修复机械套用同一套八段 NODE 模板。
+
+一次消息可包含任意数量的独立问题。系统先生成带 source span/hash 的 input
+envelope，在回答前把所有问题按原顺序登记到 QA/LOG，并生成一个 intake
+receipt；随后每个原 Q-ID 用独立 TX 回答和校验。某一题失败只阻断当前题，
+此前已回答题保持提交，后续题保持 pending。聊天默认每轮最多展示三题只是
+阅读分页，不是队列上限。追问使用新 Q-ID 和 Parent Q；同一消息里的“继续”
+在出现问题或纠正时立即过期。
+
+完整机制映射、测试边界和风险见
+[v6.2 实施报告](PROJECT_CODE_STUDY_V6_2_IMPLEMENTATION_REPORT.md)。
+
 | 产物/控制面 | 唯一职责 | 不能替代 |
 | --- | --- | --- |
 | `PROJECT_STUDY_QA.md` | 保存分类型、可独立阅读的完整问答；publication 模式执行 concept/code/shape/metric/review/correction 深度合同 | LOG 状态、memory、正式手册 |
@@ -116,6 +132,7 @@ M-ID、hash、状态和原因。压缩前 handoff 必须包含主线锚点、完
 
 - [SKILL.md](SKILL.md)：运行时总协议和资源路由；
 - [user-prompts.md](references/user-prompts.md)：用户意图路由，不把 QA、LOG、暂停和 readiness 门禁推回给用户；
+- [interaction-mode-protocol.md](references/interaction-mode-protocol.md)：七种模式、input envelope、任意问题队列和压缩恢复；
 - [prompt-workflow-patterns.md](references/prompt-workflow-patterns.md)：将外部工作流抽象为通用提示词模式；
 - [continuity-memory-protocol.md](references/continuity-memory-protocol.md)：上下文压缩和异常恢复协议；
 - [teaching-output-contract.md](references/teaching-output-contract.md)：代码讲解和聊天/QA 双层输出契约；
@@ -141,13 +158,11 @@ Codex 用户级：      ~/.codex/skills/project-code-study
 
 ### 快速开始
 
-启动时只需说明项目、目标和深度：
+启动时只需一句自然语言；目标和基础可选：
 
 ```text
-启动 project-code-study。项目根目录是 <PROJECT_ROOT>。
-目标是沿真实运行调用链学习 <TOPIC>，先建立路线，然后一次讲一个 NODE。
-使用中文；每个 NODE 先讲生活化例子，再讲公式/规则、代码和对应关系。
-完成讲解后进行主动回忆；问题、QA、LOG、receipt 和状态由 Skill 自动维护。
+我想开始学习这个项目。目标是 <读懂 / 复现 / 修改 / 研究扩展>，
+我目前了解 <一句话基础>，希望重点学习 <可留空>。
 ```
 
 正常继续时使用新的明确指令：
@@ -156,7 +171,7 @@ Codex 用户级：      ~/.codex/skills/project-code-study
 继续学习下一个 NODE。
 ```
 
-恢复、异常诊断和专项学习可参考 [user-prompts.md](references/user-prompts.md) 中的模板。模板只负责启动、选择讲解方式、恢复和诊断；它不要求用户手工维护记录，也不允许用户提示词绕过状态门禁。
+之后可直接自然提问，问题数量不受协议限制；也可回答回忆题、纠正、暂停或发送新的“继续”。恢复与异常诊断见 [user-prompts.md](references/user-prompts.md) 的高级附录。用户不需要手工维护 Q-ID、QA、LOG、pending intents 或 receipt。
 
 ### 验证
 
@@ -212,7 +227,9 @@ project-code-study/
 SWE-agent、Aider、AutoGen、CrewAI、learn-codebase、PocketFlow Tutorial
 Codebase Knowledge、RepoAgent、CodeTour、DeepWiki-Open、Diátaxis、
 Material for MkDocs、mdBook、Rust by Example、Log4brains、MathTutorBench 和
-EducationQ 的维护者与研究者公开相关思想。
+EducationQ，以及 GitHub Copilot customization、Claude Code skills、
+Anthropic skill-creator、Superpowers 和 awesome-copilot 的维护者与研究者
+公开相关思想。
 
 | 项目/文档 | 借鉴的通用思想 | 说明 |
 | --- | --- | --- |
@@ -228,6 +245,7 @@ EducationQ 的维护者与研究者公开相关思想。
 | [Superpowers](https://github.com/obra/superpowers) | 计划检查点、分步执行、验证门和阻塞时停止 | 启发了节点推进和最终化前检查；该仓库标注为 MIT。 |
 | [AGENT.md specification](https://github.com/agentmd/agent.md) | 分层指令、作用域继承和可预测的项目上下文 | 启发了资源分层与恢复入口；许可证以其仓库为准。 |
 | [GitHub Copilot onboarding plan](https://docs.github.com/en/copilot/tutorials/customization-library/prompt-files/onboarding-plan) | Foundation → Exploration → Integration 的分阶段学习路径 | 启发了启动、探索、整合的提示词组织方式。 |
+| [GitHub Copilot customization](https://docs.github.com/en/copilot/customizing-copilot/about-customizing-github-copilot-chat-responses)、[Claude Code skills](https://docs.anthropic.com/en/docs/claude-code/skills) 与 [Anthropic skill-creator](https://github.com/anthropics/skills/tree/main/skills/skill-creator) | 用户输入、Skill、按需资源和宿主 hook 的职责分层；渐进披露 | 启发了 v6.2 单启动入口、短合同和协议资源分层；未复制提示词或协议。 |
 
 本项目与上述项目没有隶属、赞助或背书关系。第三方项目的版权和许可证均归其各自权利人所有；使用或再分发第三方代码、文本或资产时，应直接遵守对应仓库的 `LICENSE`、版权声明和贡献者要求。本仓库当前仅借鉴公开的工作流思想，未将上述项目的源代码、提示词原文或资产作为本 Skill 的组成部分。
 
@@ -240,7 +258,11 @@ EducationQ 的维护者与研究者公开相关思想。
 
 `project-code-study` is a Chinese-first, evidence-bound Agent Skill for studying real software projects. It turns a verified runtime call chain into a route of `RUN/NODE` units, teaches one node at a time, evaluates active recall, and persists questions, progress, evidence, and study documents for independent review.
 
-Version 6.1 adds compact schema 2.1 Step-manual entries, quick lookup indexes,
+Version 6.2 adds one natural start prompt, the standard
+`locate → learn → assess → persist → wait` loop, seven response modes, a
+source-bound intent envelope, and arbitrary-size question batches that register
+every Q before answering and commit each answer independently. It retains the
+compact schema 2.1 Step-manual entries, quick lookup indexes,
 reading and source-excerpt budgets, cross-Step duplication checks, document-local
 deep dives, and retrieval/explanation/application cold-start reports. It keeps
 the v6 typed durable-memory candidates, hash-bound compaction handoffs,
@@ -250,6 +272,8 @@ not-run boundaries, and the exact response. See the
 [research and acknowledgements table](GITHUB_RESEARCH_AND_ACKNOWLEDGEMENTS.md)
 for upstream ideas, licenses, activity, adoption decisions, and explicit
 non-adoptions.
+See the [v6.2 implementation report](PROJECT_CODE_STUDY_V6_2_IMPLEMENTATION_REPORT.md)
+for the mechanism map, verification matrix, not-run boundaries, and risks.
 
 ### What problem it solves
 
@@ -283,6 +307,7 @@ Verified source/runtime evidence
 | Route | Build the route from a real runtime call chain and advance one `RUN/NODE` at a time. |
 | Evidence | Route source, configuration, runtime, mathematical, paper, comparison, and learner-verdict claims to the appropriate verifier. |
 | Questions | Enter the answer-and-record flow after a learner question; split compound intents into independent `Q-ID`s; retest incorrect or partial answers. |
+| Question batches | Register every source-bound Q before the first answer; update one existing Q per TX; preserve earlier commits and later pending Qs after a failure. |
 | Persistence | Allocate `Q/M/C/TX` IDs uniquely; combine QA write, exact readback, LOG update, reconciliation, and strict validation into a transaction. |
 | State | Stop at `AWAITING_QUESTIONS_OR_CONTINUE`; unsaved questions, stale continue tokens, and `retest-due` states cannot advance the main route. |
 | Failure | Do not claim `saved` without a COMMITTED release receipt bound to the exact response; return `unsaved-partial` or `release-pending`. |
@@ -311,7 +336,7 @@ The normal loop produces two layers of output. Chat provides the conclusion, key
 | `.project-study-memory/MEMORY.md` | Recoverable continuity-memory index and resume pointers. |
 | `PROJECT_STUDY_DOCUMENT.md` | Formal per-Step manual released after readiness, schema 2.1 compactness/source/navigation validation, real cold-start, and one committed receipt. |
 
-Start with [SKILL.md](SKILL.md). Route user intent through [references/user-prompts.md](references/user-prompts.md); use [prompt-workflow-patterns.md](references/prompt-workflow-patterns.md) for abstract prompt patterns; consult the protocol references and [scripts/](scripts/) for the executable control plane.
+Start with [SKILL.md](SKILL.md). The learner uses the single start prompt and natural follow-ups in [references/user-prompts.md](references/user-prompts.md); [interaction-mode-protocol.md](references/interaction-mode-protocol.md) defines the seven modes and arbitrary question queue; consult the remaining protocol references and [scripts/](scripts/) for the executable control plane.
 
 ### Installation
 
@@ -332,11 +357,8 @@ When continuity memory is first enabled for a project, the Skill asks for explic
 ### Quick start
 
 ```text
-Start project-code-study for <PROJECT_ROOT>.
-Study <TOPIC> from the real runtime call chain, build the route first,
-then teach exactly one NODE at a time. Use Chinese and explain each NODE
-through a concrete example, formula/rule, code, and correspondence.
-Run active recall after teaching; maintain QA, LOG, receipts, and state internally.
+I want to start learning this project. My goal is <understand / reproduce /
+modify / research-extend>; my current background is <optional>.
 ```
 
 To continue normally:
@@ -345,7 +367,7 @@ To continue normally:
 Continue with the next NODE.
 ```
 
-The prompt library handles startup, teaching-mode selection, recovery, and diagnostics. It does not delegate QA, LOG maintenance, pausing, or readiness gates to the learner.
+After that, ask any number of questions naturally, answer recall, correct a claim, pause, or send a fresh continue. The Skill—not the learner—maintains Q IDs, QA/LOG, queues, receipts, recovery, and readiness gates.
 
 ### Validation
 
@@ -410,6 +432,7 @@ This Skill independently abstracts workflow ideas from the following public proj
 | [Superpowers](https://github.com/obra/superpowers) | Plan checkpoints, stepwise execution, verification gates, and stopping on blockers. | Inspired node advancement and finalization checks; its repository identifies the project as MIT-licensed. |
 | [AGENT.md specification](https://github.com/agentmd/agent.md) | Layered instructions, scope inheritance, and predictable project context. | Inspired resource layering and recovery entry points; see the upstream repository for its license. |
 | [GitHub Copilot onboarding plan](https://docs.github.com/en/copilot/tutorials/customization-library/prompt-files/onboarding-plan) | Foundation → Exploration → Integration learning phases. | Inspired the organization of startup, exploration, and integration prompts. |
+| [GitHub Copilot customization](https://docs.github.com/en/copilot/customizing-copilot/about-customizing-github-copilot-chat-responses), [Claude Code skills](https://docs.anthropic.com/en/docs/claude-code/skills), and [Anthropic skill-creator](https://github.com/anthropics/skills/tree/main/skills/skill-creator) | Separation of user input, reusable Skill workflows, scoped resources, and host hooks; progressive disclosure. | Inspired v6.2's single entry point, short mode contracts, and layered protocols; no prompt or protocol text was copied. |
 
 This project is not affiliated with, sponsored by, or endorsed by the projects above. Copyright and licensing remain with each respective rightsholder. If third-party code, text, or assets are later copied or redistributed, follow the corresponding upstream `LICENSE`, copyright notices, and contributor requirements. This repository currently claims only independent reuse of public workflow ideas, not upstream source code, prompt text, or assets.
 

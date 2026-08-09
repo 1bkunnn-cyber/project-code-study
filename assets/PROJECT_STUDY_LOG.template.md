@@ -1,6 +1,6 @@
 ---
 document_type: project-code-study-ledger
-schema_version: "4.1"
+schema_version: "4.2"
 project_name: "{{PROJECT_NAME}}"
 project_path: "{{PROJECT_PATH_OR_URL}}"
 language: "zh-CN"
@@ -18,6 +18,9 @@ interaction_state: "TEACHING_CURRENT_NODE"
 pending_user_response: false
 active_side_question_ids: "none"
 pending_user_intents: "none"
+active_input_event_id: "none"
+question_queue_ids: "none"
+question_queue_return_state: "none"
 last_question_id: "none"
 last_transaction_id: "TX-0001"
 learner_closed_question_phase: false
@@ -27,7 +30,7 @@ write_authorized: "yes"
 ---
 
 <!--
-PROJECT CODE STUDY LEDGER CONTRACT — schema 4.1
+PROJECT CODE STUDY LEDGER CONTRACT — schema 4.2
 
 1. This file stores compact state, route, evidence, mastery, corrections, experiments, reviews, milestones, and sessions.
 2. Detailed questions, answers, learner reflections, and feedback belong in PROJECT_STUDY_QA.md; keep compact IDs here.
@@ -87,6 +90,9 @@ PROJECT CODE STUDY LEDGER CONTRACT — schema 4.1
 | 已完成主链节点 | `无` |
 | 当前支线问题 | `none` |
 | 待处理用户意图 | `none` |
+| 当前输入事件 | `none` |
+| 问题队列 | `none` |
+| 问题队列返回状态 | `none` |
 | 精确继续位置 | `完成项目证据盘点` |
 | 当前阻塞 / 前置缺口 | `待确认` |
 | 到期复习 | `无` |
@@ -235,8 +241,8 @@ PROJECT CODE STUDY LEDGER CONTRACT — schema 4.1
 
 > 完整问题和回答在 `PROJECT_STUDY_QA.md`。这里保留导航和学习影响。
 
-| Q ID | Step / Node | 问题摘要 | Parent Q | 状态 | 是否阻塞 | 修正 / 证据 ID | 下一动作 |
-| --- | --- | --- | --- | --- | --- | --- | --- |
+| Q ID | Step / Node | 问题摘要 | Parent Q | 状态 | 回答状态 | Input event | Intent ID | 是否阻塞 | 修正 / 证据 ID | 下一动作 |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 
 ---
 

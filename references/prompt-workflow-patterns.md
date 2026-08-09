@@ -8,11 +8,13 @@ project-specific prompts.
 
 | Source pattern | General abstraction | project-code-study use |
 | --- | --- | --- |
-| Socratic prediction, active recall, graduated hints, spaced review | Test the learner before revealing; increase scaffolding only when needed | prompts 6–8; `question-protocol.md`; durable K evidence |
-| Understand → Act → Validate agent loop | Every action has a read phase, an execution phase, and a verification phase | prompts 1, 3, 11, 16; preflight and receipts |
-| Discovery → Alignment → Design → Refinement | Resolve goal and evidence scope before route generation | prompts 1, 2, 14 |
-| Preflight, required/optional triggers, failure stop, structured outputs | Decide whether a phase applies, stop on required failure, and return artifacts/status | prompt router and prompts 11, 17, 18 |
-| Plan review checkpoints and explicit consent gates | Do not silently transition from a draft/plan to execution/finalization | prompts 15–16; readiness/finalizer |
+| One invocation followed by natural Socratic interaction | Keep operational machinery in the Skill and let the learner speak naturally | one start prompt; `START/LEARN/ASK/ASSESS/RECOVER/CLOSE/REPAIR` router |
+| Socratic prediction, active recall, graduated hints, spaced review | Test the learner before revealing; increase scaffolding only when needed | `ASSESS`; `question-protocol.md`; durable K evidence |
+| Understand → Act → Validate agent loop | Every action has a read phase, an execution phase, and a verification phase | standard loop; preflight and receipts |
+| Discovery → Alignment → Design → Refinement | Resolve goal and evidence scope before route generation | `START` and route repair |
+| Instructions, reusable prompts, skills, and hooks have different scopes | Keep natural input separate from reusable workflow and host enforcement | user prompt / Skill / protocol / host claim guard boundaries |
+| Preflight, required/optional triggers, failure stop, structured outputs | Decide whether a phase applies, stop on required failure, and return artifacts/status | mode router, repair profile, and receipts |
+| Plan review checkpoints and explicit consent gates | Do not silently transition from a draft/plan to execution/finalization | `CLOSE`; readiness/finalizer |
 | Hierarchical always-loaded agent instructions | Keep a small stable contract loaded and defer detail to scoped resources | continuity memory and host-enforcement boundary |
 
 ## What is intentionally not copied
@@ -24,6 +26,8 @@ project-specific prompts.
   intent and provide task-local context.
 - Prompts do not claim that a host will enforce a tool call. A host-level hook
   is required for a hard delivery gate.
+- No external prompt text or protocol schema is copied. Public patterns are
+  reimplemented under this repository's evidence, consent, and fail-closed rules.
 
 ## Research sources
 
@@ -34,6 +38,12 @@ project-specific prompts.
   <https://github.com/microsoft/vscode-docs/blob/main/docs/copilot/concepts/agents.md>
 - GitHub Copilot onboarding prompt —
   <https://docs.github.com/en/copilot/tutorials/customization-library/prompt-files/onboarding-plan>
+- GitHub Copilot customization boundaries —
+  <https://docs.github.com/en/copilot/customizing-copilot/about-customizing-github-copilot-chat-responses>
+- Claude Code skills and invocation/progressive loading —
+  <https://docs.anthropic.com/en/docs/claude-code/skills>
+- Anthropic skill-creator progressive disclosure —
+  <https://github.com/anthropics/skills/tree/main/skills/skill-creator>
 - GitHub Awesome Copilot agent orchestration —
   <https://github.com/github/awesome-copilot/blob/main/instructions/agents.instructions.md>
 - Agent.md hierarchical instruction structure —

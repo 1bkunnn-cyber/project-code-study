@@ -11,7 +11,7 @@ import sys
 from typing import Any
 
 
-REQUIRED_SECTIONS = [
+NODE_TEACHING_SECTIONS = [
     "## 本 NODE 要解决的问题",
     "## 调用链",
     "## 真实代码",
@@ -21,6 +21,15 @@ REQUIRED_SECTIONS = [
     "## 自测题",
     "## QA / receipt 状态",
 ]
+PROFILE_SECTIONS = {
+    "start": ["## 学习定位", "## 下一步", "## QA / receipt 状态"],
+    "node-teaching": NODE_TEACHING_SECTIONS,
+    "question-answer": ["## 问题结论", "## 解释与证据", "## 回到主线", "## QA / receipt 状态"],
+    "recall-assessment": ["## 回答评价", "## 完整解释", "## QA / receipt 状态"],
+    "recovery": ["## 恢复结果", "## 唯一下一行动", "## QA / receipt 状态"],
+    "repair": ["## 状态冲突", "## 修复动作", "## QA / receipt 状态"],
+    "close": ["## 本轮沉淀", "## 等待", "## QA / receipt 状态"],
+}
 STATE_LABELS = {
     "current_step": "- 当前 Step：",
     "current_micro_step": "- 当前 micro-Step：",
@@ -73,10 +82,15 @@ def validate_response(text: str, state: dict[str, Any]) -> list[str]:
         host = evaluate_host_capabilities(state.get("host_capabilities", {}))
         if not host["persistence_claims_allowed"]:
             errors.append("host capability is advisory; positive persistence claim is forbidden")
-    for heading in REQUIRED_SECTIONS:
+    profile = state.get("response_profile", "node-teaching")
+    required_sections = PROFILE_SECTIONS.get(profile)
+    if required_sections is None:
+        errors.append(f"unknown response profile: {profile}")
+        required_sections = []
+    for heading in required_sections:
         if heading not in text:
-            errors.append(f"missing NODE teaching section: {heading}")
-    if "## 真实代码" in text and not re.search(
+            errors.append(f"missing {profile} response section: {heading}")
+    if profile == "node-teaching" and "## 真实代码" in text and not re.search(
         r"(?ms)^## 真实代码\s*$.*?```[A-Za-z0-9_+-]*\n.+?^```",
         text,
     ):
@@ -90,16 +104,15 @@ def validate_response(text: str, state: dict[str, Any]) -> list[str]:
             text,
         ):
             errors.append(f"response state does not match {key}: {expected}")
-    shape = re.search(
-        r"(?ms)^## 输入 / 输出 / Shape / 状态\s*$\n(.*?)(?=^##\s|\Z)",
-        text,
-    )
-    if shape and not re.search(r"\[[0-9,\s×x]+\]", shape.group(1)):
-        errors.append("NODE response requires one concrete Shape")
-    if state.get("response_mode") == "recall_answer":
-        for heading in ("## 回答评价", "## 完整解释"):
-            if heading not in text:
-                errors.append(f"recall answer must include {heading}")
+    content_kind = state.get("content_kind", "code")
+    if content_kind == "tensor" and not re.search(r"\[[0-9,\s×x]+\]", text):
+        errors.append("tensor response requires one concrete Shape")
+    if content_kind == "code" and not re.search(r"```(?:[A-Za-z0-9_+-]+)?\s*\n.+?\n```", text, re.DOTALL):
+        errors.append("code response requires a fenced source excerpt")
+    if content_kind == "metric" and not re.search(r"(?i)(?:precision|recall|iou|ap|map)\s*=", text):
+        errors.append("metric response requires an explicit formula")
+    if content_kind not in {"tensor", "code", "metric", "state", "config", "concept"}:
+        errors.append(f"unknown content kind: {content_kind}")
     if state.get("response_mode") == "side_question":
         recall = str(state.get("active_recall_question", "")).strip()
         if not recall or recall not in text:

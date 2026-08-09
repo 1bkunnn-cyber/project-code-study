@@ -1,6 +1,6 @@
 ---
 document_type: project-code-study-qa
-schema_version: "1.1"
+schema_version: "1.2"
 project_name: "{{PROJECT_NAME}}"
 project_path: "{{PROJECT_PATH_OR_URL}}"
 language: "zh-CN"
@@ -28,8 +28,8 @@ PROJECT CODE STUDY Q&A CONTRACT
 
 ## 1. 问题索引
 
-| Q ID | 日期 | Step / Node | 类型 | 问题摘要 | Parent Q | 状态 | 回答位置 | 修正 ID | Transaction ID |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| Q ID | 日期 | Step / Node | 类型 | 问题摘要 | Parent Q | 状态 | 回答状态 | Input event | Intent ID | 回答位置 | 修正 ID | Transaction ID |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 
 类型：`concept` / `code` / `syntax` / `shape` / `paper` / `runtime` / `comparison` / `review`。
 
@@ -41,6 +41,9 @@ PROJECT CODE STUDY Q&A CONTRACT
 - 日期：
 - Step / Node：
 - Parent Q：无
+- Input event：INPUT-xxx
+- Intent ID：INPUT-xxx-Ixx
+- Intent 顺序：1
 - 主线继续位置：
 - 用户问题原意：
 - 直接结论：
@@ -53,6 +56,7 @@ PROJECT CODE STUDY Q&A CONTRACT
 - 关联 M-/C-/SRC- ID：
 - 最小验证动作：
 - 回到主线：
+- 回答状态：pending / answered / rejected / stale
 - 状态：open / answered / retest-due / closed / deferred / stale
 - Transaction ID：
 - Persistence receipt：
