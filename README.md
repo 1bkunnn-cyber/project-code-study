@@ -79,9 +79,6 @@ receipt；随后每个原 Q-ID 用独立 TX 回答和校验。某一题失败只
 阅读分页，不是队列上限。追问使用新 Q-ID 和 Parent Q；同一消息里的“继续”
 在出现问题或纠正时立即过期。
 
-完整机制映射、测试边界和风险见
-[v6.2 实施报告](PROJECT_CODE_STUDY_V6_2_IMPLEMENTATION_REPORT.md)。
-
 | 产物/控制面 | 唯一职责 | 不能替代 |
 | --- | --- | --- |
 | `PROJECT_STUDY_QA.md` | 保存分类型、可独立阅读的完整问答；publication 模式执行 concept/code/shape/metric/review/correction 深度合同 | LOG 状态、memory、正式手册 |
@@ -272,8 +269,6 @@ not-run boundaries, and the exact response. See the
 [research and acknowledgements table](GITHUB_RESEARCH_AND_ACKNOWLEDGEMENTS.md)
 for upstream ideas, licenses, activity, adoption decisions, and explicit
 non-adoptions.
-See the [v6.2 implementation report](PROJECT_CODE_STUDY_V6_2_IMPLEMENTATION_REPORT.md)
-for the mechanism map, verification matrix, not-run boundaries, and risks.
 
 ### What problem it solves
 

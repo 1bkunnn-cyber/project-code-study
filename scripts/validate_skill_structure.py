@@ -15,7 +15,6 @@ REQUIRED_PATHS = [
     Path("README.md"),
     Path("CHANGELOG.md"),
     Path("GITHUB_RESEARCH_AND_ACKNOWLEDGEMENTS.md"),
-    Path("PROJECT_CODE_STUDY_V6_2_IMPLEMENTATION_REPORT.md"),
     Path("assets/NODE_TEACHING_CONTRACT.md"),
     Path("references/interaction-mode-protocol.md"),
     Path("assets/PROJECT_STUDY_HANDOFF.template.json"),
@@ -42,6 +41,20 @@ REQUIRED_PATHS = [
 ]
 
 
+PROCESS_ARTIFACT_PATTERNS = (
+    re.compile(
+        r"^(?:REMEDIATION_REPORT|IMPLEMENTATION_AND_TEST_REPORT|SELF_TEST_REPORT|"
+        r"WORKFLOW_CLOSURE_AUDIT)_.+\.md$",
+        re.IGNORECASE,
+    ),
+    re.compile(r"^PROJECT_CODE_STUDY_.+_IMPLEMENTATION_REPORT\.md$", re.IGNORECASE),
+    re.compile(
+        r"^(?:quality-report|improvement-plan|update-report)-.+\.md$",
+        re.IGNORECASE,
+    ),
+)
+
+
 def validate_required_paths(root: Path, required: list[Path]) -> list[str]:
     return [
         f"missing required Skill path: {relative.as_posix()}"
@@ -50,8 +63,31 @@ def validate_required_paths(root: Path, required: list[Path]) -> list[str]:
     ]
 
 
+def validate_repository_hygiene(root: Path) -> list[str]:
+    """Reject process artifacts that belong in Git history, not the published Skill."""
+    errors: list[str] = []
+    for path in sorted(root.iterdir()):
+        if path.is_file() and any(
+            pattern.fullmatch(path.name) for pattern in PROCESS_ARTIFACT_PATTERNS
+        ):
+            errors.append(f"process artifact must not be published: {path.name}")
+
+    process_root = root / "docs" / "superpowers"
+    if process_root.exists():
+        process_files = (
+            candidate for candidate in process_root.rglob("*") if candidate.is_file()
+        )
+        for path in sorted(process_files):
+            errors.append(
+                "process artifact must not be published: "
+                f"{path.relative_to(root).as_posix()}"
+            )
+    return errors
+
+
 def validate_structure(root: Path) -> list[str]:
     errors = validate_required_paths(root, REQUIRED_PATHS)
+    errors.extend(validate_repository_hygiene(root))
     if errors:
         return errors
     skill = (root / "SKILL.md").read_text(encoding="utf-8")

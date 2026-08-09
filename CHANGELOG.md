@@ -85,7 +85,3 @@
 - Added compound-question splitting, teaching-output contracts, source-link and UNIT semantic checks, and correction propagation helpers.
 - Replaced user prompts so normal control responsibilities remain in the Skill.
 - Added adversarial T-17–T-31 regression coverage; real host/cross-model testing remains explicitly reported as `not-run` until executed.
-
-## 5.0.0
-
-See [`REMEDIATION_REPORT_5.0.0.md`](REMEDIATION_REPORT_5.0.0.md) for the previous protocol-layer remediation.
